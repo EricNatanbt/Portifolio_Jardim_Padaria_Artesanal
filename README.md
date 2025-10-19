@@ -1,8 +1,6 @@
 # 🌿 Jardim Padaria Artesanal — Portfólio e Sistema de Encomendas
 
 **Projeto Integrador — Softex-PE**  
-**Desenvolvido por:** Júlia Bartolomeu Lima  
-
 ---
 
 ## 🥖 Sobre o Projeto
@@ -56,11 +54,11 @@ A aplicação busca resolver os problemas citados por meio de:
 
 ## 🧩 Tecnologias Utilizadas (sugestão)
 
-- **Front-end:** HTML5, CSS3, JavaScript  
-- **Back-end (opcional):** Node.js ou PHP  
-- **Banco de Dados (opcional):** MySQL / Firebase  
-- **Design:** Figma / Canva  
-- **Hospedagem:** Vercel / Netlify / GitHub Pages  
+- **Front-end:** HTML, CSS, SCSS, Javascript e react 
+- **Back-end (opcional):** Python
+- **Banco de Dados (opcional):** MySQL / IndexedBD  
+- **Design:** Figma   
+- **Hospedagem:** Netlify
 
 ---
 
@@ -71,14 +69,6 @@ A aplicação busca resolver os problemas citados por meio de:
 - Reforço da identidade artesanal e confiável da padaria;  
 - Canal direto entre o MEI e seus clientes.
 
----
-
-## 🚀 Futuras Melhorias
-
-- Integração com redes sociais;  
-- Sistema de login para clientes recorrentes;  
-- Painel administrativo simplificado para o microempreendedor;  
-- Controle automatizado de estoque e relatórios de vendas.
 
 ---
 
@@ -90,6 +80,6 @@ O site e portfólio da **Jardim Padaria Artesanal** será uma ferramenta fundame
 
 ### 📎 Licença
 
-Este projeto foi desenvolvido para fins educacionais no âmbito do **Projeto Integrador Softex-PE**.
+Este projeto foi desenvolvido por Eric Natan, Kayllane Santos, Gabriella Barros e M. Eduarda Brito, para fins educacionais no âmbito do **Projeto Integrador Softex-PE**.
 
 ---
