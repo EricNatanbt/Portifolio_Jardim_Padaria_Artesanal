@@ -16,70 +16,83 @@ function initializeApp() {
 }
 
 function initializeNavigation() {
-    console.log("✅ initializeNavigation chamada"); // Debug
+    console.log("🔧 Inicializando navegação...");
     
-    // Menu mobile - VERSÃO SUPER SIMPLES
     const menuToggle = document.getElementById("menuToggle");
     const mobileMenu = document.getElementById("mobileMenu");
+    
+    console.log("Menu toggle:", menuToggle);
+    console.log("Mobile menu:", mobileMenu);
 
-    console.log("menuToggle:", menuToggle); // Debug
-    console.log("mobileMenu:", mobileMenu); // Debug
-
-    if (menuToggle && mobileMenu) {
-        console.log("✅ Elementos encontrados, adicionando event listeners"); // Debug
-        
-        menuToggle.addEventListener("click", function(e) {
-            console.log("✅ Menu toggle clicado"); // Debug
-            e.stopPropagation();
-            
-            // Alterna a classe active
-            if (mobileMenu.classList.contains("active")) {
-                mobileMenu.classList.remove("active");
-                console.log("📱 Menu fechado"); // Debug
-            } else {
-                mobileMenu.classList.add("active");
-                console.log("📱 Menu aberto"); // Debug
-            }
-        });
-
-        // Fechar menu ao clicar em um link
-        document.querySelectorAll(".mobile-nav-link").forEach(link => {
-            link.addEventListener("click", function() {
-                console.log("✅ Link mobile clicado, fechando menu"); // Debug
-                mobileMenu.classList.remove("active");
-            });
-        });
-
-        // Fechar menu ao clicar fora (em qualquer lugar da página)
-        document.addEventListener("click", function(e) {
-            if (mobileMenu.classList.contains("active") && 
-                !mobileMenu.contains(e.target) && 
-                e.target !== menuToggle) {
-                console.log("✅ Clicou fora, fechando menu"); // Debug
-                mobileMenu.classList.remove("active");
-            }
-        });
-
-    } else {
-        console.error("❌ Elementos do menu mobile não encontrados!");
+    // 1. FUNÇÃO PARA ABRIR MENU
+    function openMobileMenu() {
+        console.log("📱 Abrindo menu mobile");
+        mobileMenu.classList.add("active");
+        document.body.style.overflow = "hidden"; // Trava o scroll
     }
 
-    // Navegação entre páginas (mantém o original)
-    document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-page]')) {
+    // 2. FUNÇÃO PARA FECHAR MENU
+    function closeMobileMenu() {
+        console.log("📱 Fechando menu mobile");
+        mobileMenu.classList.remove("active");
+        document.body.style.overflow = "auto"; // Libera o scroll
+    }
+
+    // 3. EVENTO NO BOTÃO MENU
+    if (menuToggle) {
+        menuToggle.addEventListener("click", function(e) {
+            e.stopPropagation();
+            console.log("🎯 Botão menu clicado!");
+            
+            if (mobileMenu.classList.contains("active")) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+    }
+
+    // 4. FECHAR MENU AO CLICAR NOS LINKS
+    document.querySelectorAll(".mobile-nav-link").forEach(link => {
+        link.addEventListener("click", function(e) {
             e.preventDefault();
-            const page = e.target.dataset.page;
-            navigateToPage(page);
+            console.log("🔗 Link clicado:", this.textContent);
+            closeMobileMenu();
+            
+            // Navega para a página
+            const page = this.getAttribute("data-page");
+            if (page) {
+                navigateToPage(page);
+            }
+        });
+    });
+
+    // 5. FECHAR MENU AO CLICAR FORA (no overlay)
+    mobileMenu.addEventListener("click", function(e) {
+        if (e.target === mobileMenu) {
+            console.log("👆 Clicou fora do menu, fechando...");
+            closeMobileMenu();
         }
     });
-}
 
-// ============================================
-// NAVEGAÇÃO 
-// ============================================
-// A lógica de navegação entre páginas (navigateToPage) e o closeMobileMenu
-// para fechar o menu mobile após a navegação, foram mantidas.
-// A inicialização do menu mobile foi movida para o componente navigation.js.
+    // 6. FECHAR MENU COM TECLA ESC
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && mobileMenu.classList.contains("active")) {
+            console.log("⌨️ Tecla ESC pressionada");
+            closeMobileMenu();
+        }
+    });
+
+    // 7. FECHAR MENU AO REDIMENSIONAR PARA DESKTOP
+    window.addEventListener("resize", function() {
+        if (window.innerWidth >= 768 && mobileMenu.classList.contains("active")) {
+            console.log("🖥️ Tela grande detectada, fechando menu");
+            closeMobileMenu();
+        }
+    });
+
+    console.log("✅ Navegação inicializada com sucesso!");
+}
 
 function closeMobileMenu() {
     const mobileMenu = document.getElementById("mobileMenu");
@@ -88,6 +101,12 @@ function closeMobileMenu() {
         document.body.style.overflow = "auto";
     }
 }
+// ============================================
+// NAVEGAÇÃO 
+// ============================================
+// A lógica de navegação entre páginas (navigateToPage) e o closeMobileMenu
+// para fechar o menu mobile após a navegação, foram mantidas.
+// A inicialização do menu mobile foi movida para o componente navigation.js.
 
 function navigateToPage(page) {
     // Esconde todas as páginas
