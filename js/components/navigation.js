@@ -16,23 +16,24 @@ const Navigation = {
             // Abrir menu
             menuToggle.addEventListener("click", (e) => {
                 e.stopPropagation();
-                mobileMenu.classList.add("active");
-                document.body.style.overflow = "hidden";
+                mobileMenu.classList.toggle("active");
+                document.body.style.overflow = mobileMenu.classList.contains("active") ? "hidden" : "auto";
             });
 
-            // Fechar menu com botão X
-            if (mobileClose) {
-                mobileClose.addEventListener("click", () => {
-                    mobileMenu.classList.remove("active");
-                    document.body.style.overflow = "auto";
-                });
-            }
+            // Não é necessário um botão X, pois o toggle faz o trabalho, e o overlay fecha.
+            // O botão X pode ser adicionado no HTML se for o caso, mas a lógica de toggle é mais simples.
+            // Se o botão X for adicionado, ele deve ter o ID 'mobileClose' e a lógica abaixo será reativada.
+            // if (mobileClose) {
+            //     mobileClose.addEventListener("click", () => {
+            //         mobileMenu.classList.remove("active");
+            //         document.body.style.overflow = "auto";
+            //     });
+            // }
 
-            // Fechar menu ao clicar em um link mobile (a função navigateToPage no main.js já faz isso, mas vamos manter a lógica de fechar aqui também, caso a navegação não seja usada)
+            // Fechar menu ao clicar em um link mobile
             document.querySelectorAll(".mobile-nav-link").forEach(link => {
                 link.addEventListener("click", () => {
-                    mobileMenu.classList.remove("active");
-                    document.body.style.overflow = "auto";
+                    this.closeMobileMenu();
                 });
             });
 

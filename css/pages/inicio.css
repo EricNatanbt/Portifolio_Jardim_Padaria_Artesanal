@@ -313,9 +313,9 @@
 .cta-button.secondary {
     background: transparent;
     color: white;
-    padding: 1rem 2rem;
+    padding: 1rem 1rem;
     border-radius: var(--radius);
-    font-weight: 600;
+    font-weight: 300;
     transition: all 0.3s ease;
     border: 2px solid white;
     display: flex;
