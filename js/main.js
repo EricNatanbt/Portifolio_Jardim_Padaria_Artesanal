@@ -15,6 +15,65 @@ function initializeApp() {
     initializePageComponents(currentPage);
 }
 
+function initializeNavigation() {
+    console.log("✅ initializeNavigation chamada"); // Debug
+    
+    // Menu mobile - VERSÃO SUPER SIMPLES
+    const menuToggle = document.getElementById("menuToggle");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    console.log("menuToggle:", menuToggle); // Debug
+    console.log("mobileMenu:", mobileMenu); // Debug
+
+    if (menuToggle && mobileMenu) {
+        console.log("✅ Elementos encontrados, adicionando event listeners"); // Debug
+        
+        menuToggle.addEventListener("click", function(e) {
+            console.log("✅ Menu toggle clicado"); // Debug
+            e.stopPropagation();
+            
+            // Alterna a classe active
+            if (mobileMenu.classList.contains("active")) {
+                mobileMenu.classList.remove("active");
+                console.log("📱 Menu fechado"); // Debug
+            } else {
+                mobileMenu.classList.add("active");
+                console.log("📱 Menu aberto"); // Debug
+            }
+        });
+
+        // Fechar menu ao clicar em um link
+        document.querySelectorAll(".mobile-nav-link").forEach(link => {
+            link.addEventListener("click", function() {
+                console.log("✅ Link mobile clicado, fechando menu"); // Debug
+                mobileMenu.classList.remove("active");
+            });
+        });
+
+        // Fechar menu ao clicar fora (em qualquer lugar da página)
+        document.addEventListener("click", function(e) {
+            if (mobileMenu.classList.contains("active") && 
+                !mobileMenu.contains(e.target) && 
+                e.target !== menuToggle) {
+                console.log("✅ Clicou fora, fechando menu"); // Debug
+                mobileMenu.classList.remove("active");
+            }
+        });
+
+    } else {
+        console.error("❌ Elementos do menu mobile não encontrados!");
+    }
+
+    // Navegação entre páginas (mantém o original)
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('[data-page]')) {
+            e.preventDefault();
+            const page = e.target.dataset.page;
+            navigateToPage(page);
+        }
+    });
+}
+
 // ============================================
 // NAVEGAÇÃO 
 // ============================================
