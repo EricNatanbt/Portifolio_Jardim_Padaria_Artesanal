@@ -1,0 +1,122 @@
+/* ============================================
+   FOOTER - CORRIGIDO
+   ============================================ */
+
+/* paleta do rodapé */
+:root {
+  --green: #34572b;
+  --cream: #fff8e1;
+  --brown: #8b5e3c;
+}
+
+/* rodapé */
+footer {
+  background: linear-gradient(180deg, #fff8e1 0%, #fff4d0 100%);
+  border-top: 6px solid #34572b;
+  box-shadow: 0 -6px 18px rgba(0,0,0,0.10);
+  color: var(--brown);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  padding: 18px 20px; 
+  margin-top: 0; /* GARANTIR que não há margem top */
+}
+
+/* grid principal */
+.footer-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  transform: translateY(10px);
+  animation: fadeUp .6s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* cada bloco */
+.footer-section h3 {
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: var(--green);
+  font-family: 'Playfair Display', serif;
+}
+
+.footer-section p {
+  margin: 6px 0;
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+/* --- BLOCO SIGA-NOS --- */
+.footer-social {
+  text-align: left;
+}
+
+.footer-social h3 {
+  font-size: 1rem;
+  color: var(--green);
+  margin-bottom: 6px;
+  font-family: 'Playfair Display', serif;
+}
+
+/* ÍCONES */
+.footer-social a {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.footer-social img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  backdrop-filter: blur(2px);
+  transition: .25s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  vertical-align: middle;
+}
+
+.footer-social img:hover {
+  transform: translateY(-4px) scale(1.09);
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+}
+
+/* subtexto */
+.footer-bottom {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.footer-bottom p {
+  font-size: 0.72rem;
+  opacity: .55;
+}
+
+/* remove espaço embaixo */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* responsividade */
+@media (max-width: 800px) {
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+    text-align: center;
+  }
+
+  .footer-social {
+    text-align: center;
+  }
+}
+
+@media (max-width: 500px) {
+  .footer-content {
+    grid-template-columns: 1fr;
+  }
+}

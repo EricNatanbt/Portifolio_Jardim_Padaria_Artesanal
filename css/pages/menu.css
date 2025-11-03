@@ -1,0 +1,215 @@
+/* ============================================
+   MENU SECTION
+   ============================================ */
+.menu-section {
+    padding: 3rem 0;
+}
+
+@media (min-width: 768px) {
+    .menu-section {
+        padding: 5rem 0;
+    }
+}
+
+.menu-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+    text-align: center;
+}
+
+.menu-intro {
+    text-align: center;
+    color: var(--muted-foreground);
+    margin-bottom: 2rem;
+    font-size: 1.05rem;
+}
+
+/* ============================================
+   CARDÁPIO SEMANAL
+   ============================================ */
+.cardapio-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.cardapio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.cardapio-header h3 {
+    color: var(--primary);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.navegacao-dias {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.dia-nome {
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 120px;
+    text-align: center;
+}
+
+.cardapio-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.categoria-produtos {
+    background: var(--muted);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    border-left: 4px solid var(--accent);
+}
+
+.categoria-produtos h4 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.lista-produtos {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.produto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: white;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.produto-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.produto-info {
+    flex: 1;
+}
+
+.produto-nome {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+}
+
+.produto-preco {
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+.btn-adicionar-rapido {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.btn-adicionar-rapido:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+.sem-fornadas {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--muted);
+    border-radius: var(--radius);
+    border: 2px dashed var(--border);
+}
+
+.sem-fornadas h3 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.sem-fornadas p {
+    color: var(--muted-foreground);
+    font-size: 1.1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .cardapio-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .navegacao-dias {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardapio-container {
+        padding: 1rem;
+    }
+    
+    .categoria-produtos {
+        padding: 1rem;
+    }
+    
+    .produto-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .btn-adicionar-rapido {
+        align-self: center;
+    }
+}
