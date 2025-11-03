@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="css/pages/feedbacks.css">
     
     <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1C3D2D">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -239,6 +241,20 @@
     
     <!-- Main Script -->
     <script src="js/main.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js', {scope: '/'})
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha no registro do Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 
     <!-- Script para carregar conteúdo das páginas -->
     <script>
