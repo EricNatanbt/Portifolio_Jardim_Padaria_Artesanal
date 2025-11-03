@@ -116,6 +116,30 @@ function initializePageComponents(pageName) {
 // ============================================
 // UTILITÁRIOS
 // ============================================
+function showNotification(message, duration = 3000, type = 'info') {
+    const notificationBar = document.getElementById('notificationBar');
+    if (notificationBar) {
+        notificationBar.textContent = message;
+    notificationBar.classList.remove('info', 'error');
+    notificationBar.classList.add(type);
+        notificationBar.classList.add('show');
+
+        setTimeout(() => {
+            notificationBar.classList.remove('show');
+        }, duration);
+    }
+}
+function getCurrentDayName() {
+    const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+    const date = new Date();
+    return days[date.getDay()];
+}
+
+function getDayNameInPortuguese(dayIndex) {
+    const days = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+    return days[dayIndex];
+}
+
 function getProductIcon(category) {
     const categoryIcons = {
         "Pães": "🥖",
@@ -166,4 +190,6 @@ document.addEventListener('DOMContentLoaded', function() {
 window.navigateToPage = navigateToPage;
 window.getProductIcon = getProductIcon;
 window.getProductsForDay = getProductsForDay;
+window.getCurrentDayName = getCurrentDayName;
+window.showNotification = showNotification;
 window.initializeApp = initializeApp;

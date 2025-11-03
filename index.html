@@ -74,6 +74,9 @@
         </div>
     </header>
 
+    <!-- Notification Bar -->
+    <div id="notificationBar" class="notification-bar"></div>
+
     <!-- Main Content -->
     <main class="main">
         <!-- Todas as páginas incluídas diretamente -->
@@ -86,7 +89,35 @@
         </div>
 
         <div id="page-menu" class="page">
-            <!-- Conteúdo da página menu será carregado aqui -->
+	            <section class="menu-section">
+	                <div class="container">
+	                    <h2 class="menu-title">FORNADA</h2>
+	                    <p class="menu-intro" id="titulo-dia">Cardápio de Quinta</p>
+	                    
+	                    <div class="cardapio-container">
+	                        <div class="cardapio-header">
+	                            <button id="prevDay" class="nav-btn">
+	                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+	                            </button>
+	                            <span class="dia-nome" id="dia-atual">Quinta-feira</span>
+	                            <button id="nextDay" class="nav-btn">
+	                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+	                            </button>
+	                        </div>
+	                        
+	                        <div class="cardapio-content" id="container-cardapio">
+	                            <!-- Conteúdo do cardápio será injetado aqui pelo JS -->
+	                        </div>
+	                        
+	                        <div class="sem-fornadas" id="sem-fornadas" style="display: none;">
+	                            <h3>Sem Fornadas Hoje</h3>
+	                            <p>Acompanhe nossas redes sociais para saber quando teremos a próxima fornada!</p>
+	                        </div>
+	                    </div>
+	                    
+	                    <p class="menu-footer-text">Clique à direita para avançar, à esquerda para voltar 🌿</p>
+	                </div>
+	            </section>i -->
         </div>
 
         <div id="page-feedbacks" class="page">

@@ -59,7 +59,7 @@ const menuData = [
     },
     { 
         id: 6, 
-        name: "Ciabatta Grãos e Cereais", 
+        name: "Ciabatta Grãos & Cereais", 
         price: 8.00, 
         description: "Ciabatta com mix de grãos e cereais, nutritiva e saborosa. Perfeita para um café da manhã saudável.", 
         ingredients: "Farinha integral, grãos de linhaça, sementes de chia, gergelim, aveia, quinoa, fermento natural, água, sal, azeite",
@@ -141,132 +141,36 @@ const menuData = [
         category: "Doces", 
         day: ["quarta", "quinta", "sexta", "sabado"] 
     },
+    { 
+        id: 14, 
+        name: "Brioche Tradicional", 
+        price: 20.00, 
+        description: "Brioche clássico francês, rico em manteiga e ovos. Massa leve e aerada, ideal para o café da manhã.", 
+        ingredients: "Farinha de trigo, manteiga francesa, ovos caipiras, açúcar, fermento biológico, leite, sal",
+        category: "Doces", 
+        day: ["quarta", "quinta", "sexta", "sabado"] 
+    },
 
     // ============================================
-    // BOLOS (Adicionais para categorização)
+    // PRONTA-ENTREGA (Acompanhamentos)
     // ============================================
     
     { 
-        id: 14, 
-        name: "Bolo Iubilate", 
-        price: 200.00, 
-        description: "Bolo premium com camadas de massa amanteigada e recheios especiais. Decorado artisticamente para ocasiões especiais.", 
-        ingredients: "Farinha de trigo premium, manteiga francesa, ovos orgânicos, açúcar cristal, chocolate belga 70%, frutas vermelhas, cream cheese, baunilha do Madagascar",
-        category: "Bolos", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
         id: 15, 
-        name: "Dolce Cantabona", 
-        price: 120.00, 
-        description: "Bolo italiano com textura úmida e sabor intenso de avelã e chocolate. Sofisticação em cada fatia.", 
-        ingredients: "Farinha de amêndoas, avelãs torradas, chocolate italiano, manteiga, ovos, açúcar mascavo, essência de baunilha, fermento químico",
-        category: "Bolos", 
+        name: "Muffins Duplo chocolate", 
+        price: 10.00, 
+        description: "Muffin úmido com gotas de chocolate e cobertura de ganache de chocolate. Dupla dose de sabor.", 
+        ingredients: "Farinha de trigo, cacau em pó, gotas de chocolate, ovos, açúcar, leite, óleo vegetal, fermento químico",
+        category: "Pronta-Entrega", 
         day: ["quarta", "quinta", "sexta", "sabado"] 
     },
     { 
         id: 16, 
-        name: "Bolo Magnificat", 
-        price: 85.00, 
-        description: "Bolo clássico com toque especial de especiarias. Perfeito para o café da tarde com amigos.", 
-        ingredients: "Farinha de trigo, canela, noz-moscada, cravo, manteiga, ovos, açúcar, fermento biológico, leite, essência de baunilha",
-        category: "Bolos", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-
-    // ============================================
-    // MINI BOLOS
-    // ============================================
-    
-    { 
-        id: 17, 
-        name: "Mini Torta Caprese", 
-        price: 25.00, 
-        description: "Versão individual da clássica torta caprese. Chocolate intenso e textura derretente.", 
-        ingredients: "Chocolate amargo 70%, amêndoas, manteiga, ovos, açúcar, farinha de amêndoas, essência de amêndoas, açúcar de confeiteiro",
-        category: "Mini Bolos", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 18, 
-        name: "Mini Dolce Cantabona", 
-        price: 20.00, 
-        description: "Pequena versão do Dolce Cantabona, perfeita para uma indulgência individual.", 
-        ingredients: "Farinha de amêndoas, avelãs, chocolate, manteiga, ovos, açúcar, essência de baunilha, fermento químico",
-        category: "Mini Bolos", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-
-    // ============================================
-    // CHOCOLATES
-    // ============================================
-    
-    { 
-        id: 19, 
-        name: "Barra de Chocolate Artesanal", 
-        price: 45.00, 
-        description: "Chocolate artesanal com 70% cacau, produzido com técnicas tradicionais. Intenso e sofisticado.", 
-        ingredients: "Cacau 70% orgânico, açúcar de coco, manteiga de cacau, baunilha em fava, sal rosa do Himalaia",
-        category: "Chocolate", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 20, 
-        name: "Bombons Recheados", 
-        price: 100.00, 
-        description: "Caixa com seleção de bombons recheados: ganache, praliné e frutas. Presente perfeito para amantes de chocolate.", 
-        ingredients: "Chocolate belga 55%, chocolate ao leite, chocolate branco, creme de avelã, frutas cristalizadas, licor de laranja, essência de baunilha",
-        category: "Chocolate", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 21, 
-        name: "Brownie Premium", 
-        price: 85.00, 
-        description: "Brownie com textura densa e úmida, repleto de nozes e gotas de chocolate. Indulgência máxima.", 
-        ingredients: "Chocolate amargo 70%, manteiga, ovos caipiras, açúcar mascavo, nozes, farinha de trigo, essência de baunilha, sal marinho",
-        category: "Chocolate", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-
-    // ============================================
-    // PRODUTOS ADICIONAIS
-    // ============================================
-    
-    { 
-        id: 22, 
-        name: "Pão Francês Artesanal", 
-        price: 35.00, 
-        description: "Nosso pão francês artesanal com fermentação lenta. Casca crocante e miolo macio e alveolado.", 
-        ingredients: "Farinha de trigo especial, água, fermento natural, sal marinho, maltose, farinha de centeio (para fermentação)",
-        category: "Pães", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 23, 
-        name: "Pão de Queijo Artesanal", 
-        price: 40.00, 
-        description: "Pão de queijo mineiro autêntico, com polvilho azedo e queijo minas curado. Crocante por fora, macio por dentro.", 
-        ingredients: "Polvilho azedo, queijo minas curado, ovos caipiras, leite integral, óleo, sal, queijo parmesão",
-        category: "Pães", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 24, 
-        name: "Croissant de Chocolate", 
-        price: 15.00, 
-        description: "Croissant folhado com recheio generoso de chocolate belga. Perfeito para o café da manhã.", 
-        ingredients: "Farinha de trigo, manteiga francesa, chocolate belga, ovos, leite, açúcar, fermento biológico, sal",
-        category: "Doces", 
-        day: ["quarta", "quinta", "sexta", "sabado"] 
-    },
-    { 
-        id: 25, 
-        name: "Pão de Mel com Damasco", 
-        price: 25.00, 
-        description: "Pão de mel úmido e especiado com pedaços de damasco e cobertura de chocolate amargo.", 
-        ingredients: "Farinha de trigo integral, mel silvestre, damascos secos, especiarias (canela, cravo, noz-moscada), chocolate amargo, fermento químico, ovos",
-        category: "Doces", 
+        name: "Muffins Damasco", 
+        price: 10.00, 
+        description: "Muffin com pedaços de damasco e um toque de especiarias. Sabor agridoce e textura macia.", 
+        ingredients: "Farinha de trigo, damasco seco, especiarias, ovos, açúcar, leite, óleo vegetal, fermento químico",
+        category: "Pronta-Entrega", 
         day: ["quarta", "quinta", "sexta", "sabado"] 
     }
 ];
