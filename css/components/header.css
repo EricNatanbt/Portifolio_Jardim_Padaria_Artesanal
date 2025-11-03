@@ -146,11 +146,17 @@
 /* Mobile Menu */
 .mobile-menu {
     display: none;
-    border-top: 1px solid var(--border);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     background-color: var(--primary);
+    border-top: 1px solid var(--border);
     padding: 1rem 0;
     flex-direction: column;
     gap: 0.5rem;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-menu.active {
@@ -177,4 +183,8 @@
     background-color: var(--accent);
     color: var(--primary);
     font-weight: 600;
+}
+
+.header .container {
+    position: relative;
 }
