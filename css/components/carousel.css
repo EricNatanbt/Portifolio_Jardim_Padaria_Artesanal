@@ -1,0 +1,106 @@
+/* ============================================
+   CARROSSEL SOBRE NÓS - MAIS LARGO
+   ============================================ */
+
+.carousel-container {
+    width: 450px;
+    max-width: 600px; 
+    height: 1200px;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin: 0 auto; /* Centraliza */
+}
+
+.carousel-slide {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-image {
+    width:  100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.carousel-image.active {
+    opacity: 1;
+}
+
+.carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+    background-color: white;
+    transform: scale(1.2);
+}
+
+.carousel-dot:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+
+.carousel-nav:hover {
+    background-color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-prev {
+    left: 20px;
+}
+
+.carousel-next {
+    right: 20px;
+}
+
+/* Ajuste para telas maiores - MUITO MAIS LARGO */
+@media (min-width: 1200px) {
+    .carousel-container {
+        max-width: 1400px; /* EXTRA LARGO para telas grandes */
+        height: 700px;
+    }
+}
+
+/* Ajuste para telas médias */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .carousel-container {
+        max-width: 1000px; /* Largo para tablets */
+        height: 550px;
+    }
+}
+
+/* Ajuste para telas pequenas */
+@media (max-width: 767px) {
+    .carousel-container {
+        max-width: 100%;
+        height: 400px;
+        margin: 0 1rem;
+    }
+    
+    .carousel-nav {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .carousel-prev {
+        left: 10px;
+    }
+    
+    .carousel-next {
+        right: 10px;
+    }
+}
