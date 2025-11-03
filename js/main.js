@@ -7,7 +7,7 @@ let currentPage = "inicio";
 // INICIALIZAÇÃO
 // ============================================
 function initializeApp() {
-    initializeNavigation(); // Esta função deve chamar Navigation.initialize()
+    Navigation.initialize();
     Cart.initialize();
     Modal.initialize();
     
@@ -18,70 +18,9 @@ function initializeApp() {
 // ============================================
 // NAVEGAÇÃO 
 // ============================================
-function initializeNavigation() {
-    // Menu mobile
-    const menuToggle = document.getElementById("menuToggle");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileClose = document.getElementById("mobileClose");
-
-    if (menuToggle && mobileMenu) {
-        // Abrir menu
-        menuToggle.addEventListener("click", (e) => {
-            e.stopPropagation();
-            mobileMenu.classList.add("active");
-            document.body.style.overflow = "hidden";
-        });
-
-        // Fechar menu com botão X
-        if (mobileClose) {
-            mobileClose.addEventListener("click", () => {
-                mobileMenu.classList.remove("active");
-                document.body.style.overflow = "auto";
-            });
-        }
-
-        // Fechar menu ao clicar em um link mobile
-        document.querySelectorAll(".mobile-nav-link").forEach(link => {
-            link.addEventListener("click", () => {
-                mobileMenu.classList.remove("active");
-                document.body.style.overflow = "auto";
-            });
-        });
-
-        // Fechar menu ao clicar fora (no overlay)
-        mobileMenu.addEventListener("click", (e) => {
-            if (e.target === mobileMenu) {
-                mobileMenu.classList.remove("active");
-                document.body.style.overflow = "auto";
-            }
-        });
-
-        // Fechar menu ao redimensionar para desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                mobileMenu.classList.remove("active");
-                document.body.style.overflow = "auto";
-            }
-        });
-
-        // Fechar menu com ESC key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && mobileMenu.classList.contains("active")) {
-                mobileMenu.classList.remove("active");
-                document.body.style.overflow = "auto";
-            }
-        });
-    }
-
-    // Navegação entre páginas
-    document.addEventListener('click', (e) => {
-        if (e.target.matches('[data-page]')) {
-            e.preventDefault();
-            const page = e.target.dataset.page;
-            navigateToPage(page);
-        }
-    });
-}
+// A lógica de navegação entre páginas (navigateToPage) e o closeMobileMenu
+// para fechar o menu mobile após a navegação, foram mantidas.
+// A inicialização do menu mobile foi movida para o componente navigation.js.
 
 function closeMobileMenu() {
     const mobileMenu = document.getElementById("mobileMenu");
@@ -135,12 +74,7 @@ function updateNavigation(page) {
     });
 }
 
-function closeMobileMenu() {
-    const mobileMenu = document.getElementById("mobileMenu");
-    if (mobileMenu) {
-        mobileMenu.classList.remove("active");
-    }
-}
+
 
 // ============================================
 // INICIALIZAÇÃO DE COMPONENTES POR PÁGINA
