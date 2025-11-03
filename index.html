@@ -56,21 +56,24 @@
                     </button>
 
                     <!-- Mobile Menu Toggle -->
-                            <button id="menuToggle" class="menu-toggle">
-                                <span style="font-size: 1.5rem;">☰</span>
-                        </button>
+                    <button id="menuToggle" class="menu-toggle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
             <!-- Mobile Menu -->
-<div id="mobileMenu" class="mobile-menu">
-	    <div class="mobile-menu-content">
-	        <a href="#" data-page="inicio" class="mobile-nav-link">Início</a>
-	        <a href="#" data-page="sobre" class="mobile-nav-link">Sobre Nós</a>
-	        <a href="#" data-page="menu" class="mobile-nav-link">Menu</a>
-	        <a href="#" data-page="feedbacks" class="mobile-nav-link">Feedbacks</a>
-	    </div>
-	</div>
+            <nav class="mobile-menu" id="mobileMenu" style="display: none;">
+                <a href="#" class="mobile-nav-link active" data-page="inicio">Início</a>
+                <a href="#" class="mobile-nav-link" data-page="sobre">Sobre Nós</a>
+                <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
+                <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
+            </nav>
+        </div>
     </header>
 
     <!-- Notification Bar -->

@@ -7,7 +7,7 @@ let currentPage = "inicio";
 // INICIALIZAÇÃO
 // ============================================
 function initializeApp() {
-    Navigation.initialize();
+    initializeNavigation();
     Cart.initialize();
     Modal.initialize();
     
@@ -15,98 +15,29 @@ function initializeApp() {
     initializePageComponents(currentPage);
 }
 
+// ============================================
+// NAVEGAÇÃO
+// ============================================
 function initializeNavigation() {
-    console.log("🔧 Inicializando navegação...");
-    
+    // Menu mobile
     const menuToggle = document.getElementById("menuToggle");
     const mobileMenu = document.getElementById("mobileMenu");
-    
-    console.log("Menu toggle:", menuToggle);
-    console.log("Mobile menu:", mobileMenu);
 
-    // 1. FUNÇÃO PARA ABRIR MENU
-    function openMobileMenu() {
-        console.log("📱 Abrindo menu mobile");
-        mobileMenu.classList.add("active");
-        document.body.style.overflow = "hidden"; // Trava o scroll
-    }
-
-    // 2. FUNÇÃO PARA FECHAR MENU
-    function closeMobileMenu() {
-        console.log("📱 Fechando menu mobile");
-        mobileMenu.classList.remove("active");
-        document.body.style.overflow = "auto"; // Libera o scroll
-    }
-
-    // 3. EVENTO NO BOTÃO MENU
-    if (menuToggle) {
-        menuToggle.addEventListener("click", function(e) {
-            e.stopPropagation();
-            console.log("🎯 Botão menu clicado!");
-            
-            if (mobileMenu.classList.contains("active")) {
-                closeMobileMenu();
-            } else {
-                openMobileMenu();
-            }
+    if (menuToggle && mobileMenu) {
+        menuToggle.addEventListener("click", () => {
+            mobileMenu.classList.toggle("active");
         });
     }
 
-    // 4. FECHAR MENU AO CLICAR NOS LINKS
-    document.querySelectorAll(".mobile-nav-link").forEach(link => {
-        link.addEventListener("click", function(e) {
+    // Navegação entre páginas
+    document.addEventListener('click', (e) => {
+        if (e.target.matches('[data-page]')) {
             e.preventDefault();
-            console.log("🔗 Link clicado:", this.textContent);
-            closeMobileMenu();
-            
-            // Navega para a página
-            const page = this.getAttribute("data-page");
-            if (page) {
-                navigateToPage(page);
-            }
-        });
-    });
-
-    // 5. FECHAR MENU AO CLICAR FORA (no overlay)
-    mobileMenu.addEventListener("click", function(e) {
-        if (e.target === mobileMenu) {
-            console.log("👆 Clicou fora do menu, fechando...");
-            closeMobileMenu();
+            const page = e.target.dataset.page;
+            navigateToPage(page);
         }
     });
-
-    // 6. FECHAR MENU COM TECLA ESC
-    document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape" && mobileMenu.classList.contains("active")) {
-            console.log("⌨️ Tecla ESC pressionada");
-            closeMobileMenu();
-        }
-    });
-
-    // 7. FECHAR MENU AO REDIMENSIONAR PARA DESKTOP
-    window.addEventListener("resize", function() {
-        if (window.innerWidth >= 768 && mobileMenu.classList.contains("active")) {
-            console.log("🖥️ Tela grande detectada, fechando menu");
-            closeMobileMenu();
-        }
-    });
-
-    console.log("✅ Navegação inicializada com sucesso!");
 }
-
-function closeMobileMenu() {
-    const mobileMenu = document.getElementById("mobileMenu");
-    if (mobileMenu) {
-        mobileMenu.classList.remove("active");
-        document.body.style.overflow = "auto";
-    }
-}
-// ============================================
-// NAVEGAÇÃO 
-// ============================================
-// A lógica de navegação entre páginas (navigateToPage) e o closeMobileMenu
-// para fechar o menu mobile após a navegação, foram mantidas.
-// A inicialização do menu mobile foi movida para o componente navigation.js.
 
 function navigateToPage(page) {
     // Esconde todas as páginas
@@ -152,7 +83,12 @@ function updateNavigation(page) {
     });
 }
 
-
+function closeMobileMenu() {
+    const mobileMenu = document.getElementById("mobileMenu");
+    if (mobileMenu) {
+        mobileMenu.classList.remove("active");
+    }
+}
 
 // ============================================
 // INICIALIZAÇÃO DE COMPONENTES POR PÁGINA
