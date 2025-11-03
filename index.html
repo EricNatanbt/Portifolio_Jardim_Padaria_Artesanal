@@ -56,24 +56,21 @@
                     </button>
 
                     <!-- Mobile Menu Toggle -->
-                    <button id="menuToggle" class="menu-toggle">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                        </svg>
-                    </button>
+                            <button id="menuToggle" class="menu-toggle">
+                                <span style="font-size: 1.5rem;">☰</span>
+                        </button>
                 </div>
             </div>
 
             <!-- Mobile Menu -->
-            <nav class="mobile-menu" id="mobileMenu">
-                <a href="#" class="mobile-nav-link" data-page="inicio">Início</a>
-                <a href="#" class="mobile-nav-link" data-page="sobrenos">Sobre Nós</a>
-                <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
-                <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
-            </nav>
-        </div>
+<div id="mobileMenu" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+    <div style="background: var(--primary); margin: 4rem 1rem; padding: 2rem; border-radius: 10px;">
+        <a href="#" data-page="inicio" style="display: block; padding: 1rem; color: white; text-align: center; border-bottom: 1px solid white;">Início</a>
+        <a href="#" data-page="sobrenos" style="display: block; padding: 1rem; color: white; text-align: center; border-bottom: 1px solid white;">Sobre Nós</a>
+        <a href="#" data-page="menu" style="display: block; padding: 1rem; color: white; text-align: center; border-bottom: 1px solid white;">Menu</a>
+        <a href="#" data-page="feedbacks" style="display: block; padding: 1rem; color: white; text-align: center;">Feedbacks</a>
+    </div>
+</div>
     </header>
 
     <!-- Notification Bar -->
@@ -619,6 +616,30 @@
                 }
             }, 100);
         });
+
+        // CÓDIGO GARANTIDO - coloque no final do arquivo
+document.getElementById('menuToggle').addEventListener('click', function() {
+    var menu = document.getElementById('mobileMenu');
+    if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
+    }
+});
+
+// Fechar menu ao clicar nos links
+document.querySelectorAll('#mobileMenu a').forEach(function(link) {
+    link.addEventListener('click', function() {
+        document.getElementById('mobileMenu').style.display = 'none';
+    });
+});
+
+// Fechar menu ao clicar fora
+document.getElementById('mobileMenu').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
+    }
+});
     </script>
 </body>
 </html>
