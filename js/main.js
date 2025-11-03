@@ -7,7 +7,7 @@ let currentPage = "inicio";
 // INICIALIZAÇÃO
 // ============================================
 function initializeApp() {
-    initializeNavigation();
+    initializeNavigation(); // Esta função deve chamar Navigation.initialize()
     Cart.initialize();
     Modal.initialize();
     
@@ -15,9 +15,6 @@ function initializeApp() {
     initializePageComponents(currentPage);
 }
 
-// ============================================
-// NAVEGAÇÃO
-// ============================================
 function initializeNavigation() {
     // Menu mobile
     const menuToggle = document.getElementById("menuToggle");
@@ -25,7 +22,30 @@ function initializeNavigation() {
 
     if (menuToggle && mobileMenu) {
         menuToggle.addEventListener("click", () => {
-            mobileMenu.classList.toggle("active");
+            const isActive = mobileMenu.classList.contains("active");
+            if (isActive) {
+                mobileMenu.style.display = "none";
+                mobileMenu.classList.remove("active");
+            } else {
+                mobileMenu.style.display = "block";
+                mobileMenu.classList.add("active");
+            }
+        });
+
+        // Fechar menu ao clicar em um link
+        document.querySelectorAll(".mobile-nav-link").forEach(link => {
+            link.addEventListener("click", () => {
+                mobileMenu.style.display = "none";
+                mobileMenu.classList.remove("active");
+            });
+        });
+
+        // Fechar menu ao clicar fora
+        document.addEventListener("click", (e) => {
+            if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                mobileMenu.style.display = "none";
+                mobileMenu.classList.remove("active");
+            }
         });
     }
 
