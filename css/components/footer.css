@@ -88,8 +88,10 @@ footer {
 
 /* subtexto */
 .footer-bottom {
-  margin-top: 12px;
-  text-align: center;
+  margin-top: 40px;
+  text-align: center !important;
+  grid-column: 1 / -1;
+  opacity: .75; 
 }
 
 .footer-bottom p {
