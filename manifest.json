@@ -4,23 +4,27 @@
   "description": "Sabor artesanal que nasce do cuidado e da tradição.",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#FCF9F5",
-  "theme_color": "#1C3D2D",
+  "background_color": "#303823",
+  "theme_color": "#f6f0d6",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["food", "lifestyle"],
+  "dir": "ltr",
+  "id": "/",
+  
   "icons": [
     {
-      "src": "img/logos/Logo-192.png",
+      "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable any"
     },
     {
-      "src": "img/logos/Logo-512.png",
+      "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "img/logos/Logo.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "maskable any"
     }
   ]
 }
