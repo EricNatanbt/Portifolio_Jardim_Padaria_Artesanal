@@ -68,12 +68,12 @@
 }
 
 .nav-link:hover {
-    color: var(--accent);
+    color: var(--accent-light);
     background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-link.active {
-    color: var(--accent);
+    color: var(--accent-light);
     font-weight: 700;
 }
 
@@ -84,7 +84,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background-color: var(--accent);
+    background-color: var(--accent-light);
     border-radius: 1px;
 }
 
@@ -219,7 +219,7 @@
 
 /* Efeito hover elegante */
 .mobile-nav-link:hover {
-    color: var(--accent);
+    color: var(--accent-light);
     padding-left: 1.5rem;
     background: linear-gradient(90deg, 
         rgba(245, 200, 176, 0.05) 0%, 
@@ -236,7 +236,7 @@
     width: 3px;
     height: 24px;
     background: linear-gradient(180deg, 
-        var(--accent) 0%, 
+        var(--accent-light) 0%, 
         rgba(245, 200, 176, 0.8) 100%);
     border-radius: 0 2px 2px 0;
 }
@@ -285,7 +285,7 @@
 
 .close-mobile-menu:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--accent);
+    color: var(--accent-light);
     transform: rotate(90deg);
     border-color: rgba(245, 200, 176, 0.2);
 }
