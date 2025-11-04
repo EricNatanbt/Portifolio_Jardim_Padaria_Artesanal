@@ -134,24 +134,32 @@ input {
 }
 
 /* ============================================
-   SCROLLBAR STYLING
+   SCROLLBAR STYLING (Desktop - Pequena e Verde)
    ============================================ */
+
+/* Para WebKit (Chrome, Safari) */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px; /* Pequena */
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--background);
+    background: none; /* Fundo da cor do site */
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 4px;
+    background: var(--primary); /* Cor verde do tema */
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--muted-foreground);
+    background: var(--primary-dark); /* Cor verde mais escura no hover */
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin; /* Pequena */
+    scrollbar-color: var(--primary) var(--primary-dark); /* Cor da barra e do fundo */
 }
 /* ============================================
    NOTIFICATION BAR STYLING
@@ -231,4 +239,25 @@ input {
 .product-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+/* ============================================
+   SCROLLBAR HIDE (Mobile)
+   ============================================ */
+@media (max-width: 767px) {
+    /* Para WebKit (Chrome, Safari) */
+    ::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    /* Para IE e Edge */
+    body {
+        -ms-overflow-style: none;  /* IE and Edge */
+    }
+
+    /* Para Firefox */
+    * {
+        scrollbar-width: none;  /* Firefox */
+    }
 }
