@@ -145,36 +145,96 @@
 
 /* Mobile Menu */
 .mobile-menu {
-    display: none;
-    border-top: 1px solid var(--border);
-    background-color: var(--primary);
-    padding: 1rem 0;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background-color: rgba(28, 61, 45, 0.95); /* Apenas o menu com transparência */
+    backdrop-filter: blur(10px);
+    border-right: 1px solid var(--border);
+    padding: 5rem 1.5rem 2rem;
     flex-direction: column;
     gap: 0.5rem;
+    z-index: 40;
+    transition: left 0.3s ease-in-out;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
 }
 
 .mobile-menu.active {
-    display: flex;
+    left: 0;
+}
+
+/* Overlay para o menu mobile */
+.mobile-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 35;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.mobile-menu-overlay.active {
+    opacity: 1;
+    visibility: visible;
 }
 
 .mobile-nav-link {
     width: 100%;
     text-align: left;
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
     border-radius: var(--radius);
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     color: white;
     font-weight: 500;
     display: block;
+    font-size: 1.1rem;
+    border: 1px solid transparent;
+    background-color: var(--primary); /* Botões opacos */
 }
 
 .mobile-nav-link:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: var(--accent);
+    transform: translateX(8px);
 }
 
 .mobile-nav-link.active {
-    background-color: var(--accent);
+    background-color: var(--accent); /* Botão ativo opaco */
     color: var(--primary);
     font-weight: 600;
+    border-color: var(--accent-light);
 }
+
+/* Mobile Menu Header */
+.mobile-menu-header {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.close-mobile-menu {
+    padding: 0.5rem;
+    color: white;
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.close-mobile-menu:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+    color: var(--accent);
+}
+
