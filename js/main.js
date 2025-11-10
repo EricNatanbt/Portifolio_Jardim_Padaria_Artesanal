@@ -236,21 +236,29 @@ function abrirGoogleMaps() {
 
 // Função para abrir o cliente de e-mail
 function abrirEmail() {
-    // Endereço de e-mail e assunto/corpo padrão
+    // Função para celular e modal - usa mailto: para abrir o app nativo
     const email = 'jardimpadariacg@gmail.com';
     const subject = 'Contato via Site - Jardim Padaria Artesanal';
     const body = 'Olá, gostaria de entrar em contato sobre...';
 
-    // Link direto para a composição de e-mail no Gmail (Webmail)
-    const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+}
 
-    // Abre o link em uma nova aba para evitar problemas de navegação
+function abrirEmailPC() {
+    // Função para PC - usa link direto do Gmail para evitar problemas de configuração do OS
+    const email = 'jardimpadariacg@gmail.com';
+    const subject = 'Contato via Site - Jardim Padaria Artesanal';
+    const body = 'Olá, gostaria de entrar em contato sobre...';
+
+    const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(gmailLink, '_blank');
 }
 
-// Função para ligar para o número de telefone
-function ligarPara() {
-    window.location.href = 'tel:+5583999204618';
+// Função para abrir o WhatsApp
+function abrirWhatsApp() {
+    const whatsappLink = "https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0";
+    window.open(whatsappLink, '_blank');
 }
 
 // Função para abrir contato com lógica de dispositivo
@@ -261,8 +269,8 @@ function abrirContato() {
         // No celular, abre o modal de opções
         openContactModal();
     } else {
-        // No PC, direciona diretamente para o e-mail
-        abrirEmail();
+        // No PC, direciona diretamente para o e-mail usando a função PC
+        abrirEmailPC();
     }
 }
 
@@ -296,7 +304,7 @@ if (contactModal) {
 
     contactOptionCall.addEventListener('click', () => {
         closeContactModal();
-        ligarPara();
+        abrirWhatsApp();
     });
 
     contactOptionEmail.addEventListener('click', () => {
@@ -319,5 +327,5 @@ window.showNotification = showNotification;
 window.initializeApp = initializeApp;
 window.abrirGoogleMaps = abrirGoogleMaps;
 window.abrirEmail = abrirEmail;
-window.ligarPara = ligarPara;
+window.abrirWhatsApp = abrirWhatsApp;
 window.abrirContato = abrirContato;
