@@ -230,7 +230,7 @@ function getProductsForDay(day) {
 
 // Função para abrir o Google Maps
 function abrirGoogleMaps() {
-    const url = `https://www.google.com/maps/search/?api=1&query=Av.+Joaquim+Caroca,+266+-+Universitário,+Campina+Grande+-+PB,+58429-120`;
+    const url = `https://www.google.com/maps/place/Jardim+-+Padaria+Artesanal/@-7.2194479,-35.9136032,17z/data=!4m15!1m8!3m7!1s0x7ac1e2848add97d:0xd1ca8485544602d4!2sAv.+Joaquim+Caroca,+266+-+Universitário,+Campina+Grande+-+PB,+58429-120!3b1!8m2!3d-7.2194479!4d-35.9136032!16s%2Fg%2F11hbgkf50h!3m5!1s0x7ac1f2513d88d7b:0x2722101e32d4a6ea!8m2!3d-7.2194373!4d-35.9136283!16s%2Fg%2F11y2q9h1q6?entry=ttu&g_ep=EgoyMDI1MTEwNS4wIKXMDSoASAFQAw%3D%3D`;
     window.open(url, '_blank');
 }
 
