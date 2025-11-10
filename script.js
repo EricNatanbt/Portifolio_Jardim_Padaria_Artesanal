@@ -16,6 +16,13 @@ let currentDayIndex = -1;
 // ============================================
 // ELEMENTOS DO DOM
 // ============================================
+const contactModal = document.getElementById("contactModal");
+const contactModalOverlay = document.getElementById("contactModalOverlay");
+const closeContactModal = document.getElementById("closeContactModal");
+const mainContactCard = document.getElementById("mainContactCard");
+const contactOptionCall = document.getElementById("contactOptionCall");
+const contactOptionEmail = document.getElementById("contactOptionEmail");
+const contactOptionWhatsapp = document.getElementById("contactOptionWhatsapp");
 const menuToggle = document.getElementById("menuToggle");
 const mobileMenu = document.getElementById("mobileMenu");
 const cartBtn = document.getElementById("cartBtn");
@@ -174,10 +181,30 @@ function initializeEventListeners() {
     closeModal.addEventListener("click", closeProductModal);
     addToCartModal.addEventListener("click", addToCartFromModal);
 
-    // Navegação do cardápio
-    prevDayBtn.addEventListener("click", previousDay);
-    nextDayBtn.addEventListener("click", nextDay);
-}
+	    // Navegação do cardápio
+	    prevDayBtn.addEventListener("click", previousDay);
+	    nextDayBtn.addEventListener("click", nextDay);
+
+	    // Contatos
+	    if (mainContactCard) {
+	        mainContactCard.addEventListener("click", handleMainContactClick);
+	    }
+	    if (contactModalOverlay) {
+	        contactModalOverlay.addEventListener("click", closeContactModalFunc);
+	    }
+	    if (closeContactModal) {
+	        closeContactModal.addEventListener("click", closeContactModalFunc);
+	    }
+	    if (contactOptionCall) {
+	        contactOptionCall.addEventListener("click", () => window.location.href = "tel:+5583999204618");
+	    }
+	    if (contactOptionEmail) {
+	        contactOptionEmail.addEventListener("click", () => window.location.href = "mailto:jardimpadariacg@gmail.com");
+	    }
+	    if (contactOptionWhatsapp) {
+	        contactOptionWhatsapp.addEventListener("click", () => window.open("https://wa.me/5583999204618", "_blank"));
+	    }
+	}
 
 // ============================================
 // MENU MOBILE
@@ -322,6 +349,42 @@ function nextDay() {
     currentDayIndex = (currentDayIndex + 1) % (dias.length + 1);
     if (currentDayIndex === dias.length) currentDayIndex = -1;
     renderCardapio(currentDayIndex);
+}
+
+// ============================================
+// CONTATOS
+// ============================================
+
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function openContactModal() {
+    if (contactModal) {
+        contactModal.style.display = "flex";
+        setTimeout(() => contactModal.classList.add("active"), 10);
+    }
+}
+
+function closeContactModalFunc() {
+    if (contactModal) {
+        contactModal.classList.remove("active");
+        setTimeout(() => contactModal.style.display = "none", 300);
+    }
+}
+
+function handleMainContactClick() {
+    const email = "jardimpadariacg@gmail.com";
+    const subject = "Pedido/Contato via Portfólio";
+    const body = "Olá, gostaria de entrar em contato sobre...";
+
+    if (!isMobile()) {
+        // Lógica para PC: Abrir Gmail ou cliente de email padrão
+        window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } else {
+        // Lógica para Mobile: Abrir modal de opções
+        openContactModal();
+    }
 }
 
 // ============================================

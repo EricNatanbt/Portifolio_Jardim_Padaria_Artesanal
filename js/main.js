@@ -236,7 +236,16 @@ function abrirGoogleMaps() {
 
 // Função para abrir o cliente de e-mail
 function abrirEmail() {
-    window.location.href = 'mailto:jardimpadariacg@gmail.com';
+    // Endereço de e-mail e assunto/corpo padrão
+    const email = 'jardimpadariacg@gmail.com';
+    const subject = 'Contato via Site - Jardim Padaria Artesanal';
+    const body = 'Olá, gostaria de entrar em contato sobre...';
+
+    // Link direto para a composição de e-mail no Gmail (Webmail)
+    const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Abre o link em uma nova aba para evitar problemas de navegação
+    window.open(gmailLink, '_blank');
 }
 
 // Função para ligar para o número de telefone
@@ -296,24 +305,7 @@ if (contactModal) {
     });
 }
 
-function tornarCardsClicaveis() {
-    const infoCards = document.querySelectorAll('.info-card');
-    infoCards.forEach(card => {
-        const texto = card.textContent;
-        if (texto.includes('Visite Nossa Loja') || texto.includes('Av. Joaquim Caroca')) {
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', abrirGoogleMaps);
-        }
-    });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(tornarCardsClicaveis, 1000);
-});
-
-// Inicializa o modal de contato (event listeners)
-// A lógica de inicialização já está no final da função abrirContato, mas é bom garantir que os listeners sejam adicionados.
-// A lógica de inicialização do modal de contato foi movida para o final da função abrirContato para garantir que os elementos existam.
 
 
 // ============================================
