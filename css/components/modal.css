@@ -128,3 +128,61 @@
         margin: 0 auto;
     }
 }
+/* ============================================
+   MODAL DE OPÇÕES DE CONTATO
+   ============================================ */
+.contact-modal-content {
+    max-width: 400px; /* Um pouco menor para opções de contato */
+}
+
+.contact-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    grid-template-columns: 1fr; /* Força a coluna única */
+}
+
+.contact-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    background: white;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.contact-option-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.contact-option-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+}
+
+.contact-option-btn.cancel-btn {
+    border: 1px solid var(--border);
+    background: var(--muted);
+    color: var(--muted-foreground);
+}
+
+.contact-option-btn.cancel-btn:hover {
+    background: var(--border);
+    color: var(--muted-foreground);
+}
+
+.contact-modal-content .modal-footer {
+    border-top: none;
+    padding-top: 0;
+}

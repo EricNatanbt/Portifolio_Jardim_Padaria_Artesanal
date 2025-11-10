@@ -249,17 +249,51 @@ function abrirContato() {
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-        // No celular, pergunta ao usuário
-        const escolha = confirm("Deseja ligar ou enviar um e-mail?\n\nOK para Ligar\nCancelar para Enviar E-mail");
-        if (escolha) {
-            ligarPara();
-        } else {
-            abrirEmail();
-        }
+        // No celular, abre o modal de opções
+        openContactModal();
     } else {
         // No PC, direciona diretamente para o e-mail
         abrirEmail();
     }
+}
+
+// Funções para o novo Modal de Contato
+const contactModal = document.getElementById('contactModal');
+const contactModalOverlay = document.getElementById('contactModalOverlay');
+const closeContactModalBtn = document.getElementById('closeContactModal');
+const contactOptionCall = document.getElementById('contactOptionCall');
+const contactOptionEmail = document.getElementById('contactOptionEmail');
+const contactOptionCancel = document.getElementById('contactOptionCancel');
+
+function openContactModal() {
+    if (contactModal) {
+        contactModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeContactModal() {
+    if (contactModal) {
+        contactModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Adicionar event listeners para o modal de contato
+if (contactModal) {
+    contactModalOverlay.addEventListener('click', closeContactModal);
+    closeContactModalBtn.addEventListener('click', closeContactModal);
+    contactOptionCancel.addEventListener('click', closeContactModal);
+
+    contactOptionCall.addEventListener('click', () => {
+        closeContactModal();
+        ligarPara();
+    });
+
+    contactOptionEmail.addEventListener('click', () => {
+        closeContactModal();
+        abrirEmail();
+    });
 }
 
 function tornarCardsClicaveis() {
@@ -276,6 +310,11 @@ function tornarCardsClicaveis() {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(tornarCardsClicaveis, 1000);
 });
+
+// Inicializa o modal de contato (event listeners)
+// A lógica de inicialização já está no final da função abrirContato, mas é bom garantir que os listeners sejam adicionados.
+// A lógica de inicialização do modal de contato foi movida para o final da função abrirContato para garantir que os elementos existam.
+
 
 // ============================================
 // EXPORTAÇÕES PARA USO EM OUTROS MÓDULOS
