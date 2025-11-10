@@ -225,11 +225,41 @@ function getProductsForDay(day) {
 }
 
 // ============================================
-// FUNÇÃO PARA ABRIR GOOGLE MAPS
+// FUNÇÕES DE CONTATO E LOCALIZAÇÃO
 // ============================================
+
+// Função para abrir o Google Maps
 function abrirGoogleMaps() {
-    const url = `https://www.google.com/maps/place/Jardim+-+Padaria+Artesanal/@-7.2194373,-35.9162032,17z/data=!3m1!4b1!4m16!1m9!4m8!1m0!1m6!1m2!1s0x7ac1f2513d88d7b:0x2722101e32d4a6ea!2sAv.+Joaquim+Caroca,+266+-+Universitário,+Campina+Grande+-+PB,+58429-120!2m2!1d-35.9136283!2d-7.2194373!3m5!1s0x7ac1f2513d88d7b:0x2722101e32d4a6ea!8m2!3d-7.2194373!4d-35.9136283!16s%2Fg%2F11y2q9h1q6?entry=ttu&g_ep=EgoyMDI5MTAyOS4yIKXMDSoASAFQAw%3D%3D`;
+    const url = `https://www.google.com/maps/search/?api=1&query=Av.+Joaquim+Caroca,+266+-+Universitário,+Campina+Grande+-+PB,+58429-120`;
     window.open(url, '_blank');
+}
+
+// Função para abrir o cliente de e-mail
+function abrirEmail() {
+    window.location.href = 'mailto:jardimpadariacg@gmail.com';
+}
+
+// Função para ligar para o número de telefone
+function ligarPara() {
+    window.location.href = 'tel:+5583999204618';
+}
+
+// Função para abrir contato com lógica de dispositivo
+function abrirContato() {
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // No celular, pergunta ao usuário
+        const escolha = confirm("Deseja ligar ou enviar um e-mail?\n\nOK para Ligar\nCancelar para Enviar E-mail");
+        if (escolha) {
+            ligarPara();
+        } else {
+            abrirEmail();
+        }
+    } else {
+        // No PC, direciona diretamente para o e-mail
+        abrirEmail();
+    }
 }
 
 function tornarCardsClicaveis() {
@@ -256,3 +286,7 @@ window.getProductsForDay = getProductsForDay;
 window.getCurrentDayName = getCurrentDayName;
 window.showNotification = showNotification;
 window.initializeApp = initializeApp;
+window.abrirGoogleMaps = abrirGoogleMaps;
+window.abrirEmail = abrirEmail;
+window.ligarPara = ligarPara;
+window.abrirContato = abrirContato;

@@ -444,6 +444,10 @@ function showCartNotification() {
 // ============================================
 // CARROSSEL AUTOMÁTICO
 // ============================================
+
+
+
+
 function setupCarousel() {
     const carouselImages = document.querySelectorAll('.carousel-image');
     if (carouselImages.length === 0) return;
