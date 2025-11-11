@@ -234,85 +234,16 @@ function abrirGoogleMaps() {
     window.open(url, '_blank');
 }
 
-// Função para abrir o cliente de e-mail
-function abrirEmail() {
-    // Função para celular e modal - usa mailto: para abrir o app nativo
-    const email = 'jardimpadariacg@gmail.com';
-    const subject = 'Contato via Site - Jardim Padaria Artesanal';
-    const body = 'Olá, gostaria de entrar em contato sobre...';
-
-    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
-}
-
-function abrirEmailPC() {
-    // Função para PC - usa link direto do Gmail para evitar problemas de configuração do OS
-    const email = 'jardimpadariacg@gmail.com';
-    const subject = 'Contato via Site - Jardim Padaria Artesanal';
-    const body = 'Olá, gostaria de entrar em contato sobre...';
-
-    const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(gmailLink, '_blank');
-}
-
 // Função para abrir o WhatsApp
 function abrirWhatsApp() {
     const whatsappLink = "https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0";
     window.open(whatsappLink, '_blank');
 }
 
-// Função para abrir contato com lógica de dispositivo
+// Função para abrir contato (agora sempre direciona para o WhatsApp)
 function abrirContato() {
-    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        // No celular, abre o modal de opções
-        openContactModal();
-    } else {
-        // No PC, direciona diretamente para o e-mail usando a função PC
-        abrirEmailPC();
-    }
+    abrirWhatsApp();
 }
-
-// Funções para o novo Modal de Contato
-const contactModal = document.getElementById('contactModal');
-const contactModalOverlay = document.getElementById('contactModalOverlay');
-const closeContactModalBtn = document.getElementById('closeContactModal');
-const contactOptionCall = document.getElementById('contactOptionCall');
-const contactOptionEmail = document.getElementById('contactOptionEmail');
-const contactOptionCancel = document.getElementById('contactOptionCancel');
-
-function openContactModal() {
-    if (contactModal) {
-        contactModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-function closeContactModal() {
-    if (contactModal) {
-        contactModal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
-// Adicionar event listeners para o modal de contato
-if (contactModal) {
-    contactModalOverlay.addEventListener('click', closeContactModal);
-    closeContactModalBtn.addEventListener('click', closeContactModal);
-    contactOptionCancel.addEventListener('click', closeContactModal);
-
-    contactOptionCall.addEventListener('click', () => {
-        closeContactModal();
-        abrirWhatsApp();
-    });
-
-    contactOptionEmail.addEventListener('click', () => {
-        closeContactModal();
-        abrirEmail();
-    });
-}
-
 
 
 
@@ -326,6 +257,6 @@ window.getCurrentDayName = getCurrentDayName;
 window.showNotification = showNotification;
 window.initializeApp = initializeApp;
 window.abrirGoogleMaps = abrirGoogleMaps;
-window.abrirEmail = abrirEmail;
+
 window.abrirWhatsApp = abrirWhatsApp;
 window.abrirContato = abrirContato;

@@ -132,12 +132,16 @@
    MODAL DE OPÇÕES DE CONTATO
    ============================================ */
 .contact-modal-content {
+    display: flex;
+    flex-direction: column;
     max-width: 400px; /* Um pouco menor para opções de contato */
 }
 
 .contact-options {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
     gap: 1rem;
     padding: 1.5rem;
     grid-template-columns: 1fr; /* Força a coluna única */
