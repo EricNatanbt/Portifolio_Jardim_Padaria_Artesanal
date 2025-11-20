@@ -1,0 +1,26 @@
+{
+  "dependencies": {
+    "express": "^5.1.0",
+    "mysql2": "^3.15.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "portifolio_jardim_padaria_artesanal",
+  "description": "**Projeto Integrador — Softex-PE**  \r ---",
+  "version": "1.0.0",
+  "main": "script.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EricNatanbt/Portifolio_Jardim_Padaria_Artesanal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EricNatanbt/Portifolio_Jardim_Padaria_Artesanal/issues"
+  },
+  "homepage": "https://github.com/EricNatanbt/Portifolio_Jardim_Padaria_Artesanal#readme"
+}
