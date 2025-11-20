@@ -1,0 +1,249 @@
+/* ============================================
+   MENU SECTION
+   ============================================ */
+.menu-section {
+    padding: 3rem 0;
+}
+
+@media (min-width: 768px) {
+    .menu-section {
+        padding: 5rem 0;
+    }
+}
+
+.menu-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    color: #556B2F; /* Cor verde escura para FORNADA */
+    text-align: center;
+    letter-spacing: 0.5rem;
+}
+
+.menu-intro {
+    text-align: center;
+    color: #556B2F; /* Cor verde escura para Cardápio de Quinta */
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.menu-footer-text {
+    text-align: center;
+    color: #556B2F;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   CARDÁPIO SEMANAL - NOVO DESIGN DE LISTA
+   ============================================ */
+.cardapio-container {
+    max-width: 600px; /* Limitar a largura para simular o card */
+    margin: 0 auto;
+    background: #F0F8E6; /* Cor de fundo creme/verde claro */
+    border-radius: 15px; /* Borda arredondada */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.cardapio-header {
+    display: flex;
+    justify-content: center; /* Centralizar a navegação */
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.cardapio-header h3 {
+    display: none; /* O título principal será o .menu-intro */
+}
+
+.navegacao-dias {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.nav-btn {
+    background: #556B2F; /* Cor verde escura */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Botões redondos */
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.nav-btn:hover {
+    background: #6B8E23; /* Tom de verde um pouco mais claro */
+    transform: scale(1.1);
+}
+
+.dia-nome {
+    font-weight: 600;
+    color: #556B2F;
+    min-width: 120px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.cardapio-content {
+    display: block; /* Mudar para bloco para lista vertical */
+    gap: 0; /* Remover gap */
+}
+
+.categoria-produtos {
+    background: transparent; /* Fundo transparente */
+    border-radius: 0;
+    padding: 0;
+    border-left: none; /* Remover borda lateral */
+    margin-bottom: 1.5rem;
+}
+
+.categoria-produtos h4 {
+    font-family: 'Playfair Display', serif;
+    color: #556B2F; /* Cor verde escura */
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #556B2F; /* Linha fina abaixo do título */
+    padding-bottom: 0.2rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.lista-produtos {
+    display: block; /* Mudar para bloco para lista vertical */
+    gap: 0;
+}
+
+.produto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0; /* Espaçamento vertical */
+    background: transparent; /* Fundo transparente */
+    border-radius: 0;
+    border: none; /* Remover borda */
+    transition: none;
+    cursor: pointer;
+}
+
+.produto-item:hover {
+    background-color: rgba(85, 107, 47, 0.1); /* Leve destaque ao passar o mouse */
+    transform: none;
+    box-shadow: none;
+}
+
+.produto-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between; /* Alinhar nome à esquerda e preço à direita */
+    align-items: center;
+    padding-right: 1rem;
+}
+
+.produto-nome {
+    font-weight: 400; /* Fonte mais leve */
+    color: #556B2F;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+.produto-preco {
+    color: #556B2F;
+    font-weight: 400;
+    font-size: 1.1rem;
+}
+
+.btn-adicionar-rapido {
+    background: transparent; /* Fundo transparente */
+    color: #556B2F; /* Cor verde escura */
+    border: 1px solid #556B2F; /* Borda verde */
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0; /* Não permitir que o botão encolha */
+}
+
+.btn-adicionar-rapido:hover {
+    background: #556B2F;
+    color: white;
+    transform: scale(1.1);
+}
+
+.sem-fornadas {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: #F0F8E6;
+    border-radius: 15px;
+    border: 2px dashed #556B2F;
+}
+
+.sem-fornadas h3 {
+    color: #556B2F;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.sem-fornadas p {
+    color: #556B2F;
+    font-size: 1.1rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .cardapio-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .navegacao-dias {
+        justify-content: center;
+    }
+    
+    .cardapio-container {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cardapio-container {
+        padding: 1rem;
+    }
+    
+    .produto-item {
+        padding: 0.75rem 0;
+    }
+    
+    .produto-info {
+        padding-right: 0.5rem;
+    }
+    
+    .produto-nome, .produto-preco {
+        font-size: 1rem;
+    }
+    
+    .btn-adicionar-rapido {
+        width: 20px;
+        height: 20px;
+        font-size: 1rem;
+    }
+}
