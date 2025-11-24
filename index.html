@@ -15,13 +15,13 @@
     <link rel="stylesheet" href="css/components/carousel.css">
     <link rel="stylesheet" href="css/components/modal.css">
     <link rel="stylesheet" href="css/components/cart.css">
-    <link rel="stylesheet" href="css/components/contact-modal.css">
+    <!-- <link rel="stylesheet" href="css/components/contact-modal.css">-->
 
     <!-- CSS Pages -->
     <link rel="stylesheet" href="css/pages/inicio.css">
-    <link rel="stylesheet" href="css/pages/sobrenos.css">
     <link rel="stylesheet" href="css/pages/menu.css">
-    <link rel="stylesheet" href="css/pages/guiaCuidados.css">
+    <link rel="stylesheet" href="css/pages/sobrenos.css">
+    <link rel="stylesheet" href="css/pages/cuidados.css">
     <link rel="stylesheet" href="css/pages/feedbacks.css">
 
     <link rel="icon" type="image/x-icon" href="img/logos/favicon.ico">
@@ -50,9 +50,9 @@
                 <!-- Navigation Desktop -->
                 <nav class="nav-main-desktop">
                     <a href="#" class="nav-link active" data-page="inicio">Início</a>
-                    <a href="#" class="nav-link" data-page="sobre">Sobre Nós</a>
                     <a href="#" class="nav-link" data-page="menu">Menu</a>
-                    <a href="#" class="nav-link" data-page="guiaCuidados">Guia de Cuidados</a>
+                    <a href="#" class="nav-link" data-page="sobre">Sobre Nós</a>
+                    <a href="#" class="nav-link" data-page="cuidados">Conservação</a>
                     <a href="#" class="nav-link" data-page="feedbacks">Feedbacks</a>
                 </nav>
 
@@ -88,9 +88,9 @@
                 <div class="mobile-menu-header">
                 </div>
                 <a href="#" class="mobile-nav-link active" data-page="inicio">Início</a>
-                <a href="#" class="mobile-nav-link" data-page="sobre">Sobre Nós</a>
                 <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
-                <a href="#" class="mobile-nav-link" data-page="guiaCuidados">Guia de Cuidados</a>
+                <a href="#" class="mobile-nav-link" data-page="sobre">Sobre Nós</a>
+                <a href="#" class="mobile-nav-link" data-page="cuidados">Conservação</a>
                 <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
             </nav>
         </div>
@@ -148,7 +148,7 @@
             </section>
         </div>
 
-        <div id="page-guiaCuidados" class="page">
+        <div id="page-cuidados" class="page">
             <!-- Conteúdo da página guia de cuidados será carregado aqui -->
         </div>
 
@@ -300,7 +300,7 @@
     <script src="js/pages/inicio.js"></script>
     <script src="js/pages/sobrenos.js"></script>
     <script src="js/pages/menu.js"></script>
-    <script src="js/pages/guiaCuidados.js"></script>
+    <script src="js/pages/cuidados.js"></script>
     <script src="js/pages/feedbacks.js"></script>
 
     <!-- Main Script -->
@@ -450,7 +450,7 @@
             `;
 
             //Conteudo da página de CONSERVAÇÃO DE PRODUTOS 
-            document.getElementById('page-guiaCuidados').innerHTML = `
+            document.getElementById('page-cuidados').innerHTML = `
                 <section class="guia-cuidados-section">
                     <div class="container">
                         <h2>Guia de Conservação dos Nossos Produtos</h2>
