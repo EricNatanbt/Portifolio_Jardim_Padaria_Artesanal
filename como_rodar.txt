@@ -1,0 +1,3 @@
+cd projetos da faculdade
+cd portifolio_jardim_padaria_artesanal
+npm install express@4.18.2

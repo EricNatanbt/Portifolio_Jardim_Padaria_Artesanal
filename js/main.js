@@ -198,9 +198,12 @@ function showNotification(message, duration = 3000, type = 'info') {
 }
 
 function getCurrentDayName() {
-    const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
-    const date = new Date();
-    return days[date.getDay()];
+    // SIMULAÇÃO DE DATA: Sempre retorna "quarta" para liberar os produtos desse dia.
+    // Para reverter, basta descomentar as linhas originais e apagar esta.
+    // const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+    // const date = new Date();
+    // return days[date.getDay()];
+    return "quarta";
 }
 
 function getDayNameInPortuguese(dayIndex) {

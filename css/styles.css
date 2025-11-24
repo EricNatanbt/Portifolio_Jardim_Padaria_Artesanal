@@ -230,6 +230,8 @@ input {
     transition: all 0.3s ease;
 }
 
+@import url('components/checkout-modal.css');
+
 /* Smooth hover effects */
 .cta-button:hover {
     transform: translateY(-2px);
@@ -260,4 +262,26 @@ input {
     * {
         scrollbar-width: none;  /* Firefox */
     }
+}
+
+/* Estilo para o campo de observação */
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #1C3D2D;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
 }
