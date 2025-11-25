@@ -715,7 +715,7 @@ const Cart = {
             message += `• ${item.quantity}x ${item.name}\n`;
         });
         
-        message += `*Modalidade:* ${deliveryOption === 'retirada' ? '_Retirada na Loja_' : '_Entrega_'}\n`;
+        message += `\n*Modalidade:* ${deliveryOption === 'retirada' ? '_Retirada na Loja_' : '_Entrega_'}\n`;
         message += `*Pagamento:* ${paymentMethod === 'pix' ? '_Pix_' : '_Cartão_'}\n\n`;
         
         // NOVO: Adiciona observação se existir
