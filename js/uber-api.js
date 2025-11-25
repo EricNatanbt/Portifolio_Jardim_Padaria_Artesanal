@@ -1,5 +1,5 @@
 // ============================================
-// CLIENTE UBER API (FRONTEND)
+// CLIENTE UBER API (FRONTEND) - SIMPLIFICADO
 // ============================================
 
 class UberAPI {
@@ -13,27 +13,14 @@ class UberAPI {
                 return this.getDefaultPrice();
             }
 
-            const response = await fetch(`${this.baseURL}/calculate-delivery`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    deliveryAddress: deliveryAddress
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erro na API: ${response.status}`);
-            }
-
-            const result = await response.json();
+            // SIMULAÇÃO: Retorna um valor fixo por enquanto
+            // Em produção, você implementaria a chamada real à API
+            console.log('Calculando frete para:', deliveryAddress);
             
-            if (result.success) {
-                return result.data;
-            } else {
-                throw new Error(result.error || 'Erro desconhecido');
-            }
+            // Simula um delay de rede
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            return this.getDefaultPrice();
 
         } catch (error) {
             console.error('Erro ao calcular frete:', error);
@@ -56,12 +43,7 @@ class UberAPI {
     }
 
     async healthCheck() {
-        try {
-            const response = await fetch(`${this.baseURL}/health`);
-            return response.ok;
-        } catch (error) {
-            return false;
-        }
+        return true; // Sempre retorna true para a simulação
     }
 }
 

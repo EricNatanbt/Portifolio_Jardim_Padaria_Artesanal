@@ -421,7 +421,7 @@ const Cart = {
     },
 
     // ============================================
-    // LÓGICA DE CHECKOUT - ATUALIZADA COM PÁGINA DE PEDIDO
+    // LÓGICA DE CHECKOUT - ATUALIZADA COM LINK ENCURTADO
     // ============================================
 
     openCheckoutModal() {
@@ -599,8 +599,8 @@ const Cart = {
             }
         };
 
-        // Cria o link da página do pedido
-        const orderLink = this.createOrderLink(orderData);
+        // Cria o link ENCURTADO da página do pedido
+        const orderLink = this.createShortOrderLink(orderData);
         
         // Gera a mensagem do WhatsApp com o link
         const message = this.buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation);
@@ -609,53 +609,70 @@ const Cart = {
         this.openWhatsAppWithMessage(message);
     },
 
-    // Cria link para a página do pedido
-    createOrderLink(orderData) {
-        // Codifica os dados do pedido para URL
-        const orderDataJSON = JSON.stringify(orderData);
-        const orderDataEncoded = encodeURIComponent(orderDataJSON);
+    // Cria link ENCURTADO para a página do pedido
+    createShortOrderLink(orderData) {
+        // Cria um ID curto único
+        const shortId = Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 3).toUpperCase();
         
-        // URL simples que funciona em qualquer ambiente
-        const orderPagePath = 'order.html';
+        // Salva os dados do pedido no localStorage com expiração
+        const orderKey = `order_${shortId}`;
+        localStorage.setItem(orderKey, JSON.stringify(orderData));
         
-        return `${window.location.origin}/${orderPagePath}?order=${orderDataEncoded}`;
+        // Define expiração em 24 horas
+        const expirationKey = `exp_${shortId}`;
+        localStorage.setItem(expirationKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
+        
+        // URL super curta - use 'o.html' em vez de 'order.html'
+        const baseUrl = window.location.origin;
+        return `${baseUrl}/o.html?i=${shortId}`;
     },
 
-    // Mensagem do WhatsApp com link
-    buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation) {
-        let message = `🍞 *JARDIM PADARIA ARTESANAL* 🍞\n\n`;
-        message += `Olá! Meu nome é ${name} 👋\n\n`;
-        message += `*QUERO FAZER UM PEDIDO!*\n\n`;
-        
-        message += `📋 *RESUMO RÁPIDO:*\n`;
-        this.cartItems.forEach(item => {
-            message += `• ${item.quantity}x ${item.name}\n`;
-        });
-        
-        message += `\n💵 *TOTAL: R$ ${total.toFixed(2)}*\n\n`;
-        
-        message += `🚚 *${deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}*\n`;
-        message += `💳 *${paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}*\n\n`;
-        
-        // NOVO: Adiciona observação se existir
-        if (observation && observation.trim() !== '') {
-            message += `📝 *OBSERVAÇÃO:*\n`;
-            message += `${observation}\n\n`;
-        }
-        
-        message += `📞 *MEUS DADOS:*\n`;
-        message += `Nome: ${name}\n`;
-        message += `Telefone: ${phone}\n\n`;
-        
-        message += `🔗 *DETALHES COMPLETOS DO PEDIDO:*\n`;
-        message += `${orderLink}\n\n`;
-        
-        message += `_Clique no link acima para ver todos os detalhes do pedido!_ 📄\n\n`;
-        message += `Por favor, confirme meu pedido! 🙏`;
+    // Mensagem do WhatsApp com link ENCURTADO
+// Usar apenas emojis básicos que funcionam em todos os dispositivos
+buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation) {
+    let message = `*JARDIM PADARIA ARTESANAL*\\n\\n`;
+    message += `Olá! Meu nome é ${name}\\n\\n`;
+    message += `*QUERO FAZER UM PEDIDO!*\\n\\n`;
+    
+    message += `*RESUMO RÁPIDO:*\\n`;
+    this.cartItems.forEach(item => {
+        message += `• ${item.quantity}x ${item.name}\\n`;
+    });
+    
+    message += `\\n*TOTAL: R$ ${total.toFixed(2)}*\\n\\n`;
+    
+    // Usar símbolos ASCII em vez de emojis
+    message += `*>> ENTREGA:*\\n`;
+    if (deliveryOption === 'retirada') {
+        message += `🛵 Retirada na Loja\\n`;
+    } else {
+        message += `🚗 Entrega\\n`;
+    }
+    
+    message += `*>> PAGAMENTO:*\\n`;
+    if (paymentMethod === 'pix') {
+        message += `💲 Pix\\n\\n`;
+    } else {
+        message += `💳 Cartão\\n\\n`;
+    }
+    
+    if (observation && observation.trim() !== '') {
+        message += `*>> OBSERVAÇÃO:*\\n`;
+        message += `${observation}\\n\\n`;
+    }
+    
+    message += `*>> MEUS DADOS:*\\n`;
+    message += `Nome: ${name}\\n`;
+    message += `Telefone: ${phone}\\n\\n`;
+    
+    message += `*>> DETALHES COMPLETOS:*\\n`;
+    message += `${orderLink}\\n\\n`;
+    
+    message += `_Clique no link para ver detalhes completos_\\n\\n`;
+    message += `Por favor, confirme meu pedido!`;
 
-        return message;
-    },
-
+    return message;
+},
     // Abre WhatsApp apenas com mensagem
     openWhatsAppWithMessage(message) {
         const encodedMessage = encodeURIComponent(message);
@@ -685,3 +702,39 @@ const Cart = {
         }
     }
 };
+
+// ============================================
+// LIMPEZA AUTOMÁTICA DE PEDIDOS EXPIRADOS
+// ============================================
+
+function cleanupExpiredOrders() {
+    const now = Date.now();
+    const keysToRemove = [];
+    
+    // Procura por chaves de expiração
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('exp_')) {
+            const expiration = parseInt(localStorage.getItem(key));
+            if (now > expiration) {
+                const orderKey = key.replace('exp_', 'order_');
+                keysToRemove.push(key);
+                keysToRemove.push(orderKey);
+            }
+        }
+    }
+    
+    // Remove as chaves expiradas
+    keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+    });
+    
+    if (keysToRemove.length > 0) {
+        console.log(`Limpeza automática: ${keysToRemove.length / 2} pedidos expirados removidos`);
+    }
+}
+
+// Executa a limpeza quando o carrinho é inicializado
+document.addEventListener('DOMContentLoaded', () => {
+    cleanupExpiredOrders();
+});

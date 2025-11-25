@@ -1,0 +1,38 @@
+/* Guia de Cuidados Styles */
+.guia-cuidados-section {
+    padding: 4rem 0;
+    background: #f8f9fa;
+}
+
+.guia-intro {
+    text-align: center;
+    color: #666;
+    margin-bottom: 3rem;
+    font-size: 1.1rem;
+}
+
+.guia-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.guia-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-left: 4px solid #1C3D2D;
+}
+
+.guia-card h3 {
+    color: #1C3D2D;
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.guia-card p {
+    color: #666;
+    line-height: 1.6;
+}
