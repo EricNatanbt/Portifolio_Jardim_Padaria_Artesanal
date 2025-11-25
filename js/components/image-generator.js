@@ -62,7 +62,7 @@ const ImageGenerator = {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 32px "Playfair Display", serif';
         ctx.textAlign = 'center';
-        ctx.fillText('🍞 JARDIM PADARIA ARTESANAL', canvas.width / 2, 45);
+        ctx.fillText('JARDIM PADARIA ARTESANAL', canvas.width / 2, 45);
         
         ctx.font = '18px "Inter", sans-serif';
         ctx.fillText('COMPROVANTE DE PEDIDO', canvas.width / 2, 75);
@@ -83,7 +83,7 @@ const ImageGenerator = {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
         ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('👤 INFORMAÇÕES DO CLIENTE', 40, startY);
+        ctx.fillText('INFORMAÇÕES DO CLIENTE', 40, startY);
         
         ctx.font = '18px "Inter", sans-serif';
         ctx.fillStyle = '#333333';
@@ -96,10 +96,10 @@ const ImageGenerator = {
         ctx.fillText(`Telefone: ${this.formatPhone(customer.phone)}`, 40, currentY);
         currentY += 30;
         
-        ctx.fillText(`Entrega: ${customer.deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}`, 40, currentY);
+        ctx.fillText(`Entrega: ${customer.deliveryOption === 'retirada' ? 'Retirada na Loja' : 'Entrega'}`, 40, currentY);
         currentY += 30;
         
-        ctx.fillText(`Pagamento: ${customer.paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}`, 40, currentY);
+        ctx.fillText(`Pagamento: ${customer.paymentMethod === 'pix' ? 'Pix' : 'Cartão'}`, 40, currentY);
         currentY += 30;
         
         if (customer.deliveryOption === 'entrega') {
@@ -144,7 +144,7 @@ const ImageGenerator = {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#E67E22'; // Laranja
         ctx.font = 'bold 22px "Inter", sans-serif';
-        ctx.fillText('📝 OBSERVAÇÕES DO PEDIDO', 40, startY + 20);
+        ctx.fillText('OBSERVAÇÕES DO PEDIDO', 40, startY + 20);
 
         // Texto da observação
         ctx.fillStyle = '#8B4513'; // Marrom escuro
@@ -174,7 +174,7 @@ const ImageGenerator = {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
         ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('📋 ITENS DO PEDIDO', 40, startY);
+        ctx.fillText('ITENS DO PEDIDO', 40, startY);
         
         let currentY = startY + 40;
         
@@ -235,7 +235,7 @@ const ImageGenerator = {
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
         ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('💵 RESUMO DO PEDIDO', 40, startY);
+        ctx.fillText('RESUMO DO PEDIDO', 40, startY);
         
         let currentY = startY + 40;
         
@@ -298,7 +298,7 @@ const ImageGenerator = {
         ctx.textAlign = 'center';
         ctx.fillStyle = '#666666';
         ctx.font = '14px "Inter", sans-serif';
-        ctx.fillText('Agradecemos pela preferência! 🌿', canvas.width / 2, footerY + 10);
+        ctx.fillText('Agradecemos pela preferência!', canvas.width / 2, footerY + 10);
         ctx.fillText('Entraremos em contato em breve para confirmação.', canvas.width / 2, footerY + 30);
     },
     

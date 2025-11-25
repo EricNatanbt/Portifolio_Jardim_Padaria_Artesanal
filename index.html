@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="css/pages/inicio.css">
     <link rel="stylesheet" href="css/pages/sobrenos.css">
     <link rel="stylesheet" href="css/pages/menu.css">
-    <link rel="stylesheet" href="css/pages/guiaCuidados.css">
+    <link rel="stylesheet" href="css/pages/cuidados.css">
     <link rel="stylesheet" href="css/pages/feedbacks.css">
 
     <link rel="icon" type="image/x-icon" href="img/logos/favicon.ico">
@@ -53,7 +53,7 @@
                     <a href="#" class="nav-link active" data-page="inicio">Início</a>
                     <a href="#" class="nav-link" data-page="sobre">Sobre Nós</a>
                     <a href="#" class="nav-link" data-page="menu">Menu</a>
-                    <a href="#" class="nav-link" data-page="guiaCuidados">Guia de Cuidados</a>
+                    <a href="#" class="nav-link" data-page="cuidados">Conservação</a>
                     <a href="#" class="nav-link" data-page="feedbacks">Feedbacks</a>
                 </nav>
 
@@ -91,7 +91,7 @@
                 <a href="#" class="mobile-nav-link active" data-page="inicio">Início</a>
                 <a href="#" class="mobile-nav-link" data-page="sobre">Sobre Nós</a>
                 <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
-                <a href="#" class="mobile-nav-link" data-page="guiaCuidados">Guia de Cuidados</a>
+                <a href="#" class="mobile-nav-link" data-page="cuidados">Conservação</a>
                 <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
             </nav>
         </div>
@@ -149,7 +149,7 @@
             </section>
         </div>
 
-        <div id="page-guiaCuidados" class="page">
+        <div id="page-cuidados" class="page">
             <!-- Conteúdo da página guia de cuidados será carregado aqui -->
         </div>
 
@@ -397,7 +397,7 @@
 <script src="js/pages/inicio.js"></script>
 <script src="js/pages/sobrenos.js"></script>
 <script src="js/pages/menu.js"></script>
-<script src="js/pages/guiaCuidados.js"></script>
+<script src="js/pages/cuidados.js"></script>
 <script src="js/pages/feedbacks.js"></script>
 
 <!-- Main Script -->
@@ -414,10 +414,41 @@
                         console.log('Service Worker registrado com sucesso:', registration);
                     })
                     .catch(error => {
-                        console.log('Falha no registro do Service Worker:', error);
+                        console.log('Falha no registro du Service Worker:', error);
                     });
             });
         }
+
+        // Carrega o conteúdo da página de CUIDADOS/CONSERVAÇÃO
+        document.addEventListener('DOMContentLoaded', function () {
+            // Conteúdo da página GUIA DE CUIDADOS
+            document.getElementById('page-cuidados').innerHTML = `
+                <section class="guia-cuidados-section">
+                    <div class="container">
+                        <h2>Guia de Conservação dos Nossos Produtos</h2>
+                        <p class="guia-intro">Dicas essenciais para manter a frescura e sabor dos seus pães e doces artesanais</p>
+                        <div class="guia-cards">
+                            <div class="guia-card">
+                                <h3>Armazenamento Adequado</h3>
+                                <p>Guarde os pães em sacos de papel ou recipientes ventilados para evitar o acúmulo de umidade.</p>
+                            </div>
+                            <div class="guia-card">
+                                <h3>Congelamento</h3>
+                                <p>Para conservar por mais tempo, congele os pães em sacos plásticos herméticos. Descongele em temperatura ambiente.</p>
+                            </div>
+                            <div class="guia-card">
+                                <h3>Reaquecimento</h3>
+                                <p>Aqueça os pães no forno a 180°C por alguns minutos para restaurar a crocância e frescor.</p>
+                            </div>
+                            <div class="guia-card">
+                                <h3>Consumo Rápido</h3>
+                                <p>Recomendamos consumir os produtos dentro de 2 a 3 dias para melhor sabor e textura.</p>
+                            </div> 
+                        </div>
+                    </div>
+                </section>
+            `;
+        });
     </script>
 </body>
 

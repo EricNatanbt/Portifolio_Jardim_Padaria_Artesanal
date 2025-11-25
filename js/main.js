@@ -170,9 +170,8 @@ function initializePageComponents(pageName) {
         case 'menu':
             if (typeof MenuPage !== 'undefined') MenuPage.initialize();
             break;
-
-        case 'guiaCuidados':
-            if (typeof GuiaCuidadosPage !== 'undefined') GuiaCuidadosPage.initialize();
+        case 'cuidados':
+            if (typeof CuidadosPage !== 'undefined') GuiaCuidadosPage.initialize();
             break;
         case 'feedbacks':
             if (typeof FeedbacksPage !== 'undefined') FeedbacksPage.initialize();
