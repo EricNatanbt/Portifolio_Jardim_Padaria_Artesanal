@@ -1,8 +1,7 @@
 // ============================================
 // VARIÁVEIS DE CONFIGURAÇÃO
 // ============================================
-const N8N_WEBHOOK_URL = "https://apiteste.app.n8n.cloud/webhook-test/webhook/zapi-order";
-const ZAPI_DIRECT_URL = "https://api.z-api.io/instances/3EAB83C703C841B4A4B41E9814A1DE6D/token/274F81706B45923FA33F388B/send-text";
+
 const PADARIA_ADDRESS = "Av. Joaquim Caroca, 266 - Universitário, Campina Grande - PB, 58429-120";
 const PADARIA_WHATSAPP = "5583987194754";
 
@@ -666,10 +665,44 @@ const Cart = {
         const expirationKey = `exp_${shortId}`;
         localStorage.setItem(expirationKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
         
+        // Cria a URL completa com todos os dados como fallback
+        const fullUrlParams = this.generateFullUrlParams(orderData);
+        
         // URL super curta - use 'o.html' em vez de 'order.html'
         const baseUrl = window.location.origin;
-        return `${baseUrl}/o.html?i=${shortId}`;
+        
+        // Retorna o link curto com o fallback de dados completos na URL
+        return `${baseUrl}/o.html?i=${shortId}&${fullUrlParams}`;
     },
+
+    // NOVO: Função para gerar os parâmetros de URL completos
+    generateFullUrlParams(orderData) {
+        const params = new URLSearchParams();
+        
+        // Dados do Cliente
+        params.append('name', encodeURIComponent(orderData.customer.name));
+        params.append('phone', orderData.customer.phone);
+        params.append('delivery', orderData.customer.deliveryOption);
+        params.append('payment', orderData.customer.paymentMethod);
+        params.append('address', encodeURIComponent(orderData.customer.address));
+        params.append('obs', encodeURIComponent(orderData.customer.observation));
+        
+        // Dados do Pedido
+        params.append('id', orderData.order.orderId);
+        params.append('subtotal', orderData.order.subtotal.toFixed(2));
+        params.append('total', orderData.order.total.toFixed(2));
+        params.append('timestamp', new Date(orderData.order.timestamp).getTime());
+
+        // Itens do Pedido (formato: 1xProduto_A,2xProduto_B)
+        const itemsParam = orderData.order.items.map(item => 
+            `${item.quantity}x${item.name.replace(/\s/g, '_')}`
+        ).join(',');
+        params.append('items', itemsParam);
+
+        return params.toString();
+    },
+
+
 
     // Mensagem do WhatsApp com link ENCURTADO
     buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation) {

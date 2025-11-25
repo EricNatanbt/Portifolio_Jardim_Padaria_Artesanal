@@ -92,6 +92,7 @@ class OrderDisplay {
     }
 
     // Função auxiliar para estimar preços (copiada de order-display.js)
+
     estimatePrice(productName) {
         const priceMap = {
             'Baguete': 13.00,
@@ -142,11 +143,11 @@ class OrderDisplay {
             if (!savedOrder) {
                 // Tenta carregar os dados diretamente da URL como fallback
                 const fullOrderData = this.getOrderFromFullURL();
-                if (!fullOrderData) {
-                    this.showError('Pedido não encontrado ou já foi processado.');
-                    return;
-                }
-                this.orderData = fullOrderData;
+                    if (!fullOrderData) {
+                        this.showError('Pedido não encontrado ou já foi processado.');
+                        return;
+                    }
+                    this.orderData = fullOrderData;
             } else {
                 this.orderData = JSON.parse(savedOrder);
             }
