@@ -412,7 +412,7 @@ async function downloadImage() {
             console.error('ImageGenerator não carregado');
             
             // Tenta carregar dinamicamente
-            await this.loadImageGenerator();
+            await loadImageGenerator();
             
             if (typeof ImageGenerator === 'undefined') {
                 alert('Funcionalidade de download não disponível no momento. Tente recarregar a página.');
@@ -422,37 +422,107 @@ async function downloadImage() {
 
         console.log('Gerando imagem do comprovante...');
         
+        // Mostra feedback visual de carregamento
+        const btn = document.querySelector('.btn-primary');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '⏳ Gerando...';
+        btn.disabled = true;
+        
         // Gera a imagem usando o ImageGenerator
         const imageBlob = await ImageGenerator.generateOrderImage(window.orderDisplay.orderData);
         
-        // Cria link de download
-        const url = URL.createObjectURL(imageBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `comprovante-${window.orderDisplay.orderData.order.orderId}.jpg`;
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Limpa o URL após o download
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-        
-        // Feedback visual
-        const btn = document.querySelector('.btn-primary');
-        if (btn) {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✅ Baixado!';
-            btn.style.background = '#4CAF50';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '';
-            }, 2000);
+        // Método de download compatível com mobile
+        if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
+            // Para mobile: usa abordagem alternativa
+            await this.downloadForMobile(imageBlob, window.orderDisplay.orderData.order.orderId);
+        } else {
+            // Para desktop: método tradicional
+            await this.downloadForDesktop(imageBlob, window.orderDisplay.orderData.order.orderId);
         }
+        
+        // Feedback visual de sucesso
+        btn.innerHTML = '✅ Baixado!';
+        btn.style.background = '#4CAF50';
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+        }, 2000);
         
     } catch (error) {
         console.error('Erro ao baixar imagem:', error);
+        
+        // Restaura o botão
+        const btn = document.querySelector('.btn-primary');
+        btn.innerHTML = '📥 Baixar Comprovante';
+        btn.disabled = false;
+        
         alert('Erro ao baixar comprovante. Tente novamente.');
+    }
+}
+
+// Método de download para desktop
+async function downloadForDesktop(blob, orderId) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comprovante-${orderId}.jpg`;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Limpa o URL após o download
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Método de download para mobile
+async function downloadForMobile(blob, orderId) {
+    try {
+        // Método 1: Tenta usar a API File System Access (navegadores modernos)
+        if ('showSaveFilePicker' in window) {
+            try {
+                const fileHandle = await window.showSaveFilePicker({
+                    suggestedName: `comprovante-${orderId}.jpg`,
+                    types: [{
+                        description: 'JPEG Image',
+                        accept: {'image/jpeg': ['.jpg']},
+                    }],
+                });
+                
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return;
+            } catch (filePickerError) {
+                console.log('File Picker API não suportada ou cancelada:', filePickerError);
+            }
+        }
+        
+        // Método 2: Abre em nova aba (fallback para mobile)
+        const url = URL.createObjectURL(blob);
+        const newTab = window.open(url, '_blank');
+        
+        if (!newTab) {
+            // Método 3: Se popup foi bloqueado, força download via link
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `comprovante-${orderId}.jpg`;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Limpa o URL após um tempo
+        setTimeout(() => URL.revokeObjectURL(url), 30000); // 30 segundos para mobile
+        
+    } catch (mobileError) {
+        console.error('Erro no download mobile:', mobileError);
+        throw mobileError;
     }
 }
 
