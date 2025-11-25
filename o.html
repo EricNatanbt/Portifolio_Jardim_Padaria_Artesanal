@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
     <title>Pedido - Jardim Padaria</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -36,6 +37,7 @@
             --spacing-lg: 1.5rem;
             --spacing-xl: 2rem;
             --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
             
             --radius: 0.65rem;
             --radius-lg: 1rem;
@@ -75,13 +77,15 @@
            CONTAINER PRINCIPAL - MOBILE FIRST
            ============================================ */
         .order-container {
-            max-width: 100%;
+            max-width: 600px; /* Limitar a largura para melhor visualização em dispositivos maiores */
             margin: 0 auto;
             background: var(--card);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
             animation: containerSlideIn 0.6s ease-out;
+            /* Adicionado padding inferior para garantir espaço para a imagem */
+            padding-bottom: var(--spacing-2xl); 
         }
 
         @keyframes containerSlideIn {
@@ -101,7 +105,7 @@
         .order-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: var(--spacing-xl) var(--spacing-lg);
+            padding: var(--spacing-2xl) var(--spacing-lg);
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -114,12 +118,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><text x="50%" y="50%" font-family="Playfair Display" font-size="20" text-anchor="middle" dominant-baseline="middle">🍞</text></svg>');
+            background: rgba(0, 0, 0, 0.1);
+            /* Removido o emoji do pão do background */
             background-size: 60px 60px;
         }
 
         .order-header h1 {
-            font-size: 1.8em;
+            font-size: 2.2em;
             margin-bottom: var(--spacing-xs);
             color: white;
             position: relative;
@@ -127,7 +132,7 @@
         }
 
         .order-header p {
-            font-size: 1em;
+            font-size: 1.1em;
             opacity: 0.9;
             margin-bottom: var(--spacing-md);
             position: relative;
@@ -135,7 +140,7 @@
         }
 
         .order-id {
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: 600;
             margin-bottom: var(--spacing-sm);
             position: relative;
@@ -144,7 +149,7 @@
 
         .status-badge {
             display: inline-block;
-            padding: var(--spacing-sm) var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-lg);
             background: var(--accent);
             color: var(--primary-dark);
             border-radius: 50px;
@@ -159,12 +164,15 @@
            CONTEÚDO DO PEDIDO - MOBILE FRIENDLY
            ============================================ */
         .order-content {
-            padding: var(--spacing-lg);
+            /* Aumentado o padding para preencher mais espaço verticalmente */
+            padding: var(--spacing-2xl); 
         }
 
         .section {
-            margin-bottom: var(--spacing-lg);
-            padding: var(--spacing-md);
+            /* Aumentado o espaçamento entre as seções */
+            margin-bottom: var(--spacing-2xl); 
+            /* Aumentado o padding interno das seções */
+            padding: var(--spacing-xl); 
             border: 2px solid var(--border);
             border-radius: var(--radius);
             background: var(--card);
@@ -177,8 +185,8 @@
 
         .section h2 {
             color: var(--primary);
-            margin-bottom: var(--spacing-md);
-            font-size: 1.2em;
+            margin-bottom: var(--spacing-lg);
+            font-size: 1.3em;
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
@@ -195,8 +203,8 @@
         .info-item {
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-sm) 0;
+            gap: var(--spacing-sm); /* Aumentado o espaçamento interno do item */
+            padding: var(--spacing-lg) 0; /* Aumentar o padding vertical do item */
             border-bottom: 1px solid var(--border);
         }
 
@@ -315,17 +323,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--spacing-sm) 0;
+            padding: var(--spacing-md) 0;
             font-size: 1em;
         }
 
         .summary-item.total {
-            font-size: 1.1em;
+            font-size: 1.3em;
             font-weight: 700;
             color: var(--primary);
             border-top: 2px solid var(--primary);
-            margin-top: var(--spacing-sm);
-            padding-top: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            padding-top: var(--spacing-lg);
         }
 
         /* ============================================
@@ -334,15 +342,15 @@
         .actions {
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-sm);
-            margin-top: var(--spacing-xl);
+            gap: var(--spacing-lg); /* Aumentar o espaçamento entre os botões */
+            margin-top: var(--spacing-3xl); /* Aumentar o espaçamento acima dos botões */
         }
 
         .btn {
-            padding: var(--spacing-md) var(--spacing-lg);
+            padding: var(--spacing-lg) var(--spacing-xl);
             border: none;
             border-radius: var(--radius);
-            font-size: 1em;
+            font-size: 1.1em;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
@@ -383,7 +391,8 @@
         .timestamp {
             text-align: center;
             color: var(--muted-foreground);
-            margin-top: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+            font-size: 0.95em;
             font-style: italic;
             padding: var(--spacing-md);
             background: var(--muted);
@@ -518,7 +527,7 @@
 <body>
     <div class="order-container">
         <div class="order-header">
-            <h1>🍞 Jardim Padaria</h1>
+            <h1><img src="img/logos/Logo.png" alt="Logo Jardim Padaria" style="height: 52px; margin-right: 10px; vertical-align: middle;"> Jardim Padaria</h1>
             <p>Comprovante de Pedido</p>
             <div class="order-id" id="orderId">Carregando...</div>
             <div class="status-badge" id="orderStatus">📋 Pedido Recebido</div>

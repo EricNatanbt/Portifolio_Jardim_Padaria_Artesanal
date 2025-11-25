@@ -1,43 +1,45 @@
 // ============================================
-// GERADOR DE IMAGENS PARA PEDIDOS
+// GERADOR DE IMAGENS PARA PEDIDOS - VERSÃO MELHORADA
 // ============================================
 
 const ImageGenerator = {
     /**
-     * Cria uma imagem com as informações do pedido
+     * Cria uma imagem com as informações do pedido - VERSÃO MELHORADA
      */
     async generateOrderImage(orderData) {
         return new Promise((resolve, reject) => {
-            // Criar canvas
+            // Criar canvas com altura otimizada
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Configurações do canvas - aumentei a altura para mais espaço
+            // Configurações do canvas - altura calculada dinamicamente
             canvas.width = 800;
-            canvas.height = 1600; // Aumentei a altura para mais espaço
             
-            // Cor de fundo
-            ctx.fillStyle = '#f8f9fa';
+            // Calcula altura dinâmica baseada no conteúdo
+            const estimatedHeight = this.calculateEstimatedHeight(orderData);
+            canvas.height = Math.max(estimatedHeight, 1200); // Altura mínima garantida
+            
+            // Cor de fundo do sistema
+            ctx.fillStyle = '#FCF9F5';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Cabeçalho
-            this.drawHeader(ctx, canvas);
+            // Cabeçalho com design do sistema
+            const headerEndY = this.drawHeader(ctx, canvas);
             
-            // Informações do cliente
-            const customerEndY = this.drawCustomerInfo(ctx, canvas, orderData.customer, 120);
+            // Informações do cliente com mais espaçamento
+            const customerEndY = this.drawCustomerInfo(ctx, canvas, orderData.customer, headerEndY + 40);
             
-            // NOVA SEÇÃO: Observações (se existirem)
-            const observationStartY = this.drawObservationSection(ctx, canvas, orderData.customer, customerEndY + 30);
+            // Seção de observações (se existirem)
+            const observationEndY = this.drawObservationSection(ctx, canvas, orderData.customer, customerEndY + 30);
             
-            // Itens do pedido - começa depois das observações
-            const itemsStartY = observationStartY + 30;
-            const itemsEndY = this.drawOrderItems(ctx, canvas, orderData.order, itemsStartY);
+            // Itens do pedido com melhor espaçamento
+            const itemsEndY = this.drawOrderItems(ctx, canvas, orderData.order, observationEndY + 40);
             
-            // Resumo financeiro
-            this.drawOrderSummary(ctx, canvas, orderData.order, itemsEndY + 60);
+            // Resumo financeiro destacado
+            const summaryEndY = this.drawOrderSummary(ctx, canvas, orderData.order, itemsEndY + 50);
             
-            // Rodapé
-            this.drawFooter(ctx, canvas);
+            // Rodapé com informações de contato
+            this.drawFooter(ctx, canvas, summaryEndY + 40);
             
             // Converter para imagem
             canvas.toBlob(blob => {
@@ -51,79 +53,124 @@ const ImageGenerator = {
     },
     
     /**
-     * Desenha o cabeçalho da imagem
+     * Calcula altura estimada baseada no conteúdo
      */
-    drawHeader(ctx, canvas) {
-        // Fundo do cabeçalho
-        ctx.fillStyle = '#1C3D2D';
-        ctx.fillRect(0, 0, canvas.width, 100);
+    calculateEstimatedHeight(orderData) {
+        let height = 200; // Cabeçalho e espaçamento básico
         
-        // Logo/Texto
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 32px "Playfair Display", serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('JARDIM PADARIA ARTESANAL', canvas.width / 2, 45);
+        // Altura das informações do cliente
+        height += 180;
         
-        ctx.font = '18px "Inter", sans-serif';
-        ctx.fillText('COMPROVANTE DE PEDIDO', canvas.width / 2, 75);
+        // Altura da observação (se existir)
+        if (orderData.customer.observation && orderData.customer.observation.trim() !== '') {
+            const obsLines = Math.ceil(orderData.customer.observation.length / 50);
+            height += 80 + (obsLines * 20);
+        }
         
-        // Linha decorativa
-        ctx.strokeStyle = '#4CAF50';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(50, 85);
-        ctx.lineTo(canvas.width - 50, 85);
-        ctx.stroke();
+        // Altura dos itens do pedido
+        height += 60; // Título
+        orderData.order.items.forEach(item => {
+            const nameLines = Math.ceil(item.name.length / 30);
+            height += 40 + (nameLines * 18);
+        });
+        
+        // Altura do resumo
+        height += 160;
+        
+        // Rodapé
+        height += 100;
+        
+        return height;
     },
     
     /**
-     * Desenha as informações do cliente
+     * Desenha o cabeçalho da imagem - DESIGN DO SISTEMA
      */
-    drawCustomerInfo(ctx, canvas, customer, startY) {
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#1C3D2D';
-        ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('INFORMAÇÕES DO CLIENTE', 40, startY);
+    drawHeader(ctx, canvas) {
+        // Fundo do cabeçalho - cor primária do sistema
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+        gradient.addColorStop(0, '#1C3D2D');
+        gradient.addColorStop(1, '#2A5C42');
         
-        ctx.font = '18px "Inter", sans-serif';
-        ctx.fillStyle = '#333333';
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, 120);
         
-        let currentY = startY + 40;
+        // Logo/Texto centralizado
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 28px "Playfair Display", serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('JARDIM PADARIA ARTESANAL', canvas.width / 2, 50);
         
-        ctx.fillText(`Nome: ${customer.name}`, 40, currentY);
-        currentY += 30;
+        ctx.font = '16px "Inter", sans-serif';
+        ctx.fillText('COMPROVANTE DE PEDIDO', canvas.width / 2, 80);
         
-        ctx.fillText(`Telefone: ${this.formatPhone(customer.phone)}`, 40, currentY);
-        currentY += 30;
-        
-        ctx.fillText(`Entrega: ${customer.deliveryOption === 'retirada' ? 'Retirada na Loja' : 'Entrega'}`, 40, currentY);
-        currentY += 30;
-        
-        ctx.fillText(`Pagamento: ${customer.paymentMethod === 'pix' ? 'Pix' : 'Cartão'}`, 40, currentY);
-        currentY += 30;
-        
-        if (customer.deliveryOption === 'entrega') {
-            // Quebra o endereço em múltiplas linhas se for muito longo
-            const addressLines = this.wrapText(ctx, `Endereço: ${customer.address}`, 40, currentY, canvas.width - 80, 20);
-            addressLines.forEach((line, index) => {
-                ctx.fillText(line, 40, currentY + (index * 20));
-            });
-            currentY += (addressLines.length * 20) + 10;
-        }
-        
-        // Linha divisória
-        ctx.strokeStyle = '#ddd';
-        ctx.lineWidth = 1;
+        // Elemento decorativo - linha sutil
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(40, currentY + 20);
-        ctx.lineTo(canvas.width - 40, currentY + 20);
+        ctx.moveTo(canvas.width / 4, 95);
+        ctx.lineTo(3 * canvas.width / 4, 95);
         ctx.stroke();
         
-        return currentY + 40;
+        return 120;
+    },
+    
+    /**
+     * Desenha as informações do cliente - MAIS ESPAÇADO
+     */
+    drawCustomerInfo(ctx, canvas, customer, startY) {
+        // Título da seção
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1C3D2D';
+        ctx.font = 'bold 22px "Inter", sans-serif';
+        ctx.fillText('👤 INFORMAÇÕES DO CLIENTE', 40, startY);
+        
+        // Container com fundo sutil
+        ctx.fillStyle = 'rgba(232, 240, 235, 0.5)';
+        ctx.fillRect(30, startY + 10, canvas.width - 60, 160);
+        ctx.strokeStyle = '#D4E8DC';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(30, startY + 10, canvas.width - 60, 160);
+        
+        let currentY = startY + 40;
+        const lineHeight = 28;
+        
+        ctx.font = '16px "Inter", sans-serif';
+        ctx.fillStyle = '#333333';
+        
+        // Nome
+        ctx.fillText(`Nome: ${customer.name}`, 50, currentY);
+        currentY += lineHeight;
+        
+        // Telefone
+        ctx.fillText(`Telefone: ${this.formatPhone(customer.phone)}`, 50, currentY);
+        currentY += lineHeight;
+        
+        // Entrega
+        const deliveryText = customer.deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega';
+        ctx.fillText(`Entrega: ${deliveryText}`, 50, currentY);
+        currentY += lineHeight;
+        
+        // Pagamento
+        const paymentText = customer.paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão';
+        ctx.fillText(`Pagamento: ${paymentText}`, 50, currentY);
+        currentY += lineHeight;
+        
+        // Endereço (se entrega)
+        if (customer.deliveryOption === 'entrega' && customer.address) {
+            const addressLines = this.wrapText(ctx, `Endereço: ${customer.address}`, 50, currentY, canvas.width - 100, 16);
+            addressLines.forEach((line, index) => {
+                ctx.fillText(line, 50, currentY + (index * 20));
+            });
+            currentY += (addressLines.length * 20);
+        }
+        
+        return startY + 180;
     },
 
     /**
-     * NOVO: Desenha a seção de observações
+     * Desenha a seção de observações - DESIGN MELHORADO
      */
     drawObservationSection(ctx, canvas, customer, startY) {
         // Se não há observação, retorna a posição inicial
@@ -131,181 +178,231 @@ const ImageGenerator = {
             return startY;
         }
 
-        // Fundo destacado para observações
-        ctx.fillStyle = 'rgba(255, 193, 7, 0.1)'; // Amarelo bem suave
-        ctx.fillRect(30, startY - 10, canvas.width - 60, 120);
-        
-        // Borda
-        ctx.strokeStyle = 'rgba(255, 193, 7, 0.3)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(30, startY - 10, canvas.width - 60, 120);
-
         // Título da seção
         ctx.textAlign = 'left';
-        ctx.fillStyle = '#E67E22'; // Laranja
-        ctx.font = 'bold 22px "Inter", sans-serif';
-        ctx.fillText('OBSERVAÇÕES DO PEDIDO', 40, startY + 20);
-
-        // Texto da observação
-        ctx.fillStyle = '#8B4513'; // Marrom escuro
-        ctx.font = '16px "Inter", sans-serif';
+        ctx.fillStyle = '#E67E22';
+        ctx.font = 'bold 20px "Inter", sans-serif';
+        ctx.fillText('📝 OBSERVAÇÕES DO PEDIDO', 40, startY);
         
-        const observationLines = this.wrapText(ctx, customer.observation, 50, startY + 50, canvas.width - 100, 16);
+        // Container destacado
+        const observationLines = this.wrapText(ctx, customer.observation, 50, startY + 40, canvas.width - 100, 16);
+        const containerHeight = 60 + (observationLines.length * 20);
+        
+        ctx.fillStyle = 'rgba(255, 193, 7, 0.08)';
+        ctx.fillRect(30, startY + 20, canvas.width - 60, containerHeight);
+        
+        ctx.strokeStyle = 'rgba(255, 193, 7, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, startY + 20, canvas.width - 60, containerHeight);
+        
+        // Texto da observação
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '15px "Inter", sans-serif';
         
         observationLines.forEach((line, index) => {
             ctx.fillText(line, 50, startY + 50 + (index * 20));
         });
 
-        // Linha divisória após observações
-        ctx.strokeStyle = '#ddd';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(40, startY + 50 + (observationLines.length * 20) + 20);
-        ctx.lineTo(canvas.width - 40, startY + 50 + (observationLines.length * 20) + 20);
-        ctx.stroke();
-
-        return startY + 50 + (observationLines.length * 20) + 40;
+        return startY + 30 + containerHeight;
     },
     
     /**
-     * Desenha os itens do pedido
+     * Desenha os itens do pedido - MAIS ESPAÇADO E ORGANIZADO
      */
     drawOrderItems(ctx, canvas, order, startY) {
+        // Título da seção
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
-        ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('ITENS DO PEDIDO', 40, startY);
+        ctx.font = 'bold 22px "Inter", sans-serif';
+        ctx.fillText('📋 ITENS DO PEDIDO', 40, startY);
         
         let currentY = startY + 40;
         
-        // Adiciona um fundo alternado para melhor legibilidade
-        order.items.forEach((item, index) => {
-            // Fundo alternado para melhor legibilidade
-            if (index % 2 === 0) {
-                ctx.fillStyle = 'rgba(0,0,0,0.03)';
-                ctx.fillRect(30, currentY - 15, canvas.width - 60, 25);
-            }
-            
-            ctx.fillStyle = index % 2 === 0 ? '#333333' : '#555555';
-            ctx.font = '16px "Inter", sans-serif';
-            
-            // Nome do produto - quebra linha se for muito longo
-            const productName = `${item.quantity}x ${item.name}`;
-            const nameLines = this.wrapText(ctx, productName, 40, currentY, canvas.width - 160, 16);
-            
-            if (nameLines.length > 1) {
-                // Se o nome quebrou em múltiplas linhas, desenha cada linha
-                nameLines.forEach((line, lineIndex) => {
-                    ctx.fillText(line, 40, currentY + (lineIndex * 18));
-                });
-                // Preço alinhado à direita
-                ctx.textAlign = 'right';
-                ctx.fillText(`R$ ${(item.price * item.quantity).toFixed(2)}`, canvas.width - 40, currentY);
-                ctx.textAlign = 'left';
-                
-                currentY += (nameLines.length * 18) + 10;
-            } else {
-                // Nome em uma linha só
-                ctx.fillText(productName, 40, currentY);
-                
-                // Preço
-                ctx.textAlign = 'right';
-                ctx.fillText(`R$ ${(item.price * item.quantity).toFixed(2)}`, canvas.width - 40, currentY);
-                ctx.textAlign = 'left';
-                
-                currentY += 30;
-            }
-        });
+        // Cabeçalho da tabela
+        ctx.fillStyle = '#1C3D2D';
+        ctx.font = 'bold 15px "Inter", sans-serif';
+        ctx.fillText('PRODUTO', 50, currentY);
+        ctx.textAlign = 'right';
+        ctx.fillText('SUBTOTAL', canvas.width - 50, currentY);
+        ctx.textAlign = 'left';
         
-        // Linha divisória antes do resumo
-        ctx.strokeStyle = '#ddd';
+        currentY += 25;
+        
+        // Linha divisória do cabeçalho
+        ctx.strokeStyle = '#1C3D2D';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(40, currentY + 20);
-        ctx.lineTo(canvas.width - 40, currentY + 20);
+        ctx.moveTo(50, currentY);
+        ctx.lineTo(canvas.width - 50, currentY);
         ctx.stroke();
         
-        return currentY + 40;
+        currentY += 15;
+        
+        // Itens do pedido
+        order.items.forEach((item, index) => {
+            const itemHeight = this.drawOrderItem(ctx, canvas, item, currentY, index);
+            currentY += itemHeight + 10;
+        });
+        
+        return currentY;
     },
     
     /**
-     * Desenha o resumo financeiro
+     * Desenha um item individual do pedido
+     */
+    drawOrderItem(ctx, canvas, item, startY, index) {
+        const backgroundColor = index % 2 === 0 ? 'rgba(232, 240, 235, 0.3)' : 'rgba(255, 255, 255, 0.5)';
+        
+        // Fundo alternado para legibilidade
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(40, startY - 10, canvas.width - 80, 50);
+        
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#333333';
+        ctx.font = '15px "Inter", sans-serif';
+        
+        // Nome do produto e quantidade
+        const productText = `${item.quantity}x ${item.name}`;
+        const nameLines = this.wrapText(ctx, productText, 50, startY + 10, canvas.width - 200, 15);
+        
+        // Desenha o nome do produto (pode ser múltiplas linhas)
+        nameLines.forEach((line, lineIndex) => {
+            ctx.fillText(line, 50, startY + 10 + (lineIndex * 18));
+        });
+        
+        // Preço unitário (menor, em cinza)
+        ctx.fillStyle = '#666666';
+        ctx.font = '13px "Inter", sans-serif';
+        ctx.fillText(`(R$ ${item.price.toFixed(2)} un)`, 50, startY + 15 + (nameLines.length * 18));
+        
+        // Subtotal do item
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#1C3D2D';
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.fillText(`R$ ${(item.price * item.quantity).toFixed(2)}`, canvas.width - 50, startY + 15);
+        
+        // Altura total do item
+        return 30 + (nameLines.length * 18);
+    },
+    
+    /**
+     * Desenha o resumo financeiro - DESIGN DESTACADO
      */
     drawOrderSummary(ctx, canvas, order, startY) {
+        // Título da seção
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
-        ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText('RESUMO DO PEDIDO', 40, startY);
+        ctx.font = 'bold 22px "Inter", sans-serif';
+        ctx.fillText('💵 RESUMO DO PEDIDO', 40, startY);
         
-        let currentY = startY + 40;
+        // Container de resumo
+        const containerY = startY + 30;
+        const containerHeight = 120;
         
-        // Fundo para a seção de resumo
-        ctx.fillStyle = 'rgba(28, 61, 45, 0.05)';
-        ctx.fillRect(30, currentY - 10, canvas.width - 60, 140);
+        // Gradiente de fundo sutil
+        const gradient = ctx.createLinearGradient(0, containerY, 0, containerY + containerHeight);
+        gradient.addColorStop(0, 'rgba(162, 178, 142, 0.1)');
+        gradient.addColorStop(1, 'rgba(212, 232, 220, 0.2)');
         
-        ctx.font = '18px "Inter", sans-serif';
-        ctx.fillStyle = '#333333';
+        ctx.fillStyle = gradient;
+        ctx.fillRect(30, containerY, canvas.width - 60, containerHeight);
+        
+        ctx.strokeStyle = '#A2B28E';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, containerY, canvas.width - 60, containerHeight);
+        
+        let currentY = containerY + 30;
         
         // Subtotal
-        ctx.fillText('Subtotal:', 40, currentY + 20);
-        ctx.textAlign = 'right';
-        ctx.fillText(`R$ ${order.subtotal.toFixed(2)}`, canvas.width - 40, currentY + 20);
+        this.drawSummaryLine(ctx, canvas, 'Subtotal:', `R$ ${order.subtotal.toFixed(2)}`, currentY);
+        currentY += 25;
         
         // Frete (se houver)
         if (order.deliveryFee > 0) {
-            ctx.textAlign = 'left';
-            ctx.fillText('Frete:', 40, currentY + 50);
-            ctx.textAlign = 'right';
-            ctx.fillText(`R$ ${order.deliveryFee.toFixed(2)}`, canvas.width - 40, currentY + 50);
+            this.drawSummaryLine(ctx, canvas, 'Frete:', `R$ ${order.deliveryFee.toFixed(2)}`, currentY);
+            currentY += 25;
         }
         
-        // Total
-        const totalY = order.deliveryFee > 0 ? currentY + 90 : currentY + 70;
+        // Linha divisória antes do total
+        ctx.strokeStyle = '#1C3D2D';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(50, currentY + 5);
+        ctx.lineTo(canvas.width - 50, currentY + 5);
+        ctx.stroke();
         
+        currentY += 15;
+        
+        // Total (destaque)
         ctx.textAlign = 'left';
         ctx.fillStyle = '#1C3D2D';
         ctx.font = 'bold 20px "Inter", sans-serif';
-        ctx.fillText('TOTAL:', 40, totalY);
+        ctx.fillText('TOTAL:', 50, currentY);
         
         ctx.textAlign = 'right';
-        ctx.font = 'bold 24px "Inter", sans-serif';
-        ctx.fillText(`R$ ${order.total.toFixed(2)}`, canvas.width - 40, totalY);
+        ctx.font = 'bold 22px "Inter", sans-serif';
+        ctx.fillText(`R$ ${order.total.toFixed(2)}`, canvas.width - 50, currentY);
         
-        // ID do pedido
-        ctx.textAlign = 'center';
-        ctx.font = '14px "Inter", sans-serif';
-        ctx.fillStyle = '#666666';
-        ctx.fillText(`Pedido: ${order.orderId} • ${order.timestamp}`, canvas.width / 2, totalY + 50);
-        
-        return totalY + 70;
+        return containerY + containerHeight;
     },
     
     /**
-     * Desenha o rodapé
+     * Desenha uma linha do resumo
      */
-    drawFooter(ctx, canvas) {
-        const footerY = canvas.height - 80;
+    drawSummaryLine(ctx, canvas, label, value, y) {
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#5A7A6A';
+        ctx.font = '16px "Inter", sans-serif';
+        ctx.fillText(label, 50, y);
+        
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#333333';
+        ctx.font = '16px "Inter", sans-serif';
+        ctx.fillText(value, canvas.width - 50, y);
+    },
+    
+    /**
+     * Desenha o rodapé - DESIGN DO SISTEMA
+     */
+    drawFooter(ctx, canvas, startY) {
+        const footerY = Math.max(startY, canvas.height - 100);
+        
+        // Gradiente de fundo
+        const gradient = ctx.createLinearGradient(0, footerY, 0, canvas.height);
+        gradient.addColorStop(0, 'rgba(28, 61, 45, 0.05)');
+        gradient.addColorStop(1, 'rgba(28, 61, 45, 0.1)');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, footerY, canvas.width, canvas.height - footerY);
         
         // Linha divisória
-        ctx.strokeStyle = '#ddd';
+        ctx.strokeStyle = '#1C3D2D';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(40, footerY - 20);
-        ctx.lineTo(canvas.width - 40, footerY - 20);
+        ctx.moveTo(50, footerY + 10);
+        ctx.lineTo(canvas.width - 50, footerY + 10);
         ctx.stroke();
         
-        // Texto do rodapé
+        // Textos do rodapé
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#666666';
+        ctx.fillStyle = '#5A7A6A';
         ctx.font = '14px "Inter", sans-serif';
-        ctx.fillText('Agradecemos pela preferência!', canvas.width / 2, footerY + 10);
-        ctx.fillText('Entraremos em contato em breve para confirmação.', canvas.width / 2, footerY + 30);
+        
+        ctx.fillText('Agradecemos pela preferência! 🌿', canvas.width / 2, footerY + 35);
+        ctx.fillText('Entraremos em contato em breve para confirmação.', canvas.width / 2, footerY + 55);
+        
+        // ID do pedido e timestamp
+        ctx.fillStyle = '#888888';
+        ctx.font = '12px "Inter", sans-serif';
+        ctx.fillText(`Pedido: ${orderData.order.orderId} • ${orderData.order.timestamp}`, canvas.width / 2, footerY + 75);
     },
     
     /**
      * Formata o número de telefone
      */
     formatPhone(phone) {
+        if (!phone) return 'Não informado';
+        
         const cleanPhone = phone.replace(/\D/g, '');
         if (cleanPhone.length === 12) { // +55 format
             return `(${cleanPhone.substring(2, 4)}) ${cleanPhone.substring(4, 9)}-${cleanPhone.substring(9)}`;
@@ -335,17 +432,5 @@ const ImageGenerator = {
         }
         lines.push(currentLine);
         return lines;
-    },
-    
-    /**
-     * Converte blob para base64 (para APIs que precisam)
-     */
-    blobToBase64(blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
     }
 };

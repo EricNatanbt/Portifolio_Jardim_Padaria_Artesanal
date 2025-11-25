@@ -710,28 +710,26 @@ const Cart = {
         message += `Olá! Meu nome é *${name}*\n\n`;
         message += `*QUERO FAZER UM PEDIDO!*\n\n`;
         
-        message += `*--- RESUMO RÁPIDO ---*\n`;
+        message += `> RESUMO RÁPIDO\n`;
         this.cartItems.forEach(item => {
             message += `• ${item.quantity}x ${item.name}\n`;
         });
-        
-        message += `\n*TOTAL: R$ ${total.toFixed(2)}*\n\n`;
         
         message += `*Modalidade:* ${deliveryOption === 'retirada' ? '_Retirada na Loja_' : '_Entrega_'}\n`;
         message += `*Pagamento:* ${paymentMethod === 'pix' ? '_Pix_' : '_Cartão_'}\n\n`;
         
         // NOVO: Adiciona observação se existir
         if (observation && observation.trim() !== '') {
-            message += `*--- OBSERVAÇÃO ---*\n`;
+            message += `> OBSERVAÇÃO\n`;
             message += `${observation}\n\n`;
         }
         
-        message += `*--- MEUS DADOS ---*\n`;
+        message += `> MEUS DADOS\n`;
         message += `*Nome:* ${name}\n`;
         message += `*Telefone:* ${phone}\n\n`;
         
-        message += `*--- DETALHES COMPLETOS DO PEDIDO ---*\n`;
-        message += `${orderLink}\n\n`;
+        message += `> DETALHES DO PEDIDO\n`;
+        message += "```" + `${orderLink}` + "```\n\n";
         
         message += `_Clique no link acima para ver todos os detalhes do pedido!_\n\n`;
         message += `*Por favor, confirme meu pedido!*`;
