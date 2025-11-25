@@ -628,51 +628,40 @@ const Cart = {
     },
 
     // Mensagem do WhatsApp com link ENCURTADO
-// Usar apenas emojis básicos que funcionam em todos os dispositivos
-buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation) {
-    let message = `*JARDIM PADARIA ARTESANAL*\\n\\n`;
-    message += `Olá! Meu nome é ${name}\\n\\n`;
-    message += `*QUERO FAZER UM PEDIDO!*\\n\\n`;
-    
-    message += `*RESUMO RÁPIDO:*\\n`;
-    this.cartItems.forEach(item => {
-        message += `• ${item.quantity}x ${item.name}\\n`;
-    });
-    
-    message += `\\n*TOTAL: R$ ${total.toFixed(2)}*\\n\\n`;
-    
-    // Usar símbolos ASCII em vez de emojis
-    message += `*>> ENTREGA:*\\n`;
-    if (deliveryOption === 'retirada') {
-        message += `🛵 Retirada na Loja\\n`;
-    } else {
-        message += `🚗 Entrega\\n`;
-    }
-    
-    message += `*>> PAGAMENTO:*\\n`;
-    if (paymentMethod === 'pix') {
-        message += `💲 Pix\\n\\n`;
-    } else {
-        message += `💳 Cartão\\n\\n`;
-    }
-    
-    if (observation && observation.trim() !== '') {
-        message += `*>> OBSERVAÇÃO:*\\n`;
-        message += `${observation}\\n\\n`;
-    }
-    
-    message += `*>> MEUS DADOS:*\\n`;
-    message += `Nome: ${name}\\n`;
-    message += `Telefone: ${phone}\\n\\n`;
-    
-    message += `*>> DETALHES COMPLETOS:*\\n`;
-    message += `${orderLink}\\n\\n`;
-    
-    message += `_Clique no link para ver detalhes completos_\\n\\n`;
-    message += `Por favor, confirme meu pedido!`;
+    buildWhatsAppMessageWithLink(name, phone, deliveryOption, paymentMethod, address, subtotal, total, orderLink, observation) {
+        let message = `🍞 *JARDIM PADARIA ARTESANAL* 🍞\n\n`;
+        message += `Olá! Meu nome é ${name} 👋\n\n`;
+        message += `*QUERO FAZER UM PEDIDO!*\n\n`;
+        
+        message += `📋 *RESUMO RÁPIDO:*\n`;
+        this.cartItems.forEach(item => {
+            message += `• ${item.quantity}x ${item.name}\n`;
+        });
+        
+        message += `\n💵 *TOTAL: R$ ${total.toFixed(2)}*\n\n`;
+        
+        message += `🚚 *${deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}*\n`;
+        message += `💳 *${paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}*\n\n`;
+        
+        // NOVO: Adiciona observação se existir
+        if (observation && observation.trim() !== '') {
+            message += `📝 *OBSERVAÇÃO:*\n`;
+            message += `${observation}\n\n`;
+        }
+        
+        message += `📞 *MEUS DADOS:*\n`;
+        message += `Nome: ${name}\n`;
+        message += `Telefone: ${phone}\n\n`;
+        
+        message += `🔗 *DETALHES COMPLETOS DO PEDIDO:*\n`;
+        message += `${orderLink}\n\n`;
+        
+        message += `_Clique no link acima para ver todos os detalhes do pedido!_ 📄\n\n`;
+        message += `Por favor, confirme meu pedido! 🙏`;
 
-    return message;
-},
+        return message;
+    },
+
     // Abre WhatsApp apenas com mensagem
     openWhatsAppWithMessage(message) {
         const encodedMessage = encodeURIComponent(message);
