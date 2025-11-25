@@ -1,4 +1,4 @@
-// order-display-short.js - Versão para links encurtados com links de endereço
+// order-display-short.js - Versão com Download Automático Direto
 class OrderDisplay {
     constructor() {
         this.orderData = null;
@@ -11,7 +11,7 @@ class OrderDisplay {
         this.setupAutoCleanup();
     }
 
-    // Função de fallback para carregar dados diretamente da URL (copiada de order-display.js)
+    // Função de fallback para carregar dados diretamente da URL
     getOrderFromFullURL() {
         const urlParams = new URLSearchParams(window.location.search);
         
@@ -34,7 +34,7 @@ class OrderDisplay {
             const itemsParam = urlParams.get('items') || '';
             const timestamp = parseInt(urlParams.get('timestamp')) || Date.now();
 
-            // Processa os itens do pedido (usando a função parseItems que deve ser adicionada)
+            // Processa os itens do pedido
             const items = this.parseItems(itemsParam);
 
             // Estrutura os dados para exibição
@@ -63,7 +63,7 @@ class OrderDisplay {
         }
     }
 
-    // Função para processar itens do parâmetro URL (copiada de order-display.js)
+    // Função para processar itens do parâmetro URL
     parseItems(itemsParam) {
         if (!itemsParam) return [];
         
@@ -76,8 +76,6 @@ class OrderDisplay {
                 const quantity = parseInt(match[1]);
                 const name = match[2].replace(/_/g, ' ');
                 
-                // Para demonstração, usamos preços fixos
-                // Em uma aplicação real, você teria uma lista de produtos com preços
                 const price = this.estimatePrice(name);
                 
                 items.push({
@@ -91,7 +89,7 @@ class OrderDisplay {
         return items;
     }
 
-    // Função auxiliar para estimar preços (copiada de order-display.js)
+    // Função auxiliar para estimar preços
     estimatePrice(productName) {
         const priceMap = {
             'Baguete': 13.00,
@@ -398,14 +396,13 @@ class OrderDisplay {
 }
 
 // ============================================
-// SISTEMA DE DOWNLOAD MOBILE COMPATÍVEL
+// SISTEMA DE DOWNLOAD AUTOMÁTICO DIRETO
 // ============================================
 
-// Função principal de download - VERSÃO MOBILE CORRIGIDA
+// Função principal de download - DOWNLOAD AUTOMÁTICO DIRETO
 async function downloadImage() {
     const btn = document.querySelector('.btn-primary');
     const originalText = btn.innerHTML;
-    const originalBg = btn.style.background;
     
     try {
         // Verifica dados do pedido
@@ -413,12 +410,11 @@ async function downloadImage() {
             throw new Error('Dados do pedido não disponíveis');
         }
 
-        console.log('Iniciando download...');
+        console.log('Iniciando download automático...');
         
         // Feedback visual imediato
         btn.innerHTML = '⏳ Gerando...';
         btn.disabled = true;
-        btn.style.background = '#FFA000';
         
         // Garante que o ImageGenerator está carregado
         if (typeof ImageGenerator === 'undefined') {
@@ -438,46 +434,48 @@ async function downloadImage() {
             throw new Error('Falha ao gerar imagem');
         }
 
-        console.log('Imagem gerada, tamanho:', imageBlob.size, 'tipo:', imageBlob.type);
+        console.log('Imagem gerada, iniciando download automático...');
         
-        // Detecta se é mobile
-        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            await downloadMobile(imageBlob, window.orderDisplay.orderData.order.orderId);
-        } else {
-            await downloadDesktop(imageBlob, window.orderDisplay.orderData.order.orderId);
-        }
+        // DOWNLOAD AUTOMÁTICO DIRETO - Método universal
+        await downloadDirect(imageBlob, window.orderDisplay.orderData.order.orderId);
         
         // Sucesso
         showDownloadSuccess(btn);
         
     } catch (error) {
         console.error('Erro no download:', error);
-        showDownloadError(btn, originalText, originalBg);
+        showDownloadError(btn, originalText);
         
         // Mensagem de erro amigável
         setTimeout(() => {
-            alert('❌ Erro ao baixar comprovante. \n\nDica: Tente manter a página aberta durante o download.');
+            alert('❌ Erro ao baixar comprovante. \n\nTente novamente.');
         }, 500);
     }
 }
 
-// Download para desktop
-async function downloadDesktop(blob, orderId) {
+// Download direto e automático - método universal
+async function downloadDirect(blob, orderId) {
     return new Promise((resolve, reject) => {
         try {
+            // Cria URL para o blob
             const url = URL.createObjectURL(blob);
+            
+            // Cria elemento de link para download
             const link = document.createElement('a');
             link.href = url;
             link.download = `comprovante-${orderId}.jpg`;
             link.style.display = 'none';
             
+            // Adiciona ao DOM
             document.body.appendChild(link);
+            
+            // Dispara o click automaticamente
             link.click();
+            
+            // Remove o link do DOM
             document.body.removeChild(link);
             
-            // Limpa após um tempo
+            // Limpa a URL após um tempo
             setTimeout(() => {
                 URL.revokeObjectURL(url);
                 resolve();
@@ -489,127 +487,28 @@ async function downloadDesktop(blob, orderId) {
     });
 }
 
-// Download para mobile - MÚLTIPLAS ESTRATÉGIAS
-async function downloadMobile(blob, orderId) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            console.log('Iniciando download mobile...');
-            
-            // Estratégia 1: Tenta File System Access API (navegadores modernos)
-            if ('showSaveFilePicker' in window) {
-                try {
-                    const fileHandle = await window.showSaveFilePicker({
-                        suggestedName: `comprovante-${orderId}.jpg`,
-                        types: [{
-                            description: 'Imagem JPEG',
-                            accept: { 'image/jpeg': ['.jpg'] },
-                        }],
-                    });
-                    
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(blob);
-                    await writable.close();
-                    console.log('Download via File System API bem-sucedido');
-                    return resolve();
-                } catch (fileError) {
-                    console.log('File System API falhou ou foi cancelado:', fileError);
-                    // Continua para próxima estratégia
-                }
-            }
-            
-            // Estratégia 2: Abre em nova aba (mais compatível)
-            const url = URL.createObjectURL(blob);
-            console.log('Tentando abrir em nova aba...');
-            
-            // Tenta abrir nova aba
-            const newTab = window.open(url, '_blank');
-            
-            if (newTab) {
-                console.log('Nova aba aberta com sucesso');
-                // Dá tempo para o usuário salvar manualmente
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                    resolve();
-                }, 3000);
-            } else {
-                // Estratégia 3: Popup bloqueado, força download via link
-                console.log('Popup bloqueado, forçando download via link...');
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `comprovante-${orderId}.jpg`;
-                link.style.display = 'none';
-                
-                // Adiciona evento para detectar sucesso
-                link.addEventListener('click', function() {
-                    setTimeout(() => {
-                        URL.revokeObjectURL(url);
-                        resolve();
-                    }, 1000);
-                });
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Fallback: resolve após um tempo mesmo sem confirmação
-                setTimeout(() => {
-                    URL.revokeObjectURL(url);
-                    resolve();
-                }, 2000);
-            }
-            
-        } catch (mobileError) {
-            console.error('Todas as estratégias mobile falharam:', mobileError);
-            reject(mobileError);
-        }
-    });
-}
-
 // Feedback visual de sucesso
 function showDownloadSuccess(btn) {
     btn.innerHTML = '✅ Baixado!';
     btn.style.background = '#4CAF50';
     
-    // Mostra notificação adicional no mobile
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        showMobileDownloadHelp();
-    }
-    
     setTimeout(() => {
         btn.innerHTML = '📥 Baixar Comprovante';
         btn.style.background = '';
         btn.disabled = false;
-    }, 3000);
+    }, 2000);
 }
 
 // Feedback visual de erro
-function showDownloadError(btn, originalText, originalBg) {
+function showDownloadError(btn, originalText) {
     btn.innerHTML = '❌ Erro';
     btn.style.background = '#E74C3C';
     
     setTimeout(() => {
         btn.innerHTML = originalText;
-        btn.style.background = originalBg;
+        btn.style.background = '';
         btn.disabled = false;
     }, 2000);
-}
-
-// Ajuda adicional para mobile
-function showMobileDownloadHelp() {
-    const helpMsg = `📱 Se a imagem não baixou automaticamente:
-    
-1. Toque e segure na imagem que abriu
-2. Selecione "Salvar imagem" ou "Download"
-3. Ou procure na pasta "Downloads" do seu celular`;
-
-    console.log(helpMsg);
-    
-    // Opcional: mostra alerta com instruções
-    setTimeout(() => {
-        if (confirm('📱 Precisa de ajuda com o download?\n\nClique em OK para ver instruções.')) {
-            alert(helpMsg);
-        }
-    }, 1000);
 }
 
 // Carregar ImageGenerator dinamicamente
@@ -661,14 +560,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Executa limpeza de pedidos expirados
     cleanupExpiredOrders();
     
-    // Pré-carrega o ImageGenerator para melhor performance
+    // Pré-carrega o ImageGenerator para download mais rápido
     setTimeout(() => {
         if (typeof ImageGenerator === 'undefined') {
             loadImageGenerator().catch(() => {
                 console.warn('ImageGenerator não pôde ser pré-carregado');
             });
         }
-    }, 2000);
+    }, 1000);
+    
+    // DOWNLOAD AUTOMÁTICO AO CARREGAR A PÁGINA (OPCIONAL)
+    // Se quiser que baixe automaticamente quando a página abrir, descomente a linha abaixo:
+    // setTimeout(downloadImage, 1500);
 });
 
 // Adiciona limpeza periódica a cada hora
