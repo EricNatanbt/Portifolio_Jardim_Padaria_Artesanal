@@ -11,6 +11,107 @@ class OrderDisplay {
         this.setupAutoCleanup();
     }
 
+    // Função de fallback para carregar dados diretamente da URL (copiada de order-display.js)
+    getOrderFromFullURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Verifica se há parâmetros básicos
+        if (!urlParams.has('name') && !urlParams.has('items')) {
+            return null;
+        }
+
+        try {
+            // Recupera dados básicos
+            const orderId = urlParams.get('id') || 'JD' + Date.now().toString().slice(-6);
+            const name = decodeURIComponent(urlParams.get('name') || 'Cliente');
+            const phone = urlParams.get('phone') || '';
+            const deliveryOption = urlParams.get('delivery') || 'retirada';
+            const paymentMethod = urlParams.get('payment') || 'pix';
+            const address = decodeURIComponent(urlParams.get('address') || '');
+            const observation = decodeURIComponent(urlParams.get('obs') || '');
+            const subtotal = parseFloat(urlParams.get('subtotal')) || 0;
+            const total = parseFloat(urlParams.get('total')) || 0;
+            const itemsParam = urlParams.get('items') || '';
+            const timestamp = parseInt(urlParams.get('timestamp')) || Date.now();
+
+            // Processa os itens do pedido (usando a função parseItems que deve ser adicionada)
+            const items = this.parseItems(itemsParam);
+
+            // Estrutura os dados para exibição
+            return {
+                customer: {
+                    name: name,
+                    phone: phone,
+                    deliveryOption: deliveryOption,
+                    paymentMethod: paymentMethod,
+                    address: address,
+                    observation: observation
+                },
+                order: {
+                    items: items,
+                    subtotal: subtotal,
+                    deliveryFee: total - subtotal,
+                    total: total,
+                    orderId: orderId,
+                    timestamp: new Date(timestamp).toLocaleString('pt-BR')
+                }
+            };
+            
+        } catch (error) {
+            console.error('Erro ao processar pedido da URL completa:', error);
+            return null;
+        }
+    }
+
+    // Função para processar itens do parâmetro URL (copiada de order-display.js)
+    parseItems(itemsParam) {
+        if (!itemsParam) return [];
+        
+        const items = [];
+        const itemEntries = itemsParam.split(',');
+        
+        itemEntries.forEach(entry => {
+            const match = entry.match(/(\d+)x(.+)/);
+            if (match) {
+                const quantity = parseInt(match[1]);
+                const name = match[2].replace(/_/g, ' ');
+                
+                // Para demonstração, usamos preços fixos
+                // Em uma aplicação real, você teria uma lista de produtos com preços
+                const price = this.estimatePrice(name);
+                
+                items.push({
+                    name: name,
+                    price: price,
+                    quantity: quantity
+                });
+            }
+        });
+        
+        return items;
+    }
+
+    // Função auxiliar para estimar preços (copiada de order-display.js)
+    estimatePrice(productName) {
+        const priceMap = {
+            'Baguete': 13.00,
+            'Ciabatta': 8.00,
+            'Focaccia': 10.00,
+            'Pão': 12.00,
+            'Bolo': 25.00,
+            'Cookie': 5.00,
+            'Doce': 8.00
+        };
+        
+        for (const [key, price] of Object.entries(priceMap)) {
+            if (productName.toLowerCase().includes(key.toLowerCase())) {
+                return price;
+            }
+        }
+        
+        return 10.00; // Preço padrão
+    }
+
     getOrderFromShortURL() {
         const urlParams = new URLSearchParams(window.location.search);
         const shortId = urlParams.get('i');
@@ -39,11 +140,16 @@ class OrderDisplay {
             const savedOrder = localStorage.getItem(orderKey);
             
             if (!savedOrder) {
-                this.showError('Pedido não encontrado ou já foi processado.');
-                return;
+                // Tenta carregar os dados diretamente da URL como fallback
+                const fullOrderData = this.getOrderFromFullURL();
+                if (!fullOrderData) {
+                    this.showError('Pedido não encontrado ou já foi processado.');
+                    return;
+                }
+                this.orderData = fullOrderData;
+            } else {
+                this.orderData = JSON.parse(savedOrder);
             }
-
-            this.orderData = JSON.parse(savedOrder);
             
             if (!this.orderData.customer || !this.orderData.order) {
                 throw new Error('Dados do pedido incompletos');
@@ -157,12 +263,12 @@ class OrderDisplay {
     }
 
     // Cria URL para Uber
-    createUberUrl(address) {
+    createUberUrl(address ) {
         const encodedAddress = encodeURIComponent(address);
         return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
     }
 
-    displayOrderItems() {
+    displayOrderItems( ) {
         const items = this.orderData.order.items;
         const itemsTable = document.getElementById('orderItems');
         
@@ -263,7 +369,31 @@ class OrderDisplay {
     }
 
     showError(message) {
-        // Código de erro mantido igual...
+        const orderContent = document.querySelector('.order-content') || document.body;
+        
+        const errorHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <h2 style="color: #e74c3c; margin-bottom: 20px;">❌ ${message}</h2>
+                <p style="margin-bottom: 30px;">Volte para a loja e tente novamente.</p>
+                <a href="index.html" class="btn btn-primary">
+                    🏠 Voltar para a Loja
+                </a>
+            </div>
+        `;
+        
+        if (orderContent) {
+            orderContent.innerHTML = errorHTML;
+        } else {
+            document.body.innerHTML = `
+                <div class="order-container">
+                    <div class="order-header">
+                        <h1>🍞 Jardim Padaria</h1>
+                        <p>Erro no Pedido</p>
+                    </div>
+                    ${errorHTML}
+                </div>
+            `;
+        }
     }
 }
 
