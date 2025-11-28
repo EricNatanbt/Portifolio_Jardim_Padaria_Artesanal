@@ -226,3 +226,69 @@
         transform: scale(1.2);
     }
 }
+
+/* ===== CARROSSEL DE TEXTO (1 CARD POR VEZ) ===== */
+.text-carousel-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.text-slide-wrapper {
+    width: 100%;
+    max-width: 480px; 
+}
+
+
+.text-slide {
+    display: none;
+    background: white;
+    padding: 2.2rem 2rem; /* <-- AUMENTADO */
+    border-radius: var(--radius-lg);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08); /* <-- MAIS ELEGANTE */
+    font-size: 1.05rem; /* <-- LEVEMENTE MAIOR */
+    line-height: 1.75; /* <-- MELHOR LEITURA */
+    animation: fadeIn 0.8s ease;
+}
+
+
+.text-slide.active {
+    display: block;
+}
+
+.text-arrow {
+    background: white;
+    border: 1px solid var(--border);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.text-arrow:hover {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@media (min-width: 768px) {
+    .text-slide {
+        padding: 2.5rem 2.2rem;
+        font-size: 1.1rem;
+    }
+
+    .text-slide-wrapper {
+        max-width: 520px;
+    }
+}

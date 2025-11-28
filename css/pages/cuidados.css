@@ -25,6 +25,87 @@
     margin-bottom: 35px;
 }
 
+.conservamento-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.conservamento-list li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+}
+
+.conservamento-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.revitalizar-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.revitalizar-list li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+}
+
+.revitalizar-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.reaquecimento-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.reaquecimento-list li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+}
+
+.reaquecimento-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.armazenamento-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+.armazenamento-list li {
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--muted-foreground);
+    font-size: 0.95rem;
+}
+.armazenamento-list li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: bold;
+}
 /* ===== Cards ===== */
 
 .guia-cards {

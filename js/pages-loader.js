@@ -7,7 +7,7 @@ class PagesLoader {
         this.pagesContent = {
             'inicio': this.getInicioContent(),
             'sobre': this.getSobreContent(),
-            'guiaCuidados': this.getGuiaCuidadosContent(),
+            'cuidados': this.getCuidadosContent(),
             'feedbacks': this.getFeedbacksContent()
         };
         this.init();
@@ -164,12 +164,66 @@ class PagesLoader {
                 <div class="container">
                     <div class="about-content">
                         <div class="about-text">
-                            <h2>Quem Somos Nós?</h2>
-                            <p>Em meio ao charmoso cenário de Campina Grande, Paraíba, nasceu a Padaria Jardim, um paraíso gastronômico cuidadosamente plantado pelas mãos talentosas de Júlia, a jovem gastrônoma graduada pela UFRPE, e seu amado, Washington.</p>
-                            
-                            <p>Este refúgio culinário se desvela com uma elegância que se assemelha a um buquê de sabores, onde cada detalhe é uma pétala de encanto, proporcionando uma experiência que transcende o simples ato de degustar.</p>
-                            
-                            <p style="margin-top: 2rem; font-style: italic; color: var(--accent);">— C. Bastos</p>
+                            <h2>Como Tudo Começou</h2>
+
+                           <div class="text-carousel-container">
+
+                            <button class="text-arrow text-prev">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M15 18l-6-6 6-6"/>
+                                </svg>
+                            </button>
+
+                            <div class="text-slide-wrapper">
+                                <div class="text-slide active">
+                                    <p> A Padaria Jardim nasceu pequena, no quintal de casa em Campina Grande, mas carregando um sonho que sempre foi grande demais para ficar guardado.
+                                        Somos Júlia e Washington, um casal que se conheceu na faculdade de Gastronomia (UFRPE) e descobriu, entre fornos e conversas, 
+                                        que dividiríamos tanto a vida quanto os pães.
+                                    </p>
+                                </div>
+
+                                <div class="text-slide">
+                                    <p>Antes de existir como negócio, a Jardim existiu como desejo: o de criar alimentos honestos, 
+                                    naturais e cheios de cuidado. Júlia sempre sonhou em ter uma padaria e encontrou na panificação 
+                                    artesanal sua verdadeira vocação. Washington, que sempre foi um cozinheiro talentoso, 
+                                    mergulhou no universo dos pães de fermentação natural ao seu lado e, juntos, desenvolvemos técnicas 
+                                    próprias, afinamos receitas e construímos nossa identidade. </p>
+                                </div>
+
+                                <div class="text-slide">
+                                    <p>Aqui, tudo é feito a quatro mãos. Do cultivo do fermento à última dobra da massa, cada etapa é 
+                                    preparada por nós dois, com o tempo que o pão pede e o respeito que os ingredientes merecem. 
+                                    Acreditamos que qualidade não se apressa e que nada é pequeno quando feito com amor: 
+                                    nosso lema é a essência do Jardim. </p>
+                                </div>
+
+                                <div class="text-slide">
+                                    <p>Ainda somos uma micro padaria artesanal, funcionando exclusivamente por delivery, 
+                                    mas com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
+                                    seguimos alimentando também o sonho de abrir um espaço físico para acolher nossos clientes 
+                                    como gostaríamos. </p>
+                                </div>
+
+                                <div class="text-slide">
+                                    <p>A Padaria Jardim é isso: um projeto de vida, de família e de sabor. 
+                                    Um lugar onde o que sai do forno é feito com propósito: para nutrir, 
+                                    acolher e trazer um pouco mais de bem-estar ao dia de quem nos escolhe. </p>
+                                </div>
+
+                                <div class="text-slide">
+                                    <p>Seja bem-vindo ao nosso Jardim. Aqui, cada pão é cuidado como merece, pois cada um é único! </p>
+                                </div>
+                            </div>
+
+
+                            <button class="text-arrow text-next">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 18l6-6-6-6"/>
+                                </svg>
+                            </button>
+
+                    
+                        </div>
                         </div>
                         <div class="about-image">
                             <div class="carousel-container">
@@ -260,28 +314,55 @@ class PagesLoader {
         `;
     }
 
-    getGuiaCuidadosContent() {
+    getCuidadosContent() {
         return `
             <section class="guia-cuidados-section">
                 <div class="container">
-                    <h2>Guia de Conservação dos Nossos Produtos</h2>
-                    <p class="guia-intro">Dicas essenciais para manter a frescura e sabor dos seus pães e doces artesanais</p>
+                    <h2>Dicas dos Padeiros</h2>
+
+                    <p class="guia-intro">Nossos pães chegam a vocês fresquinhos, todos os dias, alguns ainda quentes! 
+                    E esse sabor saindo do forno é incomparável. Então, talvez você se pergunte: “como posso preservar esse sabor especial da melhor maneira possível?”.</p>
                     <div class="guia-cards">
+
+
+                      <div class="guia-card">
+                            <h3>Consumo</h3>
+                             <ul class="conservamento-list">
+                                    <li> Temperatura ambiente: até 3 dias </li>
+                                    <li> Na geladeira: até 15 dias </li>
+                                    <li> No freezer: até 30 dias </li>
+                            </ul>
+                        </div>
+
+
                         <div class="guia-card">
                             <h3>Armazenamento Adequado</h3>
-                            <p>Guarde os pães em sacos de papel ou recipientes ventilados para evitar o acúmulo de umidade.</p>
+                            <ul class="armazenamento-list">
+                                    <li> Embalagem bem fechada </li>
+                                    <li> Recipiente com tampa </li>
+                            </ul>
+         
                         </div>
-                        <div class="guia-card">
-                            <h3>Congelamento</h3>
-                            <p>Para conservar por mais tempo, congele os pães em sacos plásticos herméticos. Descongele em temperatura ambiente.</p>
-                        </div>
+
+                       
+
                         <div class="guia-card">
                             <h3>Reaquecimento</h3>
-                            <p>Aqueça os pães no forno a 180°C por alguns minutos para restaurar a crocância e frescor.</p>
-                        </div>
+                            <ul class="reaquecimento-list">
+                                    <li> Para um pão congelado, indicamos que seja feito o descongelamento prévio na geladeira </li>
+                                    <li>  use uma forma com água quente para umidificar o forno enquanto esquenta o pão e evitar que resseque. </li>
+                                    <li> Siga o passo do Revitalizar </li>
+                            </ul>
+                
+                        </div> 
+
                         <div class="guia-card">
-                            <h3>Consumo Rápido</h3>
-                            <p>Recomendamos consumir os produtos dentro de 2 a 3 dias para melhor sabor e textura.</p>
+                            <h3>Revitalizar</h3>
+                            <ul class="revitalizar-list">
+                                    <li> Molhe um pouco a superfície do pão com o auxílio de um spray para evitar que resseque muito.  </li>
+                                    <li> Aquecimento em forno pré-aquecido (160ºC a 180 ºC) por cerca de 8 a 10 minutos.  </li>
+                                   
+                            </ul>
                         </div> 
                     </div>
                 </div>
