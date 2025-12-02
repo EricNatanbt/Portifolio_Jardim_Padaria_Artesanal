@@ -1,898 +1,1012 @@
-// cart.js - Sistema de Carrinho com URL de Pedido
-class Cart {
-    constructor() {
-        this.items = [];
-        this.isInitialized = false;
-        this.init();
-    }
+// ============================================
+// COMPONENTE DO CARRINHO - VERSÃO SEGURA COM NETLIFY FUNCTIONS
+// ============================================
+import apiClient from './api-client.js'; // Novo cliente seguro
 
-    async init() {
-        if (this.isInitialized) {
+const Cart = {
+    cartItems: [],
+    deliveryFee: 0,
+    _initialized: false,
+    _submitting: false,
+    _listenersSetup: false,
+    _currentUserId: null,
+
+    // ============================================
+    // INICIALIZAÇÃO
+    // ============================================
+    initialize() {
+        if (this._initialized) {
             console.warn('⚠️ Carrinho já inicializado, ignorando...');
             return;
         }
-
-        console.log('🛒 Inicializando carrinho (versão segura)...');
         
-        try {
-            // Carrega itens salvos
-            this.loadFromStorage();
-            
-            // Configura event listeners
-            this.setupEventListeners();
-            
-            // Atualiza UI inicial
-            this.updateUI();
-            
-            this.isInitialized = true;
-            console.log('✅ Carrinho inicializado com sucesso');
-            
-        } catch (error) {
-            console.error('❌ Erro ao inicializar carrinho:', error);
-            this.isInitialized = false;
-        }
-    }
+        console.log('🛒 Inicializando carrinho (versão segura)...');
+        this._initialized = true;
+        
+        this.loadCartFromStorage();
+        this.updateCartUI();
+        
+        // Pequeno delay para garantir DOM pronto
+        setTimeout(() => {
+            this._setupAllEventListeners();
+        }, 500);
+    },
 
-    setupEventListeners() {
+    // ============================================
+    // CONFIGURAÇÃO DE EVENT LISTENERS
+    // ============================================
+    _setupAllEventListeners() {
+        if (this._listenersSetup) {
+            console.warn('⚠️ Listeners já configurados, ignorando...');
+            return;
+        }
+
         console.log('🔧 Configurando todos os event listeners...');
         
-        // Botão do carrinho
-        const cartBtn = document.getElementById('cartBtn');
+        // 1. Listeners do carrinho
+        this._setupCartListeners();
+        
+        // 2. Listeners do modal de checkout
+        this._setupCheckoutListeners();
+        
+        // 3. Listeners do formulário
+        this._setupFormListeners();
+        
+        this._listenersSetup = true;
+    },
+
+    _setupCartListeners() {
+        const cartBtn = document.getElementById("cartBtn");
+        const cartOverlay = document.getElementById("cartOverlay");
+        const closeCart = document.getElementById("closeCart");
+
         if (cartBtn) {
-            cartBtn.addEventListener('click', () => this.openCart());
+            cartBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.openCart();
+            });
         }
-
-        // Overlay do carrinho
-        const cartOverlay = document.getElementById('cartOverlay');
+        
         if (cartOverlay) {
-            cartOverlay.addEventListener('click', () => this.closeCart());
+            cartOverlay.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.closeCart();
+            });
         }
-
-        // Botão fechar carrinho
-        const closeCart = document.getElementById('closeCart');
+        
         if (closeCart) {
-            closeCart.addEventListener('click', () => this.closeCart());
+            closeCart.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.closeCart();
+            });
         }
 
-        // Botão finalizar compra
-        const checkoutBtn = document.querySelector('.checkout-btn');
+        // Botão "Finalizar Compra" dentro do carrinho
+        const checkoutBtn = document.querySelector(".cart-footer .checkout-btn");
         if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', (e) => {
+            checkoutBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 this.openCheckoutModal();
             });
         }
+    },
 
-        // Fechar com ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeCart();
+    _setupCheckoutListeners() {
+        const closeCheckoutModal = document.getElementById("closeCheckoutModal");
+        const checkoutModalOverlay = document.getElementById("checkoutModalOverlay");
+
+        if (closeCheckoutModal) {
+            closeCheckoutModal.addEventListener("click", (e) => {
+                e.preventDefault();
                 this.closeCheckoutModal();
-            }
-        });
-
-        // Delegation para remover itens
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.remove-item-btn')) {
-                const index = e.target.closest('.remove-item-btn').dataset.index;
-                this.removeFromCart(parseInt(index));
-            }
-        });
-    }
-
-    // ============================================
-    // GERENCIAMENTO DO CARRINHO
-    // ============================================
-
-    addToCart(product) {
-        try {
-            console.log(`🛒 Adicionando ${product.name} ao carrinho`);
-            
-            // Verifica se já existe no carrinho
-            const existingIndex = this.items.findIndex(item => item.id === product.id);
-            
-            if (existingIndex >= 0) {
-                // Incrementa quantidade
-                this.items[existingIndex].quantity += 1;
-            } else {
-                // Adiciona novo item
-                this.items.push({
-                    ...product,
-                    quantity: 1
-                });
-            }
-            
-            // Salva e atualiza UI
-            this.saveToStorage();
-            this.updateUI();
-            
-            // Feedback visual
-            this.showAddNotification(product.name);
-            
-            // Abre carrinho automaticamente se for o primeiro item
-            if (this.items.length === 1) {
-                setTimeout(() => this.openCart(), 300);
-            }
-            
-        } catch (error) {
-            console.error('❌ Erro ao adicionar ao carrinho:', error);
-            window.showNotification('Erro ao adicionar produto. Tente novamente.', 3000, 'error');
-        }
-    }
-
-    removeFromCart(index) {
-        if (index >= 0 && index < this.items.length) {
-            const removedItem = this.items[index];
-            this.items.splice(index, 1);
-            
-            this.saveToStorage();
-            this.updateUI();
-            
-            window.showNotification(`${removedItem.name} removido do carrinho`, 2000, 'info');
-        }
-    }
-
-    updateQuantity(index, newQuantity) {
-        if (index >= 0 && index < this.items.length && newQuantity > 0) {
-            this.items[index].quantity = newQuantity;
-            this.saveToStorage();
-            this.updateUI();
-        }
-    }
-
-    clearCart() {
-        this.items = [];
-        this.saveToStorage();
-        this.updateUI();
-        window.showNotification('Carrinho limpo', 2000, 'info');
-    }
-
-    // ============================================
-    // STORAGE
-    // ============================================
-
-    saveToStorage() {
-        try {
-            localStorage.setItem('cart_items', JSON.stringify(this.items));
-        } catch (error) {
-            console.warn('⚠️ Não foi possível salvar carrinho:', error);
-        }
-    }
-
-    loadFromStorage() {
-        try {
-            const saved = localStorage.getItem('cart_items');
-            if (saved) {
-                this.items = JSON.parse(saved);
-                console.log(`📦 Carrinho carregado: ${this.items.length} itens`);
-            }
-        } catch (error) {
-            console.warn('⚠️ Não foi possível carregar carrinho:', error);
-            this.items = [];
-        }
-    }
-
-    // ============================================
-    // UI
-    // ============================================
-
-    updateUI() {
-        this.updateCartCount();
-        this.renderCartItems();
-        this.updateCartTotal();
-    }
-
-    updateCartCount() {
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) {
-            const totalItems = this.items.reduce((sum, item) => sum + item.quantity, 0);
-            if (totalItems > 0) {
-                cartCount.textContent = totalItems;
-                cartCount.style.display = 'flex';
-            } else {
-                cartCount.style.display = 'none';
-            }
-        }
-    }
-
-    renderCartItems() {
-        const cartItems = document.getElementById('cartItems');
-        const cartFooter = document.getElementById('cartFooter');
-        
-        if (!cartItems || !cartFooter) return;
-        
-        if (this.items.length === 0) {
-            cartItems.innerHTML = '<p class="empty-cart">Seu carrinho está vazio</p>';
-            cartFooter.style.display = 'none';
-            return;
+            });
         }
         
-        cartItems.innerHTML = '';
-        this.items.forEach((item, index) => {
-            const cartItem = document.createElement('div');
-            cartItem.className = 'cart-item';
-            cartItem.innerHTML = `
-                <div class="cart-item-info">
-                    <p class="cart-item-name">${item.name}</p>
-                    <p class="cart-item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</p>
-                    <div class="cart-item-quantity">
-                        <button class="quantity-btn" data-index="${index}" data-action="decrease">-</button>
-                        <span class="quantity-value">${item.quantity}x</span>
-                        <button class="quantity-btn" data-index="${index}" data-action="increase">+</button>
-                    </div>
-                </div>
-                <button class="remove-item-btn" data-index="${index}">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            `;
-            cartItems.appendChild(cartItem);
-        });
-        
-        cartFooter.style.display = 'flex';
-        
-        // Adiciona listeners para botões de quantidade
-        cartItems.querySelectorAll('.quantity-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                const action = e.target.dataset.action;
-                
-                if (action === 'increase') {
-                    this.updateQuantity(index, this.items[index].quantity + 1);
-                } else if (action === 'decrease') {
-                    if (this.items[index].quantity > 1) {
-                        this.updateQuantity(index, this.items[index].quantity - 1);
-                    } else {
-                        this.removeFromCart(index);
-                    }
+        if (checkoutModalOverlay) {
+            checkoutModalOverlay.addEventListener("click", (e) => {
+                e.preventDefault();
+                this.closeCheckoutModal();
+            });
+        }
+    },
+
+    _setupFormListeners() {
+        const checkoutForm = document.getElementById("checkoutForm");
+        const customerPhoneInput = document.getElementById("customerPhone");
+        const customerCepInput = document.getElementById("customerCep");
+        const deliveryOptionSelect = document.getElementById("deliveryOption");
+
+        if (checkoutForm) {
+            // Remove qualquer listener antigo
+            checkoutForm.removeEventListener("submit", this._handleSubmitBound);
+            
+            // Cria novo handler bindado
+            this._handleSubmitBound = this._handleCheckoutSubmit.bind(this);
+            checkoutForm.addEventListener("submit", this._handleSubmitBound);
+        }
+
+        // Máscara de telefone
+        if (customerPhoneInput) {
+            this._applyPhoneMask(customerPhoneInput);
+        }
+
+        // Máscara de CEP
+        if (customerCepInput) {
+            this._applyCepMask(customerCepInput);
+            
+            // Auto-preenchimento de endereço ao sair do campo CEP
+            customerCepInput.addEventListener('blur', async (e) => {
+                await this._fetchAddressByCep(e.target.value);
+            });
+            
+            // Também busca ao pressionar Enter
+            customerCepInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    await this._fetchAddressByCep(e.target.value);
                 }
             });
+        }
+
+        // Toggle campos de endereço
+        if (deliveryOptionSelect) {
+            this._setupDeliveryOptionToggle();
+        }
+    },
+
+    // ============================================
+    // FUNÇÕES AUXILIARES DE FORMULÁRIO
+    // ============================================
+    _applyPhoneMask(input) {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            let maskedValue = '';
+
+            if (value.length > 0) {
+                maskedValue += '(' + value.substring(0, 2);
+            }
+            if (value.length > 2) {
+                maskedValue += ') ' + value.substring(2, 7);
+            }
+            if (value.length > 7) {
+                maskedValue += '-' + value.substring(7, 11);
+            }
+
+            e.target.value = maskedValue;
         });
-    }
+    },
 
-    updateCartTotal() {
-        const cartTotal = document.getElementById('cartTotal');
-        if (cartTotal) {
-            const total = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
-        }
-    }
+    _applyCepMask(input) {
+        input.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 5) {
+                value = value.substring(0, 5) + '-' + value.substring(5, 8);
+            }
+            e.target.value = value;
+        });
+    },
 
-    showAddNotification(productName) {
-        window.showNotification(`✅ ${productName} adicionado ao carrinho!`, 2000, 'success');
+    _setupDeliveryOptionToggle() {
+        const deliveryOptionSelect = document.getElementById("deliveryOption");
+        const addressFieldsDiv = document.getElementById("addressFields");
         
-        // Animação no botão do carrinho
-        const cartBtn = document.getElementById('cartBtn');
-        if (cartBtn) {
-            cartBtn.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                cartBtn.style.transform = 'scale(1)';
-            }, 200);
+        if (!deliveryOptionSelect || !addressFieldsDiv) return;
+
+        const toggleAddressFields = () => {
+            if (deliveryOptionSelect.value === 'retirada') {
+                addressFieldsDiv.style.display = 'none';
+                // Remove required dos campos de endereço
+                addressFieldsDiv.querySelectorAll('input').forEach(input => {
+                    input.removeAttribute('required');
+                });
+                // Zera o frete
+                this.deliveryFee = 0;
+                this.updateCheckoutSummary();
+            } else {
+                addressFieldsDiv.style.display = 'block';
+                // Adiciona required aos campos
+                const requiredFields = ['customerCep', 'customerStreet', 'customerNumber', 'customerNeighborhood', 'customerCity'];
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field) field.setAttribute('required', '');
+                });
+            }
+        };
+
+        deliveryOptionSelect.addEventListener('change', toggleAddressFields);
+        toggleAddressFields(); // Executa na inicialização
+    },
+
+    // ============================================
+    // BUSCA DE ENDEREÇO POR CEP (VIA CEP API)
+    // ============================================
+    async _fetchAddressByCep(cep) {
+        // Remove caracteres não numéricos
+        const cleanCep = cep.replace(/\D/g, '');
+        
+        // Valida se tem 8 dígitos
+        if (cleanCep.length !== 8) {
+            if (cleanCep.length > 0) {
+                window.showNotification('❌ CEP inválido. Deve ter 8 dígitos.', 3000, 'error');
+            }
+            return null;
         }
-    }
 
-    // ============================================
-    // MODAIS
-    // ============================================
+        // Mostra loading
+        const cepInput = document.getElementById('customerCep');
+        const originalValue = cepInput.value;
+        cepInput.value = 'Buscando...';
+        cepInput.disabled = true;
 
-    openCart() {
-        const cartSidebar = document.getElementById('cartSidebar');
-        if (cartSidebar) {
-            cartSidebar.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+        try {
+            console.log(`📍 Buscando endereço para CEP: ${cleanCep}`);
             
-            // Atualiza dados antes de abrir
-            this.updateUI();
+            // Faz requisição para a API ViaCEP
+            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+            
+            if (!response.ok) {
+                throw new Error('Erro na requisição');
+            }
+            
+            const data = await response.json();
+            
+            // Verifica se o CEP foi encontrado
+            if (data.erro) {
+                window.showNotification('❌ CEP não encontrado. Preencha manualmente.', 3000, 'error');
+                this._clearAddressFields();
+                return null;
+            }
+            
+            // Preenche os campos de endereço
+            this._fillAddressFields(data);
+            
+            window.showNotification('✅ Endereço encontrado! Agora insira o número.', 3000, 'success');
+            
+            // Foca no campo de número
+            setTimeout(() => {
+                const numberField = document.getElementById('customerNumber');
+                if (numberField) {
+                    numberField.focus();
+                }
+            }, 500);
+            
+            return data;
+            
+        } catch (error) {
+            console.error('❌ Erro ao buscar CEP:', error);
+            window.showNotification('❌ Erro ao buscar CEP. Preencha manualmente.', 3000, 'error');
+            this._clearAddressFields();
+            return null;
+        } finally {
+            // Restaura o campo CEP
+            cepInput.value = originalValue;
+            cepInput.disabled = false;
         }
-    }
+    },
 
-    closeCart() {
-        const cartSidebar = document.getElementById('cartSidebar');
-        if (cartSidebar) {
-            cartSidebar.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    }
+    _fillAddressFields(addressData) {
+        const fields = {
+            'customerStreet': addressData.logradouro || '',
+            'customerNeighborhood': addressData.bairro || '',
+            'customerCity': `${addressData.localidade || ''} - ${addressData.uf || ''}`,
+            'customerComplement': addressData.complemento || ''
+        };
 
-    openCheckoutModal() {
-        if (this.items.length === 0) {
-            window.showNotification('Adicione produtos ao carrinho antes de finalizar.', 3000, 'error');
+        // Preenche cada campo
+        Object.entries(fields).forEach(([fieldId, value]) => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = value;
+                
+                // Desabilita campos que foram preenchidos automaticamente
+                // (usuário ainda pode editar se necessário)
+                if (value && fieldId !== 'customerComplement') {
+                    field.style.backgroundColor = '#f0f9f0';
+                    field.style.borderColor = '#4CAF50';
+                    field.title = 'Preenchido automaticamente. Pode editar se necessário.';
+                    
+                    // Adiciona evento para remover o estilo quando o usuário editar
+                    const originalValue = field.value;
+                    field.addEventListener('input', function onEdit() {
+                        if (this.value !== originalValue) {
+                            this.style.backgroundColor = '';
+                            this.style.borderColor = '';
+                            this.title = '';
+                            this.removeEventListener('input', onEdit);
+                        }
+                    });
+                }
+            }
+        });
+
+        // Foca no campo de número
+        setTimeout(() => {
+            const numberField = document.getElementById('customerNumber');
+            if (numberField) {
+                numberField.focus();
+                numberField.select();
+            }
+        }, 100);
+    },
+
+    _clearAddressFields() {
+        const fieldsToClear = ['customerStreet', 'customerNeighborhood', 'customerCity', 'customerComplement'];
+        
+        fieldsToClear.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.value = '';
+                field.style.backgroundColor = '';
+                field.style.borderColor = '';
+                field.title = '';
+                field.disabled = false;
+            }
+        });
+    },
+
+    // ============================================
+    // CARRINHO - ADICIONAR/REMOVER ITENS
+    // ============================================
+    addToCart(product) {
+        const currentDay = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta';
+
+        // Verificar disponibilidade
+        if (!product.available_days || !product.available_days.includes(currentDay)) {
+            const diaDisponivel = product.available_days && product.available_days.length > 0 
+                ? product.available_days.join(' e ')
+                : 'dias não especificados';
+            const message = `❌ ${product.name} só está disponível na(s) ${diaDisponivel}.`;
+            window.showNotification(message, 3000, 'error');
             return;
         }
+
+        const existingItem = this.cartItems.find(item => item.id === product.id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            this.cartItems.push({ 
+                ...product, 
+                quantity: 1,
+                // Garante que a imagem existe
+                image: product.image || "img/logos/Logo.png"
+            });
+        }
+
+        this.saveCartToStorage();
+        this.updateCartUI();
         
-        const checkoutModal = document.getElementById('checkoutModal');
-        if (checkoutModal) {
-            // Atualiza resumo
-            this.updateCheckoutSummary();
-            
-            // Mostra modal
-            checkoutModal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            
-            // Foco no primeiro campo
-            setTimeout(() => {
-                const nameField = document.getElementById('customerName');
-                if (nameField) nameField.focus();
-            }, 100);
-            
-            // Configura submit
-            const checkoutForm = document.getElementById('checkoutForm');
-            if (checkoutForm) {
-                checkoutForm.onsubmit = (e) => this._handleCheckoutSubmit(e);
+        // Feedback visual
+        window.showNotification(`✅ ${product.name} adicionado ao carrinho!`, 2000, 'success');
+    },
+
+    removeFromCart(productId) {
+        const itemIndex = this.cartItems.findIndex(item => item.id === productId);
+
+        if (itemIndex > -1) {
+            const item = this.cartItems[itemIndex];
+            item.quantity -= 1;
+
+            if (item.quantity <= 0) {
+                this.cartItems.splice(itemIndex, 1);
             }
-            
-            // Configura opção de entrega
-            const deliveryOption = document.getElementById('deliveryOption');
-            if (deliveryOption) {
-                deliveryOption.onchange = () => this._toggleAddressFields();
-                this._toggleAddressFields(); // Inicializa estado
+
+            this.saveCartToStorage();
+            this.updateCartUI();
+        }
+    },
+
+    deleteItem(productId) {
+        this.cartItems = this.cartItems.filter(item => item.id !== productId);
+        this.saveCartToStorage();
+        this.updateCartUI();
+    },
+
+    // ============================================
+    // ATUALIZAR INTERFACE DO CARRINHO
+    // ============================================
+    updateCartUI() {
+        const cartCount = document.getElementById("cartCount");
+        const cartItemsContainer = document.getElementById("cartItems");
+        const cartFooter = document.getElementById("cartFooter");
+        const cartTotal = document.getElementById("cartTotal");
+
+        // Atualizar contador
+        if (cartCount) {
+            const totalItems = this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            cartCount.style.display = totalItems > 0 ? "flex" : "none";
+        }
+
+        // Renderizar itens do carrinho
+        if (cartItemsContainer) {
+            cartItemsContainer.innerHTML = "";
+
+            if (this.cartItems.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="empty-cart">Seu carrinho está vazio</p>';
+                if (cartFooter) cartFooter.style.display = "none";
+                return;
             }
-            
-            // Configura CEP
-            const cepField = document.getElementById('customerCep');
-            if (cepField) {
-                cepField.oninput = (e) => this._formatCEP(e);
-                cepField.onblur = () => this._searchCEP();
+
+            this.cartItems.forEach((item) => {
+                const cartItem = document.createElement("div");
+                cartItem.className = "cart-item";
+
+                // Usa imagem padrão se não houver específica
+                const imageUrl = item.image || "img/logos/Logo.png";
+
+                cartItem.innerHTML = `
+                    <img src="${imageUrl}" class="cart-item-img" alt="${item.name}">
+
+                    <div class="cart-item-info">
+                        <p class="cart-item-name">${item.name}</p>
+                        <p class="cart-item-price">R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</p>
+
+                        <div class="cart-qty-controls">
+                            <button class="qty-btn decrease" data-id="${item.id}">-</button>
+                            <span class="qty-number">${item.quantity}</span>
+                            <button class="qty-btn increase" data-id="${item.id}">+</button>
+                        </div>
+                    </div>
+
+                    <button class="delete-item-btn" data-id="${item.id}">🗑</button>
+                `;
+
+                // Event listeners para os botões
+                cartItem.querySelector(".increase").addEventListener("click", () => {
+                    this.addToCart(item);
+                });
+                
+                cartItem.querySelector(".decrease").addEventListener("click", () => {
+                    this.removeFromCart(item.id);
+                });
+                
+                cartItem.querySelector(".delete-item-btn").addEventListener("click", () => {
+                    this.deleteItem(item.id);
+                });
+
+                cartItemsContainer.appendChild(cartItem);
+            });
+
+            // Atualizar total
+            if (cartTotal && cartFooter) {
+                const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const total = subtotal + this.deliveryFee;
+                cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+                cartFooter.style.display = "flex";
             }
         }
-    }
+    },
+
+    // ============================================
+    // ABRIR/FECHAR CARRINHO E MODAIS
+    // ============================================
+    openCart() {
+        const cartSidebar = document.getElementById("cartSidebar");
+        if (cartSidebar) {
+            cartSidebar.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+    },
+
+    closeCart() {
+        const cartSidebar = document.getElementById("cartSidebar");
+        if (cartSidebar) {
+            cartSidebar.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    },
+
+    openCheckoutModal() {
+        if (this.cartItems.length === 0) {
+            window.showNotification("Seu carrinho está vazio. Adicione produtos antes de finalizar.", 3000, 'error');
+            return;
+        }
+
+        this.closeCart();
+        const checkoutModal = document.getElementById("checkoutModal");
+        if (checkoutModal) {
+            this.renderCheckoutSummary();
+            checkoutModal.style.display = "flex";
+            document.body.style.overflow = "hidden";
+            
+            // Reset do formulário (mas não do telefone se já existe em localStorage)
+            const form = document.getElementById("checkoutForm");
+            if (form) {
+                form.reset();
+                // Tenta preencher com dados salvos do cliente
+                this._prefillCustomerData();
+            }
+            
+            // Reset do frete
+            this.deliveryFee = 0;
+            this.updateCheckoutSummary();
+        }
+    },
 
     closeCheckoutModal() {
-        const checkoutModal = document.getElementById('checkoutModal');
+        const checkoutModal = document.getElementById("checkoutModal");
         if (checkoutModal) {
-            checkoutModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+            checkoutModal.style.display = "none";
+            document.body.style.overflow = "auto";
+            this._submitting = false; // Reset do estado de submissão
+            
+            // Limpa estilos dos campos de endereço
+            this._clearAddressStyles();
         }
-    }
+    },
 
-    updateCheckoutSummary() {
-        const checkoutSummaryList = document.getElementById('checkoutSummaryList');
-        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
-        const checkoutTotal = document.getElementById('checkoutTotal');
+    _clearAddressStyles() {
+        const addressFields = ['customerStreet', 'customerNeighborhood', 'customerCity', 'customerComplement'];
+        addressFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.style.backgroundColor = '';
+                field.style.borderColor = '';
+                field.title = '';
+            }
+        });
+    },
+
+    // ============================================
+    // RESUMO DO CHECKOUT
+    // ============================================
+    renderCheckoutSummary() {
+        const summaryList = document.getElementById("checkoutSummaryList");
+        const checkoutTotal = document.getElementById("checkoutTotal");
         
-        if (!checkoutSummaryList || !checkoutSubtotal || !checkoutTotal) return;
-        
-        // Limpa lista
-        checkoutSummaryList.innerHTML = '';
+        if (!summaryList || !checkoutTotal) return;
+
+        summaryList.innerHTML = "";
         
         // Adiciona itens
-        this.items.forEach(item => {
-            const li = document.createElement('li');
+        this.cartItems.forEach(item => {
+            const li = document.createElement("li");
             li.innerHTML = `
                 <span>${item.quantity}x ${item.name}</span>
                 <span>R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
             `;
-            checkoutSummaryList.appendChild(li);
+            summaryList.appendChild(li);
         });
-        
-        // Calcula totais
-        const subtotal = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const deliveryFee = this._calculateDeliveryFee();
-        const total = subtotal + deliveryFee;
-        
-        checkoutSubtotal.textContent = `R$ ${subtotal.toFixed(2).replace('.', ',')}`;
+
+        // Adiciona subtotal
+        const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const subtotalLi = document.createElement("li");
+        subtotalLi.innerHTML = `
+            <span><strong>Subtotal</strong></span>
+            <span><strong>R$ ${subtotal.toFixed(2).replace('.', ',')}</strong></span>
+        `;
+        subtotalLi.style.borderTop = '1px dashed #ddd';
+        subtotalLi.style.paddingTop = '0.5rem';
+        subtotalLi.style.marginTop = '0.5rem';
+        summaryList.appendChild(subtotalLi);
+
+        // Adiciona frete se houver
+        if (this.deliveryFee > 0) {
+            const feeLi = document.createElement("li");
+            feeLi.innerHTML = `
+                <span>🚗 Frete</span>
+                <span>R$ ${this.deliveryFee.toFixed(2).replace('.', ',')}</span>
+            `;
+            feeLi.style.fontWeight = '600';
+            feeLi.style.color = '#1C3D2D';
+            summaryList.appendChild(feeLi);
+        }
+
+        // Total final
+        const total = subtotal + this.deliveryFee;
         checkoutTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
-        
-        // Atualiza taxa de entrega
-        const deliveryFeeRow = document.getElementById('deliveryFeeRow');
-        const checkoutDeliveryFee = document.getElementById('checkoutDeliveryFee');
-        
-        if (deliveryFeeRow && checkoutDeliveryFee) {
-            if (deliveryFee > 0) {
-                deliveryFeeRow.style.display = 'flex';
-                checkoutDeliveryFee.textContent = `R$ ${deliveryFee.toFixed(2).replace('.', ',')}`;
-            } else {
-                deliveryFeeRow.style.display = 'none';
+    },
+
+    updateCheckoutSummary() {
+        this.renderCheckoutSummary();
+    },
+
+    // ============================================
+    // PRÉ-PREENCHER DADOS DO CLIENTE
+    // ============================================
+    _prefillCustomerData() {
+        const savedPhone = localStorage.getItem('lastCustomerPhone');
+        if (savedPhone) {
+            const phoneInput = document.getElementById('customerPhone');
+            if (phoneInput) {
+                phoneInput.value = savedPhone;
             }
         }
-    }
-
-    // ============================================
-    // CHECKOUT E PROCESSAMENTO
-    // ============================================
-
-    async _handleCheckoutSubmit(event) {
-        event.preventDefault();
         
-        try {
-            console.log('🛒 Iniciando checkout...');
+        // Tenta preencher endereço salvo
+        const savedCep = localStorage.getItem('lastCustomerCep');
+        if (savedCep) {
+            const cepInput = document.getElementById('customerCep');
+            if (cepInput) {
+                cepInput.value = savedCep;
+                // Busca endereço automaticamente
+                setTimeout(() => {
+                    this._fetchAddressByCep(savedCep);
+                }, 1000);
+            }
+        }
+    },
+
+    // ============================================
+    // PROCESSAMENTO DO PEDIDO - VERSÃO SEGURA COM API
+    // ============================================
+    _handleCheckoutSubmit(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Prevenir múltiplos envios
+        if (this._submitting) {
+            console.log('⏳ Pedido já está sendo processado...');
+            return;
+        }
+
+        this._submitting = true;
+        
+        const form = e.target;
+        const name = form.customerName.value.trim();
+        const phone = form.customerPhone.value.replace(/\D/g, '');
+        const deliveryOption = form.deliveryOption.value;
+        const paymentMethod = form.paymentMethod.value;
+        const observation = form.customerObservation.value.trim();
+        
+        // Validações básicas
+        if (!name) {
+            window.showNotification("Por favor, informe seu nome.", 3000, 'error');
+            this._submitting = false;
+            return;
+        }
+        
+        if (phone.length < 10) {
+            window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
+            this._submitting = false;
+            return;
+        }
+
+        // Se for entrega, valida endereço
+        let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
+        if (deliveryOption === 'entrega') {
+            street = document.getElementById("customerStreet")?.value || '';
+            number = document.getElementById("customerNumber")?.value || '';
+            neighborhood = document.getElementById("customerNeighborhood")?.value || '';
+            city = document.getElementById("customerCity")?.value || '';
+            cep = document.getElementById("customerCep")?.value || '';
+            complement = document.getElementById("customerComplement")?.value || '';
             
-            // Coleta dados do formulário
-            const formData = this._collectFormData();
-            
-            // Validação
-            if (!this._validateFormData(formData)) {
+            if (!cep || !street || !number || !neighborhood || !city) {
+                window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
+                this._submitting = false;
                 return;
             }
             
-            // Prepara dados do pedido
-            const orderData = this._prepareOrderData(formData);
-            
-            // Processa pedido (salva no banco)
-            const result = await this._processOrder(orderData);
-            
-            if (result.success) {
-                // Gera URL do pedido
-                const orderUrl = await this._generateOrderUrl(orderData, result.orderId);
-                
-                // Mostra sucesso com URL
-                this._showOrderSuccess(orderUrl, orderData, result.orderId);
-                
-            } else {
-                throw new Error(result.error || 'Erro ao processar pedido');
-            }
-            
-        } catch (error) {
-            console.error('❌ Erro no checkout:', error);
-            this._showError('Erro ao processar pedido. Tente novamente.');
+            // Salva CEP para pré-preenchimento futuro
+            localStorage.setItem('lastCustomerCep', cep);
         }
-    }
 
-    _collectFormData() {
-        return {
-            name: document.getElementById('customerName')?.value || '',
-            phone: document.getElementById('customerPhone')?.value || '',
-            deliveryOption: document.getElementById('deliveryOption')?.value || 'retirada',
-            paymentMethod: document.getElementById('paymentMethod')?.value || 'pix',
-            cep: document.getElementById('customerCep')?.value || '',
-            street: document.getElementById('customerStreet')?.value || '',
-            number: document.getElementById('customerNumber')?.value || '',
-            neighborhood: document.getElementById('customerNeighborhood')?.value || '',
-            city: document.getElementById('customerCity')?.value || '',
-            complement: document.getElementById('customerComplement')?.value || '',
-            observation: document.getElementById('customerObservation')?.value || ''
+        // Salva telefone para pré-preenchimento futuro
+        localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
+
+        // Mostra loading
+        const submitBtn = form.querySelector('.checkout-submit-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '🔄 Preparando pedido...';
+        submitBtn.disabled = true;
+
+        console.log('📤 Processando pedido via API segura...');
+        
+        // Processa o pedido com delay para evitar duplicação
+        setTimeout(async () => {
+            try {
+                await this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
+                    street, number, neighborhood, city, cep, complement
+                });
+                
+                window.showNotification("✅ Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
+                
+                // Limpa o carrinho
+                this.cartItems = [];
+                this.deliveryFee = 0;
+                this.saveCartToStorage();
+                this.updateCartUI();
+                
+                // Fecha o modal com delay
+                setTimeout(() => {
+                    this.closeCheckoutModal();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('❌ Erro ao processar pedido:', error);
+                window.showNotification("❌ Erro ao processar pedido. Tente novamente.", 5000, 'error');
+            } finally {
+                // Restaura botão
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                this._submitting = false;
+            }
+        }, 300);
+    },
+
+    _formatPhoneForDisplay(phone) {
+        // Formata (XX) XXXXX-XXXX
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length === 11) {
+            return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
+        }
+        return phone;
+    },
+
+    async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData = {}) {
+        const orderId = 'JD' + Date.now().toString().slice(-8);
+        console.log(`📝 Criando pedido ${orderId} para ${name} (${phone}) via API...`);
+
+        // Prepara dados do endereço
+        let fullAddress = 'Retirada na Loja';
+        
+        // CORREÇÃO: Extrai dados de addressData
+        const { street, number, neighborhood, city, cep, complement } = addressData;
+        
+        if (deliveryOption === 'entrega' && street && number && neighborhood && city && cep) {
+            fullAddress = `${street}, ${number}, ${neighborhood}, ${city} - ${cep}`;
+            if (complement && complement.trim() !== '') {
+                fullAddress += ` (${complement})`;
+            }
+        }
+
+        // Calcula valores
+        const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = subtotal + this.deliveryFee;
+
+        // PASSO 1: Gerar ID local para usuário
+        const userId = this._createLocalUserId(name, phone);
+        this._currentUserId = userId;
+
+        // PASSO 2: Criar objeto do cliente com TODOS os campos
+        const clientData = {
+            phone: `55${phone}`,
+            name: name,
+            address: fullAddress,
+            cep: cep,
+            
+            // CAMPOS INDIVIDUAIS DE ENDEREÇO - ESSENCIAIS!
+            street: street || '',
+            number: number || '',
+            address_number: number || '', // Envia com nome correto também
+            neighborhood: neighborhood || '',
+            city: city || '',
+            city_state: city || '', // Envia com nome correto também
+            complement: complement || '',
+            
+            observation: observation || '',
+            deliveryOption: deliveryOption,
+            paymentMethod: paymentMethod
         };
-    }
 
-    _validateFormData(data) {
-        if (!data.name.trim()) {
-            this._showError('Por favor, informe seu nome.');
-            return false;
-        }
-        
-        if (!data.phone.trim()) {
-            this._showError('Por favor, informe seu telefone.');
-            return false;
-        }
-        
-        // Valida telefone
-        const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}[\s-]?\d{4}$/;
-        if (!phoneRegex.test(data.phone.replace(/\D/g, ''))) {
-            this._showError('Por favor, informe um telefone válido.');
-            return false;
-        }
-        
-        // Se for entrega, valida endereço
-        if (data.deliveryOption === 'entrega') {
-            if (!data.cep.trim() || !data.street.trim() || !data.number.trim() || !data.neighborhood.trim() || !data.city.trim()) {
-                this._showError('Para entrega, preencha todos os campos do endereço.');
-                return false;
-            }
-        }
-        
-        return true;
-    }
+        console.log('👤 Dados do cliente para API:', clientData);
 
-    _prepareOrderData(formData) {
-        // Calcula totais
-        const subtotal = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const deliveryFee = formData.deliveryOption === 'entrega' ? this._calculateDeliveryFee() : 0;
-        const total = subtotal + deliveryFee;
-        
-        return {
-            client: {
-                name: formData.name,
-                phone: formData.phone,
-                deliveryOption: formData.deliveryOption,
-                paymentMethod: formData.paymentMethod,
-                address: formData.deliveryOption === 'entrega' 
-                    ? `${formData.street}, ${formData.number}, ${formData.neighborhood}, ${formData.city} - ${formData.cep}${formData.complement ? ` (${formData.complement})` : ''}`
-                    : 'Retirada na Loja',
-                cep: formData.cep,
-                street: formData.street,
-                number: formData.number,
-                neighborhood: formData.neighborhood,
-                city: formData.city,
-                complement: formData.complement,
-                observation: formData.observation
-            },
-            order: {
-                subtotal: subtotal,
-                deliveryFee: deliveryFee,
-                total: total,
-                deliveryOption: formData.deliveryOption,
-                paymentMethod: formData.paymentMethod
-            },
-            items: this.items.map(item => ({
+        // PASSO 3: Criar objeto do pedido
+        const orderInfo = {
+            total: total,
+            deliveryFee: this.deliveryFee,
+            paymentMethod: paymentMethod,
+            deliveryOption: deliveryOption,
+            items: this.cartItems.map(item => ({
                 id: item.id,
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity
             }))
         };
-    }
 
-    async _processOrder(orderData) {
-        console.log('📤 Processando pedido via API segura...');
-        
+        // PASSO 4: Salvar pedido via API segura
         try {
-            // Usa o ApiClient global
-            if (!window.ApiClient) {
-                throw new Error('ApiClient não disponível');
-            }
-
-            const result = await window.ApiClient.saveOrder(orderData);
+            const result = await apiClient.saveOrder({
+                client: clientData,
+                order: orderInfo,
+                items: orderInfo.items
+            });
             
-            if (!result.success) {
-                throw new Error(result.error || 'Erro ao salvar pedido');
+            if (result && result.success) {
+                console.log(`✅ Pedido salvo via API: ${result.orderId}`);
+                orderInfo.apiOrderId = result.orderId;
+                clientData.apiClientId = result.clientId;
+            } else {
+                throw new Error('API não retornou sucesso');
             }
-
-            console.log('✅ Pedido salvo via API:', result);
-            return result;
             
         } catch (error) {
             console.error('❌ Erro ao salvar via API:', error);
-            
-            // Fallback: salva localmente
-            console.log('🔄 Usando fallback local...');
-            return this._saveOrderLocally(orderData);
+            // Continua com salvamento local mesmo se a API falhar
         }
-    }
 
-    // ============================================
-    // URL DO PEDIDO
-    // ============================================
-
-    async _generateOrderUrl(orderData, orderId) {
-        console.log('🔗 Gerando URL do pedido...');
+        // PASSO 5: Salvar localmente (backup)
+        const shortId = this._saveToLocalStorage({
+            customer: {
+                name: name,
+                phone: `55${phone}`,
+                deliveryOption: deliveryOption,
+                paymentMethod: paymentMethod,
+                address: fullAddress,
+                observation: observation || '',
+                userId: userId,
+                
+                // Salva também campos individuais localmente
+                street: street,
+                number: number,
+                neighborhood: neighborhood,
+                city: city,
+                cep: cep,
+                complement: complement
+            },
+            order: {
+                items: this.cartItems.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    total: item.price * item.quantity,
+                    productId: item.id
+                })),
+                subtotal: subtotal,
+                deliveryFee: this.deliveryFee,
+                total: total,
+                orderId: orderId,
+                timestamp: new Date().toLocaleString('pt-BR'),
+                userId: userId
+            }
+        });
         
+        // PASSO 6: Gerar mensagem do WhatsApp
+        const message = this._generateWhatsAppMessage({
+            customer: clientData,
+            order: {
+                items: this.cartItems.map(item => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            }
+        }, shortId);
+        
+        // PASSO 7: Abrir WhatsApp
+        this._openWhatsApp(message);
+    },
+
+    _createLocalUserId(name, phone) {
+        // Cria um ID local baseado no telefone
+        const localUserId = `local_${phone}_${Date.now().toString(36)}`;
+        console.log(`👤 ID local gerado para usuário: ${localUserId}`);
+        return localUserId;
+    },
+
+    // ============================================
+    // FUNÇÕES DE PERSISTÊNCIA LOCAL
+    // ============================================
+    _saveToLocalStorage(orderData) {
+        // Gera ID único
+        const shortId = Date.now().toString(36).toUpperCase() + 
+                       Math.random().toString(36).substr(2, 3).toUpperCase();
+        
+        const orderKey = `order_${shortId}`;
+        localStorage.setItem(orderKey, JSON.stringify(orderData));
+        
+        // Define expiração (24 horas)
+        const expirationKey = `exp_${shortId}`;
+        localStorage.setItem(expirationKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
+        
+        // Salva referência do usuário
+        if (this._currentUserId) {
+            localStorage.setItem(`user_${this._currentUserId}_last_order`, shortId);
+        }
+        
+        console.log(`💾 Pedido salvo localmente: ${orderKey} para usuário ${this._currentUserId || 'desconhecido'}`);
+        return shortId;
+    },
+
+    _generateWhatsAppMessage(orderData, shortId) {
+        // CORREÇÃO: Acessar dados corretamente da estrutura do orderData
+        const customer = orderData.customer || {};
+        const order = orderData.order || {};
+        const items = order.items || [];
+        
+        const deliveryOption = customer.deliveryOption || 'entrega';
+        const paymentMethod = customer.paymentMethod || 'pix';
+        const name = customer.name || '';
+        const phone = customer.phone || '';
+        const address = customer.address || '';
+        const observation = customer.observation || '';
+        
+        const baseUrl = window.location.origin;
+        const orderLink = `${baseUrl}/o.html?i=${shortId}`;
+        
+        let message = `*JARDIM PADARIA ARTESANAL*\n\n`;
+        message += `Olá! Meu nome é *${name}*\n\n`;
+        message += `*QUERO FAZER UM PEDIDO!*\n\n`;
+        
+        message += `> RESUMO RÁPIDO\n`;
+        items.forEach(item => {
+            message += `• ${item.quantity}x ${item.name}\n`;
+        });
+        
+        message += `\n*Modalidade:* ${deliveryOption === 'retirada' ? '_Retirada na Loja_' : '_Entrega_'}\n`;
+        message += `*Pagamento:* ${paymentMethod === 'pix' ? '_Pix_' : '_Cartão_'}\n\n`;
+        
+        if (observation) {
+            message += `> OBSERVAÇÃO\n${observation}\n\n`;
+        }
+        
+        message += `> MEUS DADOS\n`;
+        message += `*Nome:* ${name}\n`;
+        message += `*Telefone:* ${phone.replace('55', '')}\n`;
+        
+        if (deliveryOption === 'entrega') {
+            message += `*Endereço:* ${address}\n`;
+        }
+        
+        message += `\n> DETALHES DO PEDIDO\n`;
+        message += "```" + `${orderLink}` + "```\n\n";
+        
+        message += `_Clique no link acima para ver todos os detalhes do pedido!_\n\n`;
+        
+        message += `*Por favor, confirme meu pedido!*`;
+
+        return message;
+    },
+
+    _openWhatsApp(message) {
+        // Garante que a mensagem é uma string
+        if (typeof message !== 'string') {
+            console.error('❌ Mensagem do WhatsApp não é uma string:', message);
+            message = this._generateFallbackWhatsAppMessage();
+        }
+        
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/5583987194754?text=${encodedMessage}`;
+        
+        // Abre em nova aba
+        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    },
+
+    _generateFallbackWhatsAppMessage() {
+        return `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
+    },
+
+    // ============================================
+    // PERSISTÊNCIA DO CARRINHO
+    // ============================================
+    saveCartToStorage() {
+        localStorage.setItem('cartItems', JSON.stringify(this.cartItems));
+    },
+
+    loadCartFromStorage() {
         try {
-            // Se tiver orderId do banco, usa ele
-            const finalOrderId = orderId || `JD${Date.now().toString().slice(-8)}`;
-            
-            // Cria URL curta
-            const baseUrl = window.location.origin;
-            const url = `${baseUrl}/o.html?i=${finalOrderId}`;
-            
-            console.log('📋 URL do pedido gerada:', url);
-            return {
-                shortUrl: url,
-                orderId: finalOrderId,
-                data: orderData
-            };
-            
+            const savedCart = localStorage.getItem('cartItems');
+            if (savedCart) {
+                this.cartItems = JSON.parse(savedCart);
+                console.log(`📦 Carrinho carregado: ${this.cartItems.length} itens`);
+            }
         } catch (error) {
-            console.error('❌ Erro ao gerar URL:', error);
-            return null;
+            console.error('❌ Erro ao carregar carrinho:', error);
+            this.cartItems = [];
         }
-    }
-
-    _showOrderSuccess(orderUrl, orderData, orderId) {
-        // Fecha modais
-        this.closeCheckoutModal();
-        this.closeCart();
-        
-        // Limpa carrinho
-        this.clearCart();
-        
-        // Mostra modal de sucesso com URL
-        const successModal = document.createElement('div');
-        successModal.className = 'modal';
-        successModal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(28, 61, 45, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            animation: fadeIn 0.3s ease;
-        `;
-        
-        const successContent = document.createElement('div');
-        successContent.className = 'modal-content';
-        successContent.style.cssText = `
-            background: white;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            animation: slideUp 0.4s ease;
-        `;
-        
-        // Ícone de sucesso
-        const successIcon = document.createElement('div');
-        successIcon.style.cssText = `
-            width: 80px;
-            height: 80px;
-            background: #27AE60;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2.5rem;
-            color: white;
-        `;
-        successIcon.innerHTML = '🎉';
-        
-        // Título
-        const title = document.createElement('h3');
-        title.textContent = 'Pedido Confirmado!';
-        title.style.cssText = 'color: #1C3D2D; margin-bottom: 0.5rem; font-size: 1.5rem;';
-        
-        // Mensagem
-        const message = document.createElement('p');
-        message.textContent = 'Seu pedido foi registrado com sucesso. Guarde este link para acompanhar:';
-        message.style.cssText = 'color: #666; margin-bottom: 1.5rem; line-height: 1.5;';
-        
-        // URL do pedido
-        const urlContainer = document.createElement('div');
-        urlContainer.style.cssText = `
-            background: #F5F9F7;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            border: 2px dashed #A2B28E;
-        `;
-        
-        const urlText = document.createElement('div');
-        urlText.style.cssText = `
-            font-family: monospace;
-            color: #1C3D2D;
-            font-size: 0.9rem;
-            word-break: break-all;
-            padding: 0.5rem;
-            background: white;
-            border-radius: 0.25rem;
-            margin-bottom: 1rem;
-        `;
-        urlText.textContent = orderUrl.shortUrl;
-        
-        const copyBtn = document.createElement('button');
-        copyBtn.innerHTML = '📋 Copiar Link';
-        copyBtn.style.cssText = `
-            background: #1C3D2D;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s;
-        `;
-        copyBtn.onmouseover = () => copyBtn.style.background = '#2A5C42';
-        copyBtn.onmouseout = () => copyBtn.style.background = '#1C3D2D';
-        
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(orderUrl.shortUrl).then(() => {
-                copyBtn.innerHTML = '✅ Link Copiado!';
-                copyBtn.style.background = '#27AE60';
-                setTimeout(() => {
-                    copyBtn.innerHTML = '📋 Copiar Link';
-                    copyBtn.style.background = '#1C3D2D';
-                }, 2000);
-            });
-        };
-        
-        // Botão WhatsApp
-        const whatsappBtn = document.createElement('button');
-        whatsappBtn.innerHTML = '📱 Enviar pelo WhatsApp';
-        whatsappBtn.style.cssText = `
-            background: #25D366;
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 1rem;
-            transition: all 0.3s;
-        `;
-        whatsappBtn.onmouseover = () => whatsappBtn.style.background = '#128C7E';
-        whatsappBtn.onmouseout = () => whatsappBtn.style.background = '#25D366';
-        
-        whatsappBtn.onclick = () => {
-            const message = `🎉 Meu pedido na Jardim Padaria foi realizado!\n\n📋 Pedido: ${orderId}\n💰 Total: R$ ${orderData.order.total.toFixed(2)}\n📱 Acompanhe aqui: ${orderUrl.shortUrl}`;
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-        };
-        
-        // Botão fechar
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = 'Voltar para a Loja';
-        closeBtn.style.cssText = `
-            background: transparent;
-            color: #666;
-            border: 2px solid #D4E8DC;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 1rem;
-            transition: all 0.3s;
-        `;
-        closeBtn.onmouseover = () => {
-            closeBtn.style.background = '#F5F9F7';
-            closeBtn.style.color = '#1C3D2D';
-        };
-        closeBtn.onmouseout = () => {
-            closeBtn.style.background = 'transparent';
-            closeBtn.style.color = '#666';
-        };
-        
-        closeBtn.onclick = () => {
-            document.body.removeChild(successModal);
-            // Volta para a página inicial
-            if (window.navigateToPage) {
-                window.navigateToPage('inicio');
-            }
-        };
-        
-        // Monta modal
-        urlContainer.appendChild(urlText);
-        urlContainer.appendChild(copyBtn);
-        
-        successContent.appendChild(successIcon);
-        successContent.appendChild(title);
-        successContent.appendChild(message);
-        successContent.appendChild(urlContainer);
-        successContent.appendChild(whatsappBtn);
-        successContent.appendChild(closeBtn);
-        successModal.appendChild(successContent);
-        
-        // Adiciona ao body
-        document.body.appendChild(successModal);
-        
-        // Foca no botão de copiar
-        setTimeout(() => copyBtn.focus(), 100);
-        
-        // Adiciona animações CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            @keyframes slideUp {
-                from { 
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to { 
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+    },
 
     // ============================================
     // UTILITÁRIOS
     // ============================================
+    clearCart() {
+        this.cartItems = [];
+        this.deliveryFee = 0;
+        this.saveCartToStorage();
+        this.updateCartUI();
+    },
 
-    _calculateDeliveryFee() {
-        // Simples cálculo de frete - pode ser personalizado
-        return 5.00; // Valor fixo por enquanto
+    getCartTotal() {
+        const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        return subtotal + this.deliveryFee;
     }
+};
 
-    _toggleAddressFields() {
-        const deliveryOption = document.getElementById('deliveryOption');
-        const addressFields = document.getElementById('addressFields');
-        
-        if (deliveryOption && addressFields) {
-            if (deliveryOption.value === 'entrega') {
-                addressFields.style.display = 'block';
-                
-                // Torna campos obrigatórios
-                const requiredFields = addressFields.querySelectorAll('input[required]');
-                requiredFields.forEach(field => field.required = true);
-            } else {
-                addressFields.style.display = 'none';
-                
-                // Remove obrigatoriedade
-                const fields = addressFields.querySelectorAll('input');
-                fields.forEach(field => field.required = false);
-            }
-        }
-    }
-
-    _formatCEP(event) {
-        let value = event.target.value.replace(/\D/g, '');
-        if (value.length > 5) {
-            value = value.substring(0, 5) + '-' + value.substring(5, 8);
-        }
-        event.target.value = value;
-    }
-
-    async _searchCEP() {
-        const cepField = document.getElementById('customerCep');
-        const streetField = document.getElementById('customerStreet');
-        const neighborhoodField = document.getElementById('customerNeighborhood');
-        const cityField = document.getElementById('customerCity');
-        
-        if (!cepField || !streetField || !neighborhoodField || !cityField) return;
-        
-        const cep = cepField.value.replace(/\D/g, '');
-        if (cep.length !== 8) return;
-        
-        try {
-            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-            const data = await response.json();
-            
-            if (!data.erro) {
-                streetField.value = data.logradouro || '';
-                neighborhoodField.value = data.bairro || '';
-                cityField.value = `${data.localidade} - ${data.uf}`;
-            }
-        } catch (error) {
-            console.warn('⚠️ Não foi possível buscar CEP:', error);
-        }
-    }
-
-    _saveOrderLocally(orderData) {
-        // Gera ID único
-        const orderId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Salva no localStorage
-        const orderKey = `order_${orderId}`;
-        const expirationKey = `exp_${orderId}`;
-        
-        localStorage.setItem(orderKey, JSON.stringify(orderData));
-        localStorage.setItem(expirationKey, (Date.now() + 7 * 24 * 60 * 60 * 1000).toString()); // Expira em 7 dias
-        
-        console.log(`💾 Pedido salvo localmente: ${orderId}`);
-        
-        return {
-            success: true,
-            orderId: orderId,
-            message: 'Pedido salvo localmente (modo offline)'
-        };
-    }
-
-    _showError(message) {
-        window.showNotification(`❌ ${message}`, 3000, 'error');
-    }
-
-    // ============================================
-    // INTERFACE PÚBLICA
-    // ============================================
-
-    getItems() {
-        return [...this.items];
-    }
-
-    getTotal() {
-        return this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    }
-
-    getItemCount() {
-        return this.items.reduce((sum, item) => sum + item.quantity, 0);
-    }
-
-    isEmpty() {
-        return this.items.length === 0;
-    }
-}
-
-// Cria instância global
-const cartInstance = new Cart();
-
-// Exporta para uso global
-window.Cart = cartInstance;
-
-// Export default
-export default cartInstance;
+// ============================================
+// EXPORTAÇÕES
+// ============================================
+export { Cart };
+export default Cart;
