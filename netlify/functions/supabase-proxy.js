@@ -24,6 +24,10 @@ exports.handler = async (event, context) => {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
+    console.log('🔍 Verificando variáveis de ambiente...');
+    console.log('SUPABASE_URL:', supabaseUrl ? '✅ Configurada' : '❌ Ausente');
+    console.log('SUPABASE_SERVICE_ROLE_KEY:', supabaseKey ? '✅ Configurada' : '❌ Ausente');
+    
     if (!supabaseUrl || !supabaseKey) {
       console.error('❌ Supabase credentials not configured');
       return {
@@ -45,6 +49,16 @@ exports.handler = async (event, context) => {
     
     console.log(`📡 ${httpMethod} ${route}`);
 
+    // Parse do body se existir
+    let requestData = {};
+    if (body && httpMethod !== 'GET') {
+      try {
+        requestData = JSON.parse(body);
+      } catch (e) {
+        console.warn('⚠️ Não foi possível parsear o body:', e.message);
+      }
+    }
+
     // Health check
     if (route === '/health' && httpMethod === 'GET') {
       return {
@@ -53,19 +67,17 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           status: 'healthy',
           timestamp: new Date().toISOString(),
-          functions: ['get-products', 'save-order', 'save-client', 'get-client', 'health']
+          functions: ['get-products', 'save-order', 'save-client', 'get-client', 'get-order', 'update-order-status', 'health']
         })
       };
     }
     
     // Roteamento das requisições
     if (route === '/save-order' && httpMethod === 'POST') {
-      const requestData = body ? JSON.parse(body) : {};
       return await handleSaveOrder(supabase, requestData, headers);
     }
     
     if (route === '/save-client' && httpMethod === 'POST') {
-      const requestData = body ? JSON.parse(body) : {};
       return await handleSaveClient(supabase, requestData, headers);
     }
     
@@ -74,8 +86,17 @@ exports.handler = async (event, context) => {
       return await handleGetClient(supabase, phone, headers);
     }
     
+    if (route === '/get-order' && httpMethod === 'GET') {
+      const orderId = event.queryStringParameters?.id;
+      return await handleGetOrder(supabase, orderId, headers);
+    }
+    
     if (route === '/get-products' && httpMethod === 'GET') {
       return await handleGetProducts(supabase, headers);
+    }
+
+    if (route === '/update-order-status' && httpMethod === 'POST') {
+      return await handleUpdateOrderStatus(supabase, requestData, headers);
     }
 
     // Rota não encontrada
@@ -110,7 +131,7 @@ exports.handler = async (event, context) => {
 
 async function handleSaveOrder(supabase, data, headers) {
   try {
-    console.log('📦 Salvando pedido:', data);
+    console.log('📦 Salvando pedido...');
     
     const { client, order, items } = data;
     
@@ -118,9 +139,18 @@ async function handleSaveOrder(supabase, data, headers) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Client phone is required' })
+        body: JSON.stringify({ 
+          error: 'Client phone is required',
+          receivedData: data 
+        })
       };
     }
+
+    console.log('👤 Dados do cliente:', {
+      name: client.name,
+      phone: client.phone,
+      deliveryOption: client.deliveryOption || order?.deliveryOption
+    });
 
     // 1. Salva/Atualiza cliente
     const cleanPhone = client.phone.replace(/\D/g, '');
@@ -141,64 +171,97 @@ async function handleSaveOrder(supabase, data, headers) {
     if (existingClient) {
       clientId = existingClient.id;
       
+      console.log(`🔄 Atualizando cliente existente: ${clientId}`);
+      
       // Atualiza dados do cliente
-      await supabase
+      const { error: updateError } = await supabase
         .from('clients')
         .update({
-          full_name: client.name,
-          address: client.address,
-          cep: client.cep,
-          last_order_date: new Date().toISOString()
+          full_name: client.name || existingClient.full_name,
+          address: client.address || existingClient.address,
+          cep: client.cep || existingClient.cep,
+          last_order_date: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq('id', clientId);
+
+      if (updateError) throw updateError;
     } else {
+      console.log('👤 Criando novo cliente...');
+      
       // Cria novo cliente
       const { data: newClient, error: newClientError } = await supabase
         .from('clients')
         .insert([{
           phone: cleanPhone,
-          full_name: client.name,
-          address: client.address,
-          cep: client.cep,
-          last_order_date: new Date().toISOString()
+          full_name: client.name || '',
+          address: client.address || '',
+          cep: client.cep || '',
+          street: client.street || '',
+          address_number: client.number || client.address_number || '',
+          neighborhood: client.neighborhood || '',
+          city_state: client.city || client.city_state || '',
+          complement: client.complement || '',
+          last_order_date: new Date().toISOString(),
+          created_at: new Date().toISOString()
         }])
         .select('id')
         .single();
 
-      if (newClientError) throw newClientError;
+      if (newClientError) {
+        console.error('❌ Erro ao criar cliente:', newClientError);
+        throw newClientError;
+      }
+      
       clientId = newClient.id;
+      console.log(`✅ Novo cliente criado: ${clientId}`);
     }
 
     // 2. Salva pedido
     const orderData = {
       client_id: clientId,
-      total_amount: order.total || 0,
+      total_amount: order?.total || 0,
+      subtotal: order?.subtotal || 0,
       status: 'pendente',
-      client_name: client.name,
+      client_name: client.name || '',
       client_phone: cleanPhone,
-      payment_method: order.paymentMethod || 'pix',
-      delivery_option: order.deliveryOption || 'entrega',
-      delivery_address: order.deliveryOption === 'entrega' ? client.address : null,
-      delivery_fee: order.deliveryFee || 0,
-      client_cep: client.cep,
-      observation: client.observation,
+      payment_method: order?.paymentMethod || client.paymentMethod || 'pix',
+      delivery_option: order?.deliveryOption || client.deliveryOption || 'retirada',
+      delivery_address: (order?.deliveryOption || client.deliveryOption) === 'entrega' ? client.address : null,
+      delivery_fee: order?.deliveryFee || 0,
+      client_cep: client.cep || '',
+      client_street: client.street || '',
+      client_number: client.number || client.address_number || '',
+      client_neighborhood: client.neighborhood || '',
+      client_city_state: client.city || client.city_state || '',
+      client_complement: client.complement || '',
+      observation: client.observation || '',
       created_at: new Date().toISOString()
     };
+
+    console.log('📝 Dados do pedido para salvar:', orderData);
 
     const { data: savedOrder, error: orderError } = await supabase
       .from('orders')
       .insert([orderData])
-      .select('id, total_amount')
+      .select('id, total_amount, client_name')
       .single();
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.error('❌ Erro ao salvar pedido:', orderError);
+      throw orderError;
+    }
+
+    console.log(`✅ Pedido salvo: ${savedOrder.id}`);
 
     // 3. Salva itens do pedido
     if (items && items.length > 0) {
+      console.log(`🛒 Salvando ${items.length} itens...`);
+      
       const itemsToInsert = items.map(item => ({
         order_id: savedOrder.id,
-        product_id: item.id,
-        product_name: item.name,
+        product_id: item.id || null,
+        product_name: item.name || 'Produto',
         quantity: item.quantity || 1,
         unit_price: item.price || 0
       }));
@@ -210,7 +273,32 @@ async function handleSaveOrder(supabase, data, headers) {
       if (itemsError) {
         console.error('❌ Erro ao salvar itens:', itemsError);
         // Continua mesmo com erro nos itens
+      } else {
+        console.log(`✅ ${itemsToInsert.length} itens salvos`);
       }
+    }
+
+    // 4. Atualiza estatísticas do cliente
+    try {
+      await supabase
+        .from('clients')
+        .update({
+          total_orders: supabase.rpc('increment', { 
+            x: 1, 
+            column_name: 'total_orders',
+            row_id: clientId 
+          }),
+          total_spent: supabase.rpc('increment', {
+            x: order?.total || 0,
+            column_name: 'total_spent',
+            row_id: clientId
+          })
+        })
+        .eq('id', clientId);
+        
+      console.log('📊 Estatísticas do cliente atualizadas');
+    } catch (statsError) {
+      console.warn('⚠️ Não foi possível atualizar estatísticas:', statsError.message);
     }
 
     return {
@@ -231,8 +319,10 @@ async function handleSaveOrder(supabase, data, headers) {
       statusCode: 500,
       headers,
       body: JSON.stringify({
+        success: false,
         error: 'Error saving order',
-        message: error.message
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
   }
@@ -314,6 +404,107 @@ async function handleGetClient(supabase, phone, headers) {
   }
 }
 
+async function handleGetOrder(supabase, orderId, headers) {
+  try {
+    if (!orderId) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Order ID required' })
+      };
+    }
+
+    console.log(`🔍 Buscando pedido: ${orderId}`);
+    
+    // Busca pedido principal
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        clients (*)
+      `)
+      .eq('id', orderId)
+      .single();
+
+    if (orderError) {
+      console.error('❌ Erro ao buscar pedido:', orderError);
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ 
+          success: false,
+          error: 'Order not found',
+          message: orderError.message 
+        })
+      };
+    }
+
+    // Busca itens do pedido
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', orderId);
+
+    if (itemsError) {
+      console.error('❌ Erro ao buscar itens:', itemsError);
+    }
+
+    // Formata resposta
+    const responseData = {
+      success: true,
+      order: {
+        id: order.id,
+        orderId: order.id,
+        total: order.total_amount,
+        subtotal: order.subtotal || order.total_amount - (order.delivery_fee || 0),
+        deliveryFee: order.delivery_fee || 0,
+        status: order.status || 'pendente',
+        paymentMethod: order.payment_method,
+        deliveryOption: order.delivery_option,
+        timestamp: order.created_at,
+        observation: order.observation
+      },
+      customer: {
+        name: order.client_name || order.clients?.full_name || '',
+        phone: order.client_phone || order.clients?.phone || '',
+        address: order.delivery_address || order.clients?.address || '',
+        cep: order.client_cep || order.clients?.cep || '',
+        street: order.client_street || order.clients?.street || '',
+        number: order.client_number || order.clients?.address_number || '',
+        neighborhood: order.client_neighborhood || order.clients?.neighborhood || '',
+        city: order.client_city_state || order.clients?.city_state || '',
+        complement: order.client_complement || order.clients?.complement || ''
+      },
+      items: (items || []).map(item => ({
+        name: item.product_name || 'Produto',
+        price: item.unit_price || 0,
+        quantity: item.quantity || 1,
+        id: item.product_id
+      }))
+    };
+
+    console.log(`✅ Pedido encontrado: ${responseData.customer.name}`);
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(responseData)
+    };
+
+  } catch (error) {
+    console.error('❌ Error getting order:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        error: 'Internal server error',
+        message: error.message
+      })
+    };
+  }
+}
+
 async function handleGetProducts(supabase, headers) {
   try {
     console.log('📦 Buscando produtos...');
@@ -351,6 +542,55 @@ async function handleGetProducts(supabase, headers) {
         error: 'Error getting products',
         message: error.message,
         products: [] // Retorna array vazio como fallback
+      })
+    };
+  }
+}
+
+async function handleUpdateOrderStatus(supabase, data, headers) {
+  try {
+    const { orderId, status } = data;
+    
+    if (!orderId || !status) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Order ID and status required' })
+      };
+    }
+
+    console.log(`🔄 Atualizando pedido ${orderId} para status: ${status}`);
+    
+    const { error } = await supabase
+      .from('orders')
+      .update({ 
+        status: status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId);
+
+    if (error) {
+      console.error('❌ Erro ao atualizar status:', error);
+      throw error;
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        message: 'Status atualizado com sucesso'
+      })
+    };
+
+  } catch (error) {
+    console.error('❌ Error updating order status:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error.message
       })
     };
   }
