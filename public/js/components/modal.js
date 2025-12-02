@@ -20,7 +20,7 @@ const Modal = {
             closeModal.addEventListener("click", () => this.closeProductModal());
         }
         if (addToCartModal) {
-            addToCartModal.addEventListener("click", () => this.addToCartFromModal());
+            addToCartModal.addEventListener("click", (e) => this.addToCartFromModal(e));
         }
     },
 
@@ -36,8 +36,14 @@ const Modal = {
         
         // Preencher dados do modal
         if (modalProductName) modalProductName.textContent = product.name;
-        if (modalProductImage) modalProductImage.textContent = getProductIcon(product.category);
-        if (modalProductDescription) modalProductDescription.textContent = product.description;
+        
+        // Para a imagem, vamos manter o ícone ou usar a logo
+        if (modalProductImage) {
+            modalProductImage.src = "img/logos/Logo.png";
+            modalProductImage.alt = product.name;
+        }
+        
+        if (modalProductDescription) modalProductDescription.textContent = product.description || "Delicioso produto artesanal da Padaria Jardim.";
         if (modalProductIngredients) modalProductIngredients.textContent = product.ingredients || "Ingredientes selecionados com cuidado e qualidade.";
         if (modalProductPrice) modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
         
@@ -56,10 +62,43 @@ const Modal = {
         }
     },
 
-    addToCartFromModal() {
-        if (this.currentModalProduct) {
-            Cart.addToCart(this.currentModalProduct);
-            this.closeProductModal();
+    addToCartFromModal(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!this.currentModalProduct) return;
+        
+        // Verifica disponibilidade
+        const currentDay = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta'; // Fallback
+        
+        if (!this.currentModalProduct.available_days || 
+            !this.currentModalProduct.available_days.includes(currentDay)) {
+            const diaDisponivel = this.currentModalProduct.available_days && 
+                this.currentModalProduct.available_days.length > 0 
+                ? this.currentModalProduct.available_days.join(' e ')
+                : 'dias não especificados';
+            const message = `❌ ${this.currentModalProduct.name} só está disponível na(s) ${diaDisponivel}.`;
+            
+            if (window.showNotification) {
+                window.showNotification(message, 3000, 'error');
+            } else {
+                alert(message);
+            }
+            return;
         }
+        
+        // Adiciona ao carrinho
+        if (window.Cart && window.Cart.addToCart) {
+            window.Cart.addToCart(this.currentModalProduct);
+        } else {
+            console.error('Cart não está disponível');
+            alert('Erro ao adicionar ao carrinho. Tente novamente.');
+        }
+        
+        this.closeProductModal();
     }
 };
+
+// Exporta para uso em outros módulos
+export { Modal };
+export default Modal;

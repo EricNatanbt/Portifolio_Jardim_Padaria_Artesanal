@@ -211,3 +211,87 @@
     border: 2px dashed #ddd;
     border-radius: 8px;
 }
+
+/* Estilo para campos preenchidos automaticamente */
+input.auto-filled {
+    background-color: #f0f9f0 !important;
+    border-color: #4CAF50 !important;
+    border-left: 4px solid #4CAF50 !important;
+}
+
+/* Tooltip para campos auto-preenchidos */
+input.auto-filled::after {
+    content: "Preenchido automaticamente";
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+input.auto-filled:hover::after {
+    opacity: 1;
+}
+
+/* Estilo para campo CEP quando está buscando */
+input.cep-loading {
+    background-color: #fff8e1 !important;
+    border-color: #ffb300 !important;
+    color: #666;
+}
+
+/* Botão de busca ao lado do CEP */
+.cep-search-btn {
+    background: #1C3D2D;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 14px;
+}
+
+.cep-search-btn:hover {
+    background: #2A5C42;
+}
+
+.cep-search-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Grupo de CEP com botão */
+.cep-group {
+    display: flex;
+    align-items: center;
+}
+
+.cep-group input {
+    flex: 1;
+}
+
+/* Mensagem de status do CEP */
+.cep-status {
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cep-status.success {
+    color: #4CAF50;
+}
+
+.cep-status.error {
+    color: #f44336;
+}
+
+.cep-status.loading {
+    color: #ff9800;
+}

@@ -28,8 +28,8 @@
     <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#303823">
+
+
 
 
 
@@ -384,29 +384,26 @@
     </footer>
 
 <!-- Scripts -->
-<script src="data/menuData.js"></script>
-<script src="js/uber-api.js"></script>
+<!-- O arquivo menuData.js foi substituído pela integração com o Supabase -->
+	<script type="module" src="js/main.js"></script>
 
-<!-- Component Scripts -->
-<script src="js/components/navigation.js"></script>
-<script src="js/components/cart.js"></script>
-<script src="js/components/carousel.js"></script>
-<script src="js/components/modal.js"></script>
-
-<!-- Page Scripts -->
-<script src="js/pages/inicio.js"></script>
-<script src="js/pages/sobrenos.js"></script>
-<script src="js/pages/menu.js"></script>
-<script src="js/pages/cuidados.js"></script>
-<script src="js/pages/feedbacks.js"></script>
-
+<!-- Supabase Client -->
+	<script type="module" src="js/supabaseClient.js"></script>
+	<script type="module" src="js/components/navigation.js"></script>
+	<script type="module" src="js/components/cart.js"></script>
+	<script type="module" src="js/components/carousel.js"></script>
+	<script type="module" src="js/components/modal.js"></script>
+	<!-- Page Scripts -->
+	<script type="module" src="js/pages/inicio.js"></script>
+	<script type="module" src="js/pages/sobrenos.js"></script>
+	<script type="module" src="js/pages/menu.js"></script>
+	<script type="module" src="js/pages/cuidados.js"></script>
+	<script type="module" src="js/pages/feedbacks.js"></script>
 <!-- Main Script -->
-<script src="js/main.js"></script>
+<script type="module" src="js/main.js"></script>
 
 <!-- NOVO: Pages Loader -->
-<script src="js/pages-loader.js"></script>
-
-    <script>
+<script type="module" src="js/pages-loader.js"></script>  <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js', { scope: '/' })

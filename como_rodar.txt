@@ -1,3 +1,6 @@
-cd projetos da faculdade
-cd portifolio_jardim_padaria_artesanal
-npm install express@4.18.2
+cd *entre no repositorio da pasta*
+npm install (so faz isso uma vez)
+npm install -g netlify-cli (so faz isso uma vez)
+netlify dev
+
+Agora acesse o link: http://localhost:8888
