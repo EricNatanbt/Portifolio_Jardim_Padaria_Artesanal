@@ -1,5 +1,4 @@
 // js/pages/menu.js
-// import { supabase } from '../supabaseClient.js'; // Usaremos window.supabase após a inicialização
 import Cart from '../components/cart.js';
 
 // ============================================
@@ -82,10 +81,11 @@ class MenuInstance {
             // Agrupar produtos por categoria
             const produtosPorCategoria = {};
             produtosDoDia.forEach(produto => {
-                if (!produtosPorCategoria[produto.category]) {
-                    produtosPorCategoria[produto.category] = [];
+                const categoria = produto.category || 'Outros';
+                if (!produtosPorCategoria[categoria]) {
+                    produtosPorCategoria[categoria] = [];
                 }
-                produtosPorCategoria[produto.category].push(produto);
+                produtosPorCategoria[categoria].push(produto);
             });
 
             // Atualizar títulos
@@ -225,35 +225,51 @@ class MenuInstance {
 
     async getProductsFromSupabase() {
         console.log('🔄 Buscando produtos do Supabase...');
-        const { data, error } = await window.supabase
-            .from('products')
-            .select('*')
-            .order('category', { ascending: true })
-            .order('name', { ascending: true });
+        
+        try {
+            // Usa a nova implementação via API
+            const result = await window.supabase
+                .from('products')
+                .select('*');
+            
+            if (result.error) {
+                console.error('❌ Erro ao buscar produtos do Supabase:', result.error);
+                window.showNotification('Erro ao carregar o cardápio. Tente novamente.', 3000, 'error');
+                return [];
+            }
 
-        if (error) {
-            console.error('❌ Erro ao buscar produtos do Supabase:', error);
+            console.log(`✅ ${result.data.length} produtos carregados do Supabase`);
+            
+            // Ordena localmente
+            const sortedData = result.data.sort((a, b) => {
+                if (a.category < b.category) return -1;
+                if (a.category > b.category) return 1;
+                if (a.name < b.name) return -1;
+                if (a.name > b.name) return 1;
+                return 0;
+            });
+            
+            // Log para debug
+            sortedData.forEach((item, index) => {
+                console.log(`📝 Produto ${index + 1}: ${item.name} | Categoria: ${item.category} | Dias: ${JSON.stringify(item.available_days)}`);
+            });
+
+            return sortedData.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: parseFloat(item.price) || 0,
+                description: item.description,
+                ingredients: item.ingredients,
+                category: item.category,
+                available_days: item.available_days || [],
+                day: item.available_days || []
+            }));
+            
+        } catch (error) {
+            console.error('❌ Erro na requisição de produtos:', error);
             window.showNotification('Erro ao carregar o cardápio. Tente novamente.', 3000, 'error');
             return [];
         }
-
-        console.log(`✅ ${data.length} produtos carregados do Supabase`);
-        
-        // Log para debug - mostrar todos os produtos e seus dias
-        data.forEach((item, index) => {
-            console.log(`📝 Produto ${index + 1}: ${item.name} | Dias: ${JSON.stringify(item.available_days)}`);
-        });
-
-        return data.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: parseFloat(item.price),
-            description: item.description,
-            ingredients: item.ingredients,
-            category: item.category,
-            available_days: item.available_days || [],
-            day: item.available_days || []
-        }));
     }
 
     async getProductsForDay(day) {
@@ -312,3 +328,6 @@ class MenuInstance {
 
 // Exporta para uso global
 window.MenuPage = MenuPage;
+
+// Export default
+export default MenuPage;

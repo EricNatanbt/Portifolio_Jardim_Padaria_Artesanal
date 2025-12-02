@@ -1,121 +1,87 @@
-// js/api-client.js
+// public/js/api-client.js
 class ApiClient {
-  constructor() {
-    // Detecta ambiente
-    this.isProduction = window.location.hostname.includes('netlify.app');
-    this.isLocalhost = window.location.hostname.includes('localhost');
-    
-    // Configura URL base
-    if (this.isProduction) {
-      this.baseUrl = window.location.origin;
-    } else if (this.isLocalhost) {
-      this.baseUrl = 'http://localhost:8888';
+    constructor() {
+        this.baseUrl = window.location.origin + '/.netlify/functions/supabase-proxy';
+        console.log('🌐 API Client inicializado para:', this.baseUrl);
     }
-    
-    console.log('🌐 API Client inicializado para:', this.baseUrl);
-  }
 
-  async saveOrder(orderData) {
-    try {
-      console.log('📤 Salvando pedido via API...');
-      
-      // CORREÇÃO: Garantir que client tem todos os campos
-      const clientData = orderData.client || {};
-      const orderInfo = orderData.order || {};
-      
-      // Log dos dados para debug
-      console.log('🔍 Dados do cliente recebidos:', {
-        name: clientData.name,
-        phone: clientData.phone,
-        address: clientData.address,
-        street: clientData.street,
-        number: clientData.number,
-        neighborhood: clientData.neighborhood,
-        city: clientData.city
-      });
-      
-      // Endpoint correto
-      const endpoint = '/.netlify/functions/save-order';
-      
-      return await this._makeRequest(endpoint, 'POST', {
-        client: {
-          phone: clientData.phone,
-          name: clientData.name,
-          address: clientData.address,
-          cep: clientData.cep,
-          
-          // Campos individuais de endereço
-          street: clientData.street,
-          number: clientData.number,
-          neighborhood: clientData.neighborhood,
-          city: clientData.city || clientData.city_state,
-          complement: clientData.complement,
-          
-          observation: clientData.observation,
-          deliveryOption: clientData.deliveryOption,
-          paymentMethod: clientData.paymentMethod
-        },
-        order: {
-          total: orderInfo.total || 0,
-          deliveryFee: orderInfo.deliveryFee || 0,
-          paymentMethod: orderInfo.paymentMethod,
-          deliveryOption: orderInfo.deliveryOption
-        },
-        items: orderData.items || orderInfo.items || []
-      });
-      
-    } catch (error) {
-      console.error('❌ Erro ao preparar pedido:', error);
-      throw error;
+    async _makeRequest(endpoint, method = 'GET', data = null) {
+        const url = `${this.baseUrl}${endpoint}`;
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        if (data && method !== 'GET') {
+            options.body = JSON.stringify(data);
+        }
+
+        try {
+            console.log(`📤 ${method} ${url}`, data ? 'com dados' : '');
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ HTTP ${response.status}: ${errorText}`);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log(`✅ ${method} ${endpoint} - Sucesso:`, result.success !== false);
+            return result;
+            
+        } catch (error) {
+            console.error(`❌ Erro na requisição para ${endpoint}:`, error);
+            throw error;
+        }
     }
-  }
 
-  async saveClient(clientData) {
-    const endpoint = '/.netlify/functions/save-client';
-    return this._makeRequest(endpoint, 'POST', clientData);
-  }
+    async saveOrder(orderData) {
+        console.log('📤 Salvando pedido via API...');
+        console.log('🔍 Dados do cliente recebidos:', orderData.client);
+        
+        try {
+            const dataToSend = {
+                client: orderData.client,
+                order: orderData.order,
+                items: orderData.items
+            };
 
-  async getClientByPhone(phone) {
-    const endpoint = `/api/get-client?phone=${encodeURIComponent(phone)}`;
-    return this._makeRequest(endpoint, 'GET');
-  }
-
-  async _makeRequest(endpoint, method, data = null) {
-    const url = `${this.baseUrl}${endpoint}`;
-    
-    console.log(`📤 ${method} ${endpoint}`);
-    
-    try {
-      const options = {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'cors'
-      };
-
-      if (data && method !== 'GET') {
-        options.body = JSON.stringify(data);
-      }
-
-      const response = await fetch(url, options);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ HTTP ${response.status}:`, errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const result = await response.json();
-      console.log(`✅ Resposta de ${endpoint}:`, result);
-      return result;
-
-    } catch (error) {
-      console.error(`❌ Erro na requisição para ${endpoint}:`, error);
-      throw error;
+            return await this._makeRequest('/save-order', 'POST', dataToSend);
+        } catch (error) {
+            console.error('❌ Erro ao preparar pedido:', error);
+            throw error;
+        }
     }
-  }
+
+    async saveClient(clientData) {
+        console.log('👤 Salvando cliente via API...');
+        return await this._makeRequest('/save-client', 'POST', clientData);
+    }
+
+    async getClient(phone) {
+        console.log('🔍 Buscando cliente via API...');
+        return await this._makeRequest(`/get-client?phone=${encodeURIComponent(phone)}`, 'GET');
+    }
+
+    async getProducts() {
+        console.log('📦 Buscando produtos via API...');
+        return await this._makeRequest('/get-products', 'GET');
+    }
+
+    async healthCheck() {
+        console.log('🏥 Verificando saúde da API...');
+        return await this._makeRequest('/health', 'GET');
+    }
 }
 
+// Cria instância global
 const apiClient = new ApiClient();
+
+// Exporta para uso global
+window.ApiClient = apiClient;
+
+// Export default
 export default apiClient;
