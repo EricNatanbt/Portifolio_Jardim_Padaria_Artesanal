@@ -8,11 +8,14 @@ async function initializeSupabase() {
     const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.7');
     
     // Obtém variáveis de ambiente - IMPORTANTE: prefixo VITE_ para Netlify
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
+    // Adiciona verificação para import.meta.env para evitar erro de undefined em alguns ambientes
+    const env = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {};
+    
+    const supabaseUrl = env.VITE_SUPABASE_URL || 
                        process.env.VITE_SUPABASE_URL || 
                        'https://seu-projeto.supabase.co';
     
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
+    const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY || 
                            process.env.VITE_SUPABASE_ANON_KEY || 
                            'sua-anon-key-aqui';
     
