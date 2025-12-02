@@ -90,38 +90,18 @@ function getMockData(table) {
   return [];
 }
 
-// Inicializa e exporta
+// Inicializa e exporta a Promise de inicialização
 const supabasePromise = initializeSupabase();
 
-// Exporta como Promise para uso com await
-export const supabase = {
-  from: (table) => ({
-    select: async (columns) => {
-      const client = await supabasePromise;
-      
-      // Se for o mock, precisamos garantir que o .select() retorne um objeto que possa ser awaitado
-      // O mock já está sendo retornado com o thenable, mas o cliente real do Supabase não.
-      // A forma como o menu.js está usando (await supabase.from().select().order().order())
-      // implica que o objeto retornado por .select() ou .order() deve ser "thenable" (ter um método .then)
-      // ou que o objeto retornado pelo último .order() seja thenable.
-      
-      // Como o menu.js usa window.supabase (o cliente resolvido) e o exportado 'supabase' (a promise),
-      // vamos manter a lógica original do arquivo, mas garantir que o mock seja thenable.
-      
-      // Se o cliente for o mock, ele já é thenable (via .then no objeto query)
-      // Se for o cliente real, ele também é thenable.
-      
-      // A correção do mock na função createMockSupabase já deve resolver o problema
-      return client.from(table).select(columns);
-    }
-  })
-};
-
-// Também exporta a Promise para quem quiser usar diretamente
+// Exporta a Promise para quem precisar esperar a inicialização
 export { supabasePromise };
 
-// Torna disponível globalmente (para scripts antigos)
+// Torna o cliente Supabase disponível globalmente após a resolução da Promise
 supabasePromise.then(client => {
   window.supabase = client;
   console.log('✅ Supabase disponível globalmente como window.supabase');
 });
+
+// Exporta um objeto vazio para satisfazer a importação do menu.js (que agora está comentada)
+// e evitar erros de "module not found" em alguns bundlers.
+export const supabase = {};

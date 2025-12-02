@@ -1,5 +1,5 @@
 // js/pages/menu.js
-import { supabase } from '../supabaseClient.js';
+// import { supabase } from '../supabaseClient.js'; // Usaremos window.supabase após a inicialização
 import Cart from '../components/cart.js';
 
 // ============================================
@@ -225,7 +225,7 @@ class MenuInstance {
 
     async getProductsFromSupabase() {
         console.log('🔄 Buscando produtos do Supabase...');
-        const { data, error } = await supabase
+        const { data, error } = await window.supabase
             .from('products')
             .select('*')
             .order('category', { ascending: true })
