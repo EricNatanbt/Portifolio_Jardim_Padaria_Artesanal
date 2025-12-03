@@ -1,224 +1,184 @@
-import { supabase } from '../supabaseClient.js';
-import Cart from '../components/cart.js';
+// js/pages/inicio.js
 
-// ============================================
-// PÁGINA INICIAL
-// ============================================
 const InicioPage = {
-    currentDayProducts: [],
-    currentDayIndex: -1,
-
     async initialize() {
+        console.log('🏠 Inicializando página Início');
+        await this.setupCarousel();
         await this.setupTodayProducts();
-        this.renderProducts();
         this.setupEventListeners();
-        this.initializeProductsCarousel();
     },
 
-    initializeProductsCarousel() {
-        // Destrói qualquer carrossel anterior
-        if (typeof Carousel !== 'undefined') {
-            Carousel.destroy('.products-carousel');
-            
-            // Aguarda o DOM estar pronto
-            setTimeout(() => {
-                // Inicializa APENAS o carrossel de produtos
-                Carousel.initialize('.products-carousel', {
-                    delay: 3000, // 3 segundos fixos para produtos
-                    autoPlay: true
-                });
-            }, 100);
-        }
+    async setupCarousel() {
+        // Código do carrossel existente...
+        console.log('🔄 Configurando carrossel...');
+        
+        const carouselSlide = document.querySelector('.products-carousel .carousel-slide');
+        if (!carouselSlide) return;
+        
+        const images = carouselSlide.querySelectorAll('img');
+        if (images.length === 0) return;
+        
+        let currentIndex = 0;
+        const totalImages = images.length;
+        
+        // Mostra a primeira imagem
+        images[0].classList.add('active');
+        
+        // Alterna as imagens a cada 3 segundos
+        setInterval(() => {
+            images[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % totalImages;
+            images[currentIndex].classList.add('active');
+        }, 3000);
     },
 
     async setupTodayProducts() {
+        console.log('📦 Configurando produtos do dia na página inicial');
+        
+        const todayProductsContainer = document.getElementById('todayProducts');
+        if (!todayProductsContainer) {
+            console.log('⚠️ Container #todayProducts não encontrado');
+            return;
+        }
+        
         try {
-            const today = new Date().getDay();
-            const dayMap = {
-                3: 0, // quarta
-                4: 1, // quinta
-                5: 2, // sexta
-                6: 3  // sábado
-            };
-            
-            this.currentDayIndex = dayMap[today] !== undefined ? dayMap[today] : -1;
-            
-            if (this.currentDayIndex !== -1) {
-                const dias = ["quarta", "quinta", "sexta", "sabado"];
-                const todayDay = dias[this.currentDayIndex];
-                
-                // Buscar produtos do dia atual do Supabase
-                this.currentDayProducts = await this.getProductsForDay(todayDay);
-            } else {
-                this.currentDayProducts = [];
+            // Espera o Supabase estar disponível
+            if (!window.supabase) {
+                console.log('⏳ Aguardando Supabase...');
+                await new Promise(resolve => {
+                    const checkSupabase = () => {
+                        if (window.supabase) {
+                            resolve();
+                        } else {
+                            setTimeout(checkSupabase, 100);
+                        }
+                    };
+                    checkSupabase();
+                });
             }
+            
+            const today = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta';
+            console.log(`📅 Buscando produtos para ${today}...`);
+            
+            const products = await this.getProductsForDay(today);
+            
+            if (products.length === 0) {
+                todayProductsContainer.innerHTML = `
+                    <div class="no-products">
+                        <p>Nenhum produto disponível hoje. Volte amanhã!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Limita a 4 produtos para exibição
+            const displayProducts = products.slice(0, 4);
+            
+            let html = `
+                <div class="today-products-grid">
+                    ${displayProducts.map(product => `
+                        <div class="product-card-small">
+                            <div class="product-icon">${window.getProductIcon ? window.getProductIcon(product.category) : '🥖'}</div>
+                            <h4>${product.name}</h4>
+                            <p class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                    `).join('')}
+                </div>
+                <p class="more-products-text">
+                    <a href="#" data-page="menu" style="color: #1C3D2D; text-decoration: underline;">
+                        Ver todos os ${products.length} produtos disponíveis hoje →
+                    </a>
+                </p>
+            `;
+            
+            todayProductsContainer.innerHTML = html;
+            
+            console.log(`✅ ${displayProducts.length} produtos exibidos na página inicial`);
+            
         } catch (error) {
-            console.error('Erro ao configurar produtos do dia:', error);
-            this.currentDayProducts = [];
+            console.error('❌ Erro ao buscar produtos do dia:', error);
+            todayProductsContainer.innerHTML = `
+                <div class="error-message">
+                    <p>Não foi possível carregar os produtos. Tente novamente.</p>
+                </div>
+            `;
         }
     },
 
     async getProductsForDay(day) {
+        console.log(`🔍 Buscando produtos para o dia: ${day}`);
+        
         try {
-            const { data: products, error } = await window.supabase
+            if (!window.supabase) {
+                throw new Error('Supabase não disponível');
+            }
+            
+            // Usa a API via proxy
+            const apiClient = window.apiClient || (await import('../api-client.js')).default;
+            const response = await apiClient.getProductsByDay(day);
+            
+            if (response.success) {
+                return response.products || [];
+            }
+            
+            // Fallback: busca direto do Supabase
+            console.log('🔄 Tentando busca direta do Supabase...');
+            const { data, error } = await window.supabase
                 .from('products')
                 .select('*')
-                .contains('available_days', [day])
-                .limit(8); // Limita a 8 produtos para a página inicial
-
-            if (error) throw error;
-
-            return products.map(item => ({
-                id: item.id,
-                name: item.name,
-                price: parseFloat(item.price),
-                description: item.description,
-                ingredients: item.ingredients,
-                category: item.category,
-                available_days: item.available_days || [],
-                day: item.available_days || [] // Mantém compatibilidade
-            }));
+                .contains('available_days', [day]);
+            
+            if (error) {
+                console.error('❌ Erro do Supabase:', error);
+                throw error;
+            }
+            
+            return data || [];
+            
         } catch (error) {
-            console.error('Erro ao buscar produtos do dia:', error);
+            console.error(`❌ Erro ao buscar produtos para ${day}:`, error);
             return [];
         }
     },
 
-    renderProducts() {
-        const productsGrid = document.getElementById("productsGrid");
-        if (!productsGrid) return;
-
-        const productsToRender = this.currentDayProducts.slice(0, 8);
-        productsGrid.innerHTML = "";
-
-        if (productsToRender.length === 0) {
-            productsGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 2rem;">
-                    <p style="color: var(--muted-foreground); margin-bottom: 1rem;">
-                        Sem produtos disponíveis hoje. Confira nosso cardápio completo!
-                    </p>
-                    <button class="cta-button primary" data-page="menu" 
-                            style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                        Ver Cardápio Completo
-                    </button>
-                </div>`;
-            return;
-        }
-
-        productsToRender.forEach((product) => {
-            const card = document.createElement("div");
-            card.className = "product-card";
-            card.setAttribute('data-product-id', product.id);
-            
-            card.innerHTML = `
-                <div class="product-image">
-                    <img src="img/logos/Logo.png" alt="${product.name}">
-                </div>
-                <div class="product-info">
-                    <h4 class="product-name">${product.name}</h4>
-                    <p class="product-price">R$ ${product.price.toFixed(2).replace('.', ',')}</p>
-                    <button class="add-to-cart-btn" data-product-id="${product.id}">
-                        Adicionar
-                    </button>
-                </div>
-            `;
-
-            // Evento para abrir modal de detalhes
-            card.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('add-to-cart-btn')) {
-                    this.openProductModal(product);
-                }
-            });
-
-            // Evento para adicionar ao carrinho
-            const addBtn = card.querySelector(".add-to-cart-btn");
-            addBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                
-                // Verifica se o produto está disponível hoje
-                const currentDay = window.getCurrentDayName();
-                if (!product.available_days || !product.available_days.includes(currentDay)) {
-                    const diaDisponivel = product.available_days && product.available_days.length > 0 
-                        ? product.available_days.join(' e ')
-                        : 'dias não especificados';
-                    const message = `❌ ${product.name} só está disponível na(s) ${diaDisponivel}.`;
-                    window.showNotification(message, 3000, 'error');
-                    return;
-                }
-                
-                Cart.addToCart(product);
-            });
-
-            productsGrid.appendChild(card);
-        });
-    },
-
-    openProductModal(product) {
-        // Usa o sistema de modal existente
-        if (window.Modal && typeof window.Modal.openProductModal === 'function') {
-            window.Modal.openProductModal(product);
-        } else {
-            // Fallback manual
-            const modal = document.getElementById('productModal');
-            const modalProductName = document.getElementById('modalProductName');
-            const modalProductDescription = document.getElementById('modalProductDescription');
-            const modalProductIngredients = document.getElementById('modalProductIngredients');
-            const modalProductPrice = document.getElementById('modalProductPrice');
-            const addToCartModal = document.getElementById('addToCartModal');
-
-            if (modal && modalProductName && modalProductDescription && 
-                modalProductIngredients && modalProductPrice && addToCartModal) {
-                
-                modalProductName.textContent = product.name;
-                modalProductDescription.textContent = product.description || 'Sem descrição disponível.';
-                modalProductIngredients.textContent = product.ingredients || 'Ingredientes não especificados.';
-                modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
-                
-                // Atualizar função do botão de adicionar ao carrinho
-                addToCartModal.onclick = () => {
-                    // Verifica disponibilidade
-                    const currentDay = window.getCurrentDayName();
-                    if (!product.available_days || !product.available_days.includes(currentDay)) {
-                        const diaDisponivel = product.available_days && product.available_days.length > 0 
-                            ? product.available_days.join(' e ')
-                            : 'dias não especificados';
-                        const message = `❌ ${product.name} só está disponível na(s) ${diaDisponivel}.`;
-                        window.showNotification(message, 3000, 'error');
-                        return;
-                    }
-                    
-                    Cart.addToCart(product);
-                    modal.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                };
-                
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-            }
-        }
-    },
-
     setupEventListeners() {
-        const ctaButtons = document.querySelectorAll('.cta-button[data-page]');
-        ctaButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
+        // Adiciona event listener para o botão "Ver Cardápio Completo"
+        const menuButton = document.querySelector('[data-page="menu"]');
+        if (menuButton) {
+            menuButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                const page = button.dataset.page;
-                window.navigateToPage(page);
+                if (window.navigateToPage) {
+                    window.navigateToPage('menu');
+                }
             });
+        }
+        
+        // Adiciona event listener para os produtos que levam ao menu
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('[data-page="menu"]')) {
+                e.preventDefault();
+                if (window.navigateToPage) {
+                    window.navigateToPage('menu');
+                }
+            }
         });
+        
+        console.log('✅ Event listeners da página Início configurados');
+    }
+};
 
-        // Event listener para o botão de ver cardápio na mensagem de sem produtos
-        const noProductsButton = document.querySelector('#productsGrid .cta-button[data-page="menu"]');
-        if (noProductsButton) {
-            noProductsButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.navigateToPage('menu');
-            });
+// Adicione este método ao api-client.js se não existir
+window.apiClient = window.apiClient || {
+    async getProductsByDay(day) {
+        try {
+            const response = await fetch(`/.netlify/functions/supabase-proxy/get-products?filter_column=available_days&filter_value=${JSON.stringify(day)}`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Erro ao buscar produtos por dia:', error);
+            return { success: false, products: [] };
         }
     }
 };
 
-// Exporta para uso global
-window.InicioPage = InicioPage;
+export default InicioPage;

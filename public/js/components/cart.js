@@ -735,9 +735,9 @@ const Cart = {
         return phone;
     },
 
-    async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData = {}) {
-        const orderId = 'JD' + Date.now().toString().slice(-8);
-        console.log(`📝 Criando pedido ${orderId} para ${name} (${phone}) via API...`);
+async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData = {}) {
+    const orderId = 'JD' + Date.now().toString().slice(-8);
+    console.log(`📝 Criando pedido ${orderId} para ${name} (${phone}) via API...`);
 
         // Prepara dados do endereço
         let fullAddress = 'Retirada na Loja';
@@ -797,27 +797,33 @@ const Cart = {
             }))
         };
 
-        // PASSO 4: Salvar pedido via API segura
-        let apiResult = null;
-        try {
-            apiResult = await apiClient.saveOrder({
-                client: clientData,
-                order: orderInfo,
-                items: orderInfo.items
-            });
+         // PASSO 4: Salvar pedido via API segura
+    let apiResult = null;
+    let universalLink = null; // Nova variável para o link universal
+    
+    try {
+        apiResult = await apiClient.saveOrder({
+            client: clientData,
+            order: orderInfo,
+            items: orderInfo.items
+        });
+        
+        if (apiResult && apiResult.success) {
+            console.log(`✅ Pedido salvo via API: ${apiResult.orderId}`);
+            orderInfo.apiOrderId = apiResult.orderId;
+            clientData.apiClientId = apiResult.clientId;
             
-            if (apiResult && apiResult.success) {
-                console.log(`✅ Pedido salvo via API: ${apiResult.orderId}`);
-                orderInfo.apiOrderId = apiResult.orderId;
-                clientData.apiClientId = apiResult.clientId;
-            } else {
-                throw new Error('API não retornou sucesso');
-            }
-            
-        } catch (error) {
-            console.error('❌ Erro ao salvar via API:', error);
-            // Continua com salvamento local mesmo se a API falhar
+            // LINHA ADICIONADA: Gerar link universal com ID do banco
+            universalLink = this._generateUniversalOrderLink(apiResult.orderId);
+            console.log(`🔗 Link universal gerado: ${universalLink}`);
+        } else {
+            throw new Error('API não retornou sucesso');
         }
+        
+    } catch (error) {
+        console.error('❌ Erro ao salvar via API:', error);
+        // Continua com salvamento local mesmo se a API falhar
+    }
 
         // PASSO 5: Salvar localmente (backup)
         const shortId = this._saveToLocalStorage({
@@ -855,22 +861,31 @@ const Cart = {
             }
         });
         
-        // PASSO 6: Gerar mensagem do WhatsApp
-        const message = this._generateWhatsAppMessage({
-            customer: clientData,
-            order: {
-                items: this.cartItems.map(item => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            }
-        }, shortId, apiResult ? apiResult.orderDetailLink : null); // Passa o link da API, se existir
+         // PASSO 6: Gerar mensagem do WhatsApp
+    const message = this._generateWhatsAppMessage({
+        customer: clientData,
+        order: {
+            items: this.cartItems.map(item => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: item.price
+            }))
+        }
+    }, shortId, universalLink); // Usa o link universal se disponível
         
         // PASSO 7: Abrir WhatsApp
         this._openWhatsApp(message);
     },
 
+    // NOVO MÉTODO: Gerar link universal com ID do banco
+_generateUniversalOrderLink(databaseOrderId) {
+    // Usa a origem atual (mesmo domínio) + rota da página de pedido
+    const baseUrl = window.location.origin;
+    
+    // Cria link com parâmetro "orderId" que será lido pelo banco de dados
+    // Exemplo: https://seusite.com/order.html?orderId=ABC123
+    return `${baseUrl}/order.html?orderId=${databaseOrderId}`;
+},
     _createLocalUserId(name, phone) {
         // Cria um ID local baseado no telefone
         const localUserId = `local_${phone}_${Date.now().toString(36)}`;
@@ -902,22 +917,24 @@ const Cart = {
         return shortId;
     },
 
-    _generateWhatsAppMessage(orderData, shortId, apiLink = null) {
-        // CORREÇÃO: Acessar dados corretamente da estrutura do orderData
-        const customer = orderData.customer || {};
-        const order = orderData.order || {};
-        const items = order.items || [];
-        
-        const deliveryOption = customer.deliveryOption || 'entrega';
-        const paymentMethod = customer.paymentMethod || 'pix';
-        const name = customer.name || '';
-        const phone = customer.phone || '';
-        const address = customer.address || '';
-        const observation = customer.observation || '';
-        
-        const baseUrl = window.location.origin;
-        // Prioriza o link gerado pela API (acesso universal)
-        const orderLink = apiLink || `${baseUrl}/o.html?i=${shortId}`;
+_generateWhatsAppMessage(orderData, shortId, universalLink = null) {
+    const customer = orderData.customer || {};
+    const order = orderData.order || {};
+    const items = order.items || [];
+    
+    // CORREÇÃO: Definir baseUrl localmente
+    const baseUrl = window.location.origin;
+    
+    const deliveryOption = customer.deliveryOption || 'entrega';
+    const paymentMethod = customer.paymentMethod || 'pix';
+    const name = customer.name || '';
+    const phone = customer.phone || '';
+    const address = customer.address || '';
+    const observation = customer.observation || '';
+    
+    // Prioriza o link universal (com ID do banco)
+    // Se não tiver, usa o link local como fallback
+    const orderLink = universalLink || `${baseUrl}/order.html?i=${shortId}`;
         
         let message = `*JARDIM PADARIA ARTESANAL*\n\n`;
         message += `Olá! Meu nome é *${name}*\n\n`;

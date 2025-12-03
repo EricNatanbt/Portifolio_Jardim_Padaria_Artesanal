@@ -71,9 +71,26 @@ class ApiClient {
     }
 
     async getOrder(orderId) {
-        console.log(`🔍 Buscando pedido ${orderId} via API...`);
-        return await this._makeRequest(`/get-order?id=${encodeURIComponent(orderId)}`, 'GET');
+    try {
+        const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('📦 Resposta da API (getOrder):', result);
+        
+        return result;
+    } catch (error) {
+        console.error('❌ Erro ao buscar pedido:', error);
+        return {
+            success: false,
+            error: error.message,
+            message: 'Erro ao buscar pedido'
+        };
     }
+}
 
     async healthCheck() {
         console.log('🏥 Verificando saúde da API...');
