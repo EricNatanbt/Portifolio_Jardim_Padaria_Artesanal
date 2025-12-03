@@ -7,7 +7,6 @@
     <title>Detalhes do Pedido - Jardim Padaria</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Estilos similares ao o.html mas otimizados para dados do banco */
         :root {
             --primary: #1C3D2D;
             --primary-dark: #0F2620;
@@ -155,6 +154,33 @@
             margin: 0 auto 20px;
         }
 
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: var(--error);
+        }
+
+        .error h2 {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -168,6 +194,11 @@
             .info-item {
                 flex-direction: column;
                 gap: 5px;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
             }
         }
     </style>
@@ -189,12 +220,45 @@
         </div>
     </div>
 
-    <script type="module">
-        // Importa o cliente da API
-        import apiClient from './js/api-client.js';
+    <script>
+        // API Client simples para buscar pedidos
+        class ApiClient {
+            constructor() {
+                // Usa a mesma origem da página atual
+                this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
+                console.log('🔗 API Base:', this.apiBase);
+            }
 
+            async getOrder(orderId) {
+                try {
+                    console.log(`📋 Buscando pedido ${orderId}...`);
+                    const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ Erro HTTP:', response.status, errorText);
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📦 Resposta da API:', result);
+                    
+                    return result;
+                } catch (error) {
+                    console.error('❌ Erro ao buscar pedido:', error);
+                    return {
+                        success: false,
+                        error: error.message,
+                        message: 'Erro ao buscar pedido'
+                    };
+                }
+            }
+        }
+
+        // Classe para exibir o pedido
         class OrderDisplayFromDatabase {
             constructor() {
+                this.apiClient = new ApiClient();
                 this.orderData = null;
                 this.init();
             }
@@ -216,18 +280,18 @@
                 try {
                     console.log(`📋 Buscando pedido ${orderId} do banco de dados...`);
                     
-                    // Usa o apiClient para buscar o pedido
-                    const response = await apiClient.getOrder(orderId);
+                    const response = await this.apiClient.getOrder(orderId);
                     
                     if (response.success && response.orderData) {
                         this.orderData = response.orderData;
                         console.log('✅ Pedido carregado do banco:', this.orderData);
                     } else {
+                        console.error('❌ Erro na resposta:', response);
                         this.showError(response.message || 'Pedido não encontrado no banco de dados.');
                     }
                 } catch (error) {
                     console.error('❌ Erro ao carregar pedido:', error);
-                    this.showError('Erro ao carregar os detalhes do pedido.');
+                    this.showError('Erro ao carregar os detalhes do pedido. Tente novamente.');
                 }
             }
 
@@ -284,7 +348,7 @@
                                 ${items && items.length > 0 ? items.map(item => `
                                 <div class="info-item">
                                     <span>${item.quantity}x ${this.escapeHtml(item.product_name)}</span>
-                                    <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                                    <span>R$ ${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}</span>
                                 </div>
                                 `).join('') : '<p>Nenhum item encontrado</p>'}
                             </div>
@@ -296,17 +360,17 @@
                             <div class="info-grid">
                                 <div class="summary-item">
                                     <span>Subtotal:</span>
-                                    <span>R$ ${(order.subtotal || 0).toFixed(2)}</span>
+                                    <span>R$ ${parseFloat(order.subtotal || 0).toFixed(2)}</span>
                                 </div>
                                 ${order.delivery_fee > 0 ? `
                                 <div class="summary-item">
                                     <span>Frete:</span>
-                                    <span>R$ ${order.delivery_fee.toFixed(2)}</span>
+                                    <span>R$ ${parseFloat(order.delivery_fee).toFixed(2)}</span>
                                 </div>
                                 ` : ''}
                                 <div class="summary-item total">
                                     <span>TOTAL:</span>
-                                    <span>R$ ${order.total.toFixed(2)}</span>
+                                    <span>R$ ${parseFloat(order.total).toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -316,10 +380,14 @@
                             Pedido realizado em: ${new Date(order.created_at).toLocaleString('pt-BR')}
                         </div>
 
-                        <!-- Informações de ID -->
-                        <div class="timestamp">
-                            ID do Pedido: ${order.order_id}<br>
-                            Referência: ${order.id}
+                        <!-- Botão de voltar -->
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button onclick="window.location.href='index.html'" class="btn">
+                                🏠 Voltar para a Loja
+                            </button>
+                            <button onclick="window.print()" class="btn" style="margin-left: 10px; background: #4CAF50;">
+                                🖨️ Imprimir Comprovante
+                            </button>
                         </div>
                     `;
 
@@ -363,28 +431,31 @@
                 const orderContent = document.getElementById('orderContent');
                 if (orderContent) {
                     orderContent.innerHTML = `
-                        <div style="text-align: center; padding: 40px; color: #666;">
-                            <h2 style="color: #e74c3c; margin-bottom: 20px;">❌ ${message}</h2>
-                            <p style="margin-bottom: 30px;">Verifique se o link do pedido está correto.</p>
-                            <button onclick="window.location.href='index.html'" style="
-                                padding: 12px 24px;
-                                background: #1C3D2D;
-                                color: white;
-                                border: none;
-                                border-radius: 8px;
-                                cursor: pointer;
-                                font-size: 1em;
-                            ">
+                        <div class="error">
+                            <h2>❌ ${message}</h2>
+                            <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
+                            <button onclick="window.location.href='index.html'" class="btn">
                                 🏠 Voltar para a Loja
                             </button>
                         </div>
                     `;
+                    
+                    // Atualiza status no header
+                    const statusElement = document.getElementById('orderStatus');
+                    if (statusElement) {
+                        statusElement.textContent = '❌ Erro';
+                        statusElement.style.background = '#E74C3C';
+                    }
                 }
             }
         }
 
         // Inicializa quando a página carregar
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 Página order.html carregada');
+            console.log('🔍 URL:', window.location.href);
+            console.log('🔍 Parâmetros:', window.location.search);
+            
             new OrderDisplayFromDatabase();
         });
     </script>

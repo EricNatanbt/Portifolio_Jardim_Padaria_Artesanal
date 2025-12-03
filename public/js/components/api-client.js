@@ -70,8 +70,9 @@ class ApiClient {
         return await this._makeRequest('/get-products', 'GET');
     }
 
-    async getOrder(orderId) {
+   async getOrder(orderId) {
     try {
+        console.log(`📋 Buscando pedido ${orderId}...`);
         const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
         
         if (!response.ok) {
@@ -79,7 +80,7 @@ class ApiClient {
         }
         
         const result = await response.json();
-        console.log('📦 Resposta da API (getOrder):', result);
+        console.log('📦 Resposta da API (getOrder):', result.success ? '✅ Sucesso' : '❌ Erro');
         
         return result;
     } catch (error) {

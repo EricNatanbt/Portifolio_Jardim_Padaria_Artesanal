@@ -2,58 +2,66 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-// Configuração do Supabase - SEM FALLBACK MOCK
+// ============================================
+// CONFIGURAÇÃO DO SUPABASE
+// ============================================
+
+// Tenta obter das variáveis de ambiente
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const siteUrl = process.env.SITE_URL || 'https://jardim-padaria.netlify.app';
 
-// Verifica se as variáveis estão configuradas
-if (!supabaseUrl || !supabaseKey) {
-    console.error('❌ ERRO CRÍTICO: Variáveis de ambiente do Supabase não configuradas!');
-    console.error('Configure no Netlify: SUPABASE_URL e SUPABASE_SERVICE_KEY');
-    console.error('Para desenvolvimento local, crie um arquivo .env na raiz do projeto:');
-    console.error('SUPABASE_URL=https://seu-projeto.supabase.co');
-    console.error('SUPABASE_SERVICE_KEY=sua_service_key_aqui');
-    
-    // Lança erro imediatamente para forçar configuração
-    throw new Error('SUPABASE_URL e SUPABASE_SERVICE_KEY devem ser configuradas');
+// Detecta ambiente
+const isNetlify = process.env.NETLIFY === 'true';
+const isLocalDev = process.env.NETLIFY_DEV === 'true';
+
+console.log('🚀 Inicializando Supabase Proxy');
+console.log('📊 Ambiente:', isLocalDev ? 'Desenvolvimento Local' : 'Produção Netlify');
+console.log('🔗 SUPABASE_URL:', supabaseUrl ? `✓ ${supabaseUrl.substring(0, 30)}...` : '✗ Não configurado');
+console.log('🔑 Service Key:', supabaseKey ? '✓ Configurada' : '✗ Não configurada');
+
+// Inicializa Supabase (se tiver credenciais)
+let supabase = null;
+let supabaseConnected = false;
+
+if (supabaseUrl && supabaseKey) {
+    try {
+        console.log('🔄 Conectando ao Supabase...');
+        supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                persistSession: false,
+                autoRefreshToken: false
+            },
+            db: {
+                schema: 'public'
+            }
+        });
+        
+        console.log('✅ Cliente Supabase criado');
+        supabaseConnected = true;
+        
+    } catch (error) {
+        console.error('❌ Erro ao criar cliente Supabase:', error.message);
+        supabaseConnected = false;
+    }
+} else {
+    console.error('❌ Credenciais do Supabase não configuradas!');
+    console.error('⚠️ Configure SUPABASE_URL e SUPABASE_SERVICE_KEY nas variáveis de ambiente');
+    supabaseConnected = false;
 }
 
-console.log('🔗 Conectando ao Supabase:', supabaseUrl.substring(0, 30) + '...');
-
-// Inicializa o cliente Supabase
-const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-        persistSession: false,
-        autoRefreshToken: false
-    }
-});
-
-// Testa a conexão imediatamente
-(async () => {
-    try {
-        const { data, error } = await supabase
-            .from('products')
-            .select('count')
-            .limit(1);
-        
-        if (error) {
-            console.error('❌ Falha na conexão com Supabase:', error.message);
-        } else {
-            console.log('✅ Conexão com Supabase estabelecida com sucesso!');
-        }
-    } catch (err) {
-        console.error('❌ Erro ao testar conexão:', err.message);
-    }
-})();
+// ============================================
+// HANDLER PRINCIPAL
+// ============================================
 
 exports.handler = async (event, context) => {
-    console.log(`🌐 ${event.httpMethod} ${event.path}`);
+    console.log(`\n🌐 ${new Date().toISOString()} - ${event.httpMethod} ${event.path}`);
     
     // Configura CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Content-Type': 'application/json'
     };
 
@@ -70,8 +78,39 @@ exports.handler = async (event, context) => {
         // Roteamento baseado no path
         const path = event.path.replace('/.netlify/functions/supabase-proxy', '');
         
-        console.log(`📍 Processando rota: ${path}`);
+        console.log(`📍 Rota solicitada: ${path}`);
+        console.log(`🔧 Supabase: ${supabaseConnected ? 'CONECTADO' : 'NÃO CONECTADO'}`);
 
+        // Log do body (para debug)
+        if (event.body && event.httpMethod === 'POST') {
+            try {
+                const body = JSON.parse(event.body);
+                console.log('📦 Body recebido:', {
+                    hasClient: !!body.client,
+                    hasOrder: !!body.order,
+                    itemsCount: body.items?.length || 0
+                });
+            } catch (e) {
+                console.log('📦 Body (não JSON):', event.body?.substring(0, 200));
+            }
+        }
+
+        // Verifica se o Supabase está conectado para rotas que precisam dele
+        if (!supabaseConnected && (path === '/save-order' || path === '/save-client' || path.startsWith('/get-order/'))) {
+            console.error('❌ Supabase não conectado para rota:', path);
+            return {
+                statusCode: 503,
+                headers,
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Serviço de banco de dados indisponível',
+                    message: 'O Supabase não está configurado ou não conseguiu conectar',
+                    instructions: 'Verifique as variáveis de ambiente SUPABASE_URL e SUPABASE_SERVICE_KEY'
+                })
+            };
+        }
+
+        // Roteamento
         switch(true) {
             case path === '/health':
                 return await handleHealthCheck(event, headers);
@@ -89,26 +128,35 @@ exports.handler = async (event, context) => {
                 return await handleGetOrder(event, headers);
                 
             default:
+                console.log(`❌ Rota não encontrada: ${path}`);
                 return {
                     statusCode: 404,
                     headers,
                     body: JSON.stringify({ 
                         success: false, 
                         error: 'Rota não encontrada',
-                        path: path
+                        path: path,
+                        available_routes: [
+                            '/health',
+                            '/get-products',
+                            '/save-order', 
+                            '/save-client',
+                            '/get-order/:id'
+                        ]
                     })
                 };
         }
         
     } catch (error) {
-        console.error('❌ Erro na função:', error);
+        console.error('❌ Erro não tratado no handler:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({ 
                 success: false, 
-                error: error.message,
-                message: 'Erro interno do servidor'
+                error: 'Erro interno do servidor',
+                message: error.message,
+                stack: isLocalDev ? error.stack : undefined
             })
         };
     }
@@ -119,46 +167,56 @@ exports.handler = async (event, context) => {
 // ============================================
 
 async function handleHealthCheck(event, headers) {
-    console.log('🩺 Health check');
+    console.log('🩺 Health check request');
     
-    try {
-        // Testa conexão com Supabase
-        const { data, error } = await supabase
-            .from('products')
-            .select('id')
-            .limit(1);
-        
-        if (error) {
-            throw error;
+    let supabaseStatus = 'disconnected';
+    
+    if (supabaseConnected && supabase) {
+        try {
+            // Testa conexão real com o Supabase
+            const { data, error } = await supabase
+                .from('products')
+                .select('id')
+                .limit(1);
+            
+            if (error) {
+                console.error('❌ Erro ao testar conexão com Supabase:', error);
+                supabaseStatus = 'error';
+            } else {
+                supabaseStatus = 'connected';
+                console.log('✅ Teste de conexão com Supabase bem-sucedido');
+            }
+        } catch (testError) {
+            console.error('❌ Erro no teste de conexão:', testError);
+            supabaseStatus = 'error';
         }
-        
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ 
-                success: true, 
-                message: 'API funcionando',
-                supabase: 'Conectado',
-                timestamp: new Date().toISOString()
-            })
-        };
-        
-    } catch (error) {
-        console.error('❌ Health check falhou:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ 
-                success: false, 
-                message: 'Health check falhou',
-                error: error.message 
-            })
-        };
     }
+    
+    const healthStatus = {
+        success: true,
+        message: 'API funcionando',
+        timestamp: new Date().toISOString(),
+        environment: isLocalDev ? 'development' : 'production',
+        supabase: supabaseStatus,
+        supabaseConnected: supabaseConnected,
+        supabaseUrl: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'not configured',
+        siteUrl: siteUrl
+    };
+    
+    if (supabaseStatus !== 'connected') {
+        healthStatus.warning = 'Supabase não está conectado corretamente';
+        healthStatus.instructions = 'Verifique SUPABASE_URL e SUPABASE_SERVICE_KEY nas variáveis de ambiente';
+    }
+    
+    return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(healthStatus)
+    };
 }
 
 async function handleGetProducts(event, headers) {
-    console.log('📦 Buscando produtos do Supabase');
+    console.log('📦 Buscando produtos do Supabase...');
     
     try {
         const params = event.queryStringParameters || {};
@@ -168,20 +226,26 @@ async function handleGetProducts(event, headers) {
         
         console.log('🔍 Parâmetros:', { limit, filterColumn, filterValue });
         
+        if (!supabaseConnected || !supabase) {
+            throw new Error('Supabase não está conectado');
+        }
+        
         // Query base
         let query = supabase
             .from('products')
-            .select('*')
-            .order('category', { ascending: true })
-            .order('name', { ascending: true });
+            .select('*');
         
-        // Aplica filtro de dias disponíveis
+        // Aplica filtro se especificado
         if (filterColumn === 'available_days' && filterValue) {
-            console.log(`🔍 Filtrando por dias disponíveis: ${filterValue}`);
+            console.log(`🔍 Filtrando por dia: ${filterValue}`);
             query = query.contains('available_days', [filterValue]);
         }
         
-        // Aplica limite
+        // Ordenação padrão
+        query = query.order('category', { ascending: true })
+                     .order('name', { ascending: true });
+        
+        // Aplica limite se especificado
         if (limit && limit > 0) {
             query = query.limit(limit);
         }
@@ -202,7 +266,8 @@ async function handleGetProducts(event, headers) {
                 success: true, 
                 products: products || [],
                 count: products?.length || 0,
-                source: 'supabase_database'
+                source: 'supabase',
+                timestamp: new Date().toISOString()
             })
         };
         
@@ -214,14 +279,14 @@ async function handleGetProducts(event, headers) {
             body: JSON.stringify({ 
                 success: false, 
                 error: error.message,
-                message: 'Erro ao buscar produtos do banco' 
+                message: 'Erro ao buscar produtos do banco de dados'
             })
         };
     }
 }
 
 async function handleSaveOrder(event, headers) {
-    console.log('💾 Salvando pedido no Supabase');
+    console.log('💾 Salvando pedido no Supabase...');
     
     if (event.httpMethod !== 'POST') {
         return {
@@ -249,11 +314,19 @@ async function handleSaveOrder(event, headers) {
             };
         }
         
+        if (!supabaseConnected || !supabase) {
+            throw new Error('Supabase não está conectado');
+        }
+        
         console.log('👤 Cliente:', client.name);
-        console.log('📦 Pedido com', (order.items || []).length, 'itens');
+        console.log('📱 Telefone:', client.phone);
+        console.log('📦 Itens do pedido:', order.items?.length || items?.length || 0);
         console.log('💰 Total: R$', order.total);
         
+        // ============================================
         // PASSO 1: Verifica/Insere o cliente
+        // ============================================
+        
         let clientId = null;
         
         if (!client.phone) {
@@ -305,7 +378,7 @@ async function handleSaveOrder(event, headers) {
                 updateData.observation = client.observation;
             }
             
-            console.log('🔄 Atualizando cliente:', updateData);
+            console.log('🔄 Atualizando dados do cliente...');
             const { error: updateError } = await supabase
                 .from('clients')
                 .update(updateData)
@@ -313,14 +386,15 @@ async function handleSaveOrder(event, headers) {
             
             if (updateError) {
                 console.error('❌ Erro ao atualizar cliente:', updateError);
+                // Continua mesmo com erro na atualização
             }
             
         } else {
             console.log('➕ Criando novo cliente');
             
-            // Dados do novo cliente
+            // Prepara dados do cliente
             const clientData = {
-                name: client.name,
+                name: client.name || '',
                 phone: client.phone,
                 address: client.address || '',
                 cep: client.cep || '',
@@ -332,14 +406,12 @@ async function handleSaveOrder(event, headers) {
                 observation: client.observation || ''
             };
             
-            // Remove campos vazios
+            // Remove campos undefined
             Object.keys(clientData).forEach(key => {
-                if (!clientData[key]) {
-                    clientData[key] = '';
-                }
+                if (clientData[key] === undefined) clientData[key] = '';
             });
             
-            console.log('👤 Dados do cliente:', clientData);
+            console.log('📄 Dados do cliente para inserção:', clientData);
             
             const { data: newClient, error: createError } = await supabase
                 .from('clients')
@@ -356,7 +428,10 @@ async function handleSaveOrder(event, headers) {
             clientId = newClient.id;
         }
         
+        // ============================================
         // PASSO 2: Cria o pedido
+        // ============================================
+        
         console.log('📝 Criando pedido para cliente ID:', clientId);
         
         // Gera ID único para o pedido
@@ -391,11 +466,16 @@ async function handleSaveOrder(event, headers) {
         
         console.log('✅ Pedido criado, ID:', newOrder.id);
         
+        // ============================================
         // PASSO 3: Adiciona os itens do pedido
-        if (items && items.length > 0) {
-            console.log(`➕ Adicionando ${items.length} itens ao pedido`);
+        // ============================================
+        
+        const itemsToSave = items || order.items || [];
+        
+        if (itemsToSave.length > 0) {
+            console.log(`➕ Adicionando ${itemsToSave.length} itens ao pedido...`);
             
-            const orderItems = items.map(item => ({
+            const orderItems = itemsToSave.map(item => ({
                 order_id: newOrder.id,
                 product_id: item.id || null,
                 product_name: item.name || 'Produto',
@@ -404,7 +484,7 @@ async function handleSaveOrder(event, headers) {
                 total: parseFloat((item.price || 0) * (item.quantity || 1))
             }));
             
-            console.log('🛒 Itens do pedido:', orderItems);
+            console.log('🛒 Itens do pedido preparados:', orderItems.length);
             
             const { error: itemsError } = await supabase
                 .from('order_items')
@@ -412,17 +492,18 @@ async function handleSaveOrder(event, headers) {
             
             if (itemsError) {
                 console.error('❌ Erro ao adicionar itens:', itemsError);
-                // Continua mesmo com erro nos itens
+                // Não lança erro aqui para não perder o pedido já criado
+                console.log('⚠️ Pedido criado, mas itens não foram salvos:', itemsError.message);
             } else {
                 console.log('✅ Itens do pedido adicionados com sucesso');
             }
         }
         
         // Gera link para visualização do pedido
-        const siteUrl = process.env.SITE_URL || 'http://localhost:8888';
-        const orderDetailLink = `${siteUrl}/order.html?orderId=${orderId}`;
+       const orderDetailLink = `${siteUrl}/order.html?orderId=${orderId}`;
         
         console.log('🔗 Link do pedido gerado:', orderDetailLink);
+        console.log('🎉 Pedido salvo com sucesso no banco de dados!');
         
         return {
             statusCode: 200,
@@ -446,14 +527,14 @@ async function handleSaveOrder(event, headers) {
             body: JSON.stringify({ 
                 success: false, 
                 error: error.message,
-                message: 'Erro ao salvar pedido no banco' 
+                message: 'Erro ao salvar pedido no banco de dados'
             })
         };
     }
 }
 
 async function handleSaveClient(event, headers) {
-    console.log('👤 Salvando/atualizando cliente');
+    console.log('👤 Salvando/atualizando cliente...');
     
     if (event.httpMethod !== 'POST') {
         return {
@@ -461,7 +542,7 @@ async function handleSaveClient(event, headers) {
             headers,
             body: JSON.stringify({ 
                 success: false, 
-                error: 'Método não permitido. Use POST.' 
+                error: 'Método não permitido' 
             })
         };
     }
@@ -480,7 +561,9 @@ async function handleSaveClient(event, headers) {
             };
         }
         
-        console.log(`🔍 Processando cliente: ${client.name} (${client.phone})`);
+        if (!supabaseConnected || !supabase) {
+            throw new Error('Supabase não está conectado');
+        }
         
         // Busca cliente existente
         const { data: existingClient, error: searchError } = await supabase
@@ -567,17 +650,16 @@ async function handleSaveClient(event, headers) {
             body: JSON.stringify({ 
                 success: false, 
                 error: error.message,
-                message: 'Erro ao salvar cliente' 
+                message: 'Erro ao salvar cliente'
             })
         };
     }
 }
 
 async function handleGetOrder(event, headers) {
-    console.log('📋 Buscando pedido no banco');
+    console.log('📋 Buscando pedido no banco...');
     
     try {
-        // Extrai orderId da URL
         const pathParts = event.path.split('/');
         let orderId = pathParts[pathParts.length - 1];
         
@@ -592,7 +674,11 @@ async function handleGetOrder(event, headers) {
             };
         }
         
-        console.log(`🔍 Buscando pedido: ${orderId}`);
+        if (!supabaseConnected || !supabase) {
+            throw new Error('Supabase não está conectado');
+        }
+        
+        console.log(`🔍 Buscando pedido com ID: ${orderId}`);
         
         // Busca pedido pelo order_id
         const { data: order, error: orderError } = await supabase
@@ -602,12 +688,14 @@ async function handleGetOrder(event, headers) {
             .single();
         
         if (orderError || !order) {
+            console.error('❌ Pedido não encontrado:', orderError?.message || 'Nenhum resultado');
             return {
                 statusCode: 404,
                 headers,
                 body: JSON.stringify({ 
                     success: false, 
-                    error: 'Pedido não encontrado' 
+                    error: 'Pedido não encontrado',
+                    message: 'O pedido solicitado não existe ou foi removido'
                 })
             };
         }
@@ -620,6 +708,7 @@ async function handleGetOrder(event, headers) {
             .single();
         
         if (clientError) {
+            console.error('❌ Erro ao buscar cliente:', clientError);
             throw clientError;
         }
         
@@ -630,6 +719,7 @@ async function handleGetOrder(event, headers) {
             .eq('order_id', order.id);
         
         if (itemsError) {
+            console.error('❌ Erro ao buscar itens:', itemsError);
             throw itemsError;
         }
         
@@ -661,7 +751,7 @@ async function handleGetOrder(event, headers) {
                 status: order.status,
                 created_at: order.created_at
             },
-            items: items.map(item => ({
+            items: (items || []).map(item => ({
                 id: item.id,
                 product_id: item.product_id,
                 product_name: item.product_name,
@@ -671,13 +761,15 @@ async function handleGetOrder(event, headers) {
             }))
         };
         
+        console.log(`✅ Pedido encontrado: ${order.order_id} com ${items?.length || 0} itens`);
+        
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({ 
                 success: true,
                 orderData: orderData,
-                message: 'Pedido encontrado'
+                message: 'Pedido encontrado com sucesso'
             })
         };
         
@@ -689,7 +781,7 @@ async function handleGetOrder(event, headers) {
             body: JSON.stringify({ 
                 success: false, 
                 error: error.message,
-                message: 'Erro ao buscar pedido' 
+                message: 'Erro ao buscar detalhes do pedido'
             })
         };
     }
