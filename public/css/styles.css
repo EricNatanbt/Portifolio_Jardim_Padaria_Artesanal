@@ -1,0 +1,699 @@
+/* ============================================
+   VARIÁVEIS DE COR E ESPAÇAMENTO
+   ============================================ */
+:root {
+    --primary: #1C3D2D;
+    --primary-dark: #0F2620;
+    --secondary: #A2B28E;
+    --accent: #F5C8B0;
+    --accent-light: #F9E4D4;
+    --background: #FCF9F5;
+    --foreground: #1C3D2D;
+    --card: #FFFFFF;
+    --muted: #E8F0EB;
+    --muted-foreground: #5A7A6A;
+    --border: #D4E8DC;
+    --input: #FFFFFF;
+    
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    --radius: 0.65rem;
+    --radius-lg: 1rem;
+}
+
+/* ============================================
+   RESET E ESTILOS GLOBAIS
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--primary);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
+
+input {
+    font-family: inherit;
+}
+
+/* ============================================
+   CONTAINER
+   ============================================ */
+.container {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding: 0 2rem;
+        max-width: 1280px;
+    }
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+.main {
+    flex: 1;
+}
+
+/* ============================================
+   PAGES SYSTEM
+   ============================================ */
+.page {
+    display: none;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* ============================================
+   SCROLLBAR STYLING (Desktop - Pequena e Verde)
+   ============================================ */
+
+/* Para WebKit (Chrome, Safari) */
+::-webkit-scrollbar {
+    width: 6px; /* Pequena */
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: none; /* Fundo da cor do site */
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary); /* Cor verde do tema */
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark); /* Cor verde mais escura no hover */
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin; /* Pequena */
+    scrollbar-color: var(--primary) var(--primary-dark); /* Cor da barra e do fundo */
+}
+/* ============================================
+   NOTIFICATION BAR STYLING
+   ============================================ */
+.notification-bar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    color: #C62828; /* Texto vermelho escuro para contraste */
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(229, 115, 115, 0.3); /* Sombra mais suave e avermelhada */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-100%);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    max-width: 90%;
+    text-align: center;
+}
+
+.notification-bar.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Estilo para notificação de erro (balão vermelho) */
+.notification-bar.error {
+    background-color: #f7cbcb; /* Vermelho muito claro, quase branco */
+    border: 1px solid #ed5a5a; /* Borda vermelha suave */
+}
+
+/* Estilo para notificação de informação (padrão, se houver) */
+.notification-bar.info {
+    background-color: var(--primary); /* Cor primária verde */
+    border: 1px solid var(--primary-dark);
+}
+
+@media (max-width: 640px) {
+    .notification-bar {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
+
+/* ============================================
+   PAGES SYSTEM WITH SMOOTH TRANSITIONS
+   ============================================ */
+.page {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.page.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Smooth transitions for all interactive elements */
+.nav-link, .mobile-nav-link, .cta-button, .product-card, .cart-btn, .menu-toggle {
+    transition: all 0.3s ease;
+}
+
+@import url('components/checkout-modal.css');
+
+/* Smooth hover effects */
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(28, 61, 45, 0.2);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+/* ============================================
+   SCROLLBAR HIDE (Mobile)
+   ============================================ */
+@media (max-width: 767px) {
+    /* Para WebKit (Chrome, Safari) */
+    ::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+    }
+
+    /* Para IE e Edge */
+    body {
+        -ms-overflow-style: none;  /* IE and Edge */
+    }
+
+    /* Para Firefox */
+    * {
+        scrollbar-width: none;  /* Firefox */
+    }
+}
+
+/* Estilo para o campo de observação */
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #1C3D2D;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+}
+
+/* ============================================
+   NOTIFICAÇÃO DE ENDEREÇO ENCONTRADO
+   ============================================ */
+.address-found-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: linear-gradient(135deg, #1C3D2D 0%, #2A5C42 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(28, 61, 45, 0.3);
+    border-left: 4px solid #A2B28E;
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    max-width: 320px;
+    backdrop-filter: blur(10px);
+}
+
+.address-found-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.address-notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.address-notification-icon {
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.address-notification-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: white;
+}
+
+.address-notification-text {
+    flex: 1;
+}
+
+.address-notification-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+    color: white;
+}
+
+.address-notification-message {
+    font-size: 13px;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.3;
+}
+
+/* Versão alternativa em estilo pastel */
+.address-found-notification.pastel {
+    background: linear-gradient(135deg, #E8F0EB 0%, #FCF9F5 100%);
+    color: #1C3D2D;
+    border-left: 4px solid #A2B28E;
+    box-shadow: 0 8px 25px rgba(162, 178, 142, 0.3);
+}
+
+.address-found-notification.pastel .address-notification-title {
+    color: #1C3D2D;
+}
+
+.address-found-notification.pastel .address-notification-message {
+    color: #5A7A6A;
+}
+
+.address-found-notification.pastel .address-notification-icon {
+    background: rgba(28, 61, 45, 0.1);
+}
+
+.address-found-notification.pastel .address-notification-icon svg {
+    fill: #1C3D2D;
+}
+
+/* Animação de entrada suave */
+@keyframes slideInRight {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .address-found-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(-100px);
+    }
+    
+    .address-found-notification.show {
+        transform: translateY(0);
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateY(-100px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateY(-100px);
+            opacity: 0;
+        }
+    }
+}
+
+/* Efeito de brilho sutil */
+.address-found-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+
+/* NOTIFICATION STYLES - TEMA VERDE PASTEL */
+/* ============================================
+   NOTIFICATION STYLES - TEMA VERDE PASTEL
+   ============================================ */
+#notificationBar {
+    position: fixed;
+    top: 70px; /* Reduzido de 80px */
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    padding: 10px 15px; /* Mais compacto: 10px 15px */
+    border-radius: 8px; /* Mais compacto: 8px */
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 13px; /* Reduzido: 13px */
+    line-height: 1.3; /* Adicionado para texto mais compacto */
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.15); /* Mais suave */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Mais rápido: 0.3s */
+    max-width: 575px; /* Largura máxima fixa menor */
+    width: auto;
+    min-width: 300px; /* Mínimo menor */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    white-space: nowrap; /* Impede quebra de linha */
+    text-overflow: ellipsis; /* Adiciona "..." se texto muito longo */
+    overflow: hidden; /* Esconde conteúdo excedente */
+}
+
+#notificationBar.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* TIPO INFO - Verde claro */
+#notificationBar.info {
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    color: #1C3D2D;
+    border-left: 4px solid #4CAF50;
+}
+
+/* TIPO SUCCESS - Verde médio */
+#notificationBar.success {
+    background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
+    color: #1B5E20;
+    border-left: 4px solid #2E7D32;
+}
+
+/* TIPO ERROR - Vermelho pastel */
+#notificationBar.error {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+    color: #C62828;
+    border-left: 4px solid #E57373;
+}
+
+/* TIPO WARNING - Laranja pastel */
+#notificationBar.warning {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    color: #E65100;
+    border-left: 4px solid #FFB74D;
+}
+
+/* Ícone nas notificações */
+#notificationBar::before {
+    content: '';
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
+}
+
+/* Ícones por tipo */
+#notificationBar.info::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%231C3D2D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='16' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'%3E%3C/line%3E%3C/svg%3E");
+}
+
+#notificationBar.success::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232E7D32' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'%3E%3C/path%3E%3Cpolyline points='22 4 12 14.01 9 11.01'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+#notificationBar.error::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23C62828' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='15' y1='9' x2='9' y2='15'%3E%3C/line%3E%3Cline x1='9' y1='9' x2='15' y2='15'%3E%3C/line%3E%3C/svg%3E");
+}
+
+#notificationBar.warning::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23E65100' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'%3E%3C/path%3E%3Cline x1='12' y1='9' x2='12' y2='13'%3E%3C/line%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+}
+
+/* Efeito de pulso para notificações importantes */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+#notificationBar.important {
+    animation: pulse 2s infinite;
+    border: 2px solid rgba(28, 61, 45, 0.3);
+}
+
+/* Botão de fechar nas notificações */
+.notification-close {
+    background: none;
+    border: none;
+    color: currentColor;
+    opacity: 0.7;
+    cursor: pointer;
+    margin-left: 12px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    #notificationBar {
+        top: 70px;
+        width: calc(100% - 30px); /* Reduzido de 40px */
+        max-width: 350px; /* Reduzido de 400px */
+        padding: 12px 16px; /* Reduzido de 14px 20px */
+        font-size: 13px; /* Reduzido de 14px */
+    }
+    
+    #notificationBar::before {
+        width: 16px; /* Reduzido de 18px */
+        height: 16px; /* Reduzido de 18px */
+        margin-right: 8px;
+    }
+}
+
+/* NOTIFICAÇÕES MÚLTIPLAS (OPCIONAL) */
+.notification-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Reduzido de 10px */
+    max-width: 300px; /* Reduzido de 350px */
+    width: 100%;
+}
+
+.notification-item {
+    padding: 14px 16px; /* Reduzido de 16px 20px */
+    border-radius: 10px; /* Reduzido de 12px */
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 13px; /* Reduzido de 14px */
+    box-shadow: 0 4px 15px rgba(28, 61, 45, 0.12); /* Reduzido de 6px 20px */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transform: translateX(400px);
+    opacity: 0;
+    animation: slideIn 0.4s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@keyframes slideIn {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+.notification-item.slide-out {
+    animation: slideOut 0.3s forwards;
+}
+
+.notification-item.info {
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    color: #1C3D2D;
+    border-left: 4px solid #4CAF50;
+}
+
+.notification-item.success {
+    background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
+    color: #1B5E20;
+    border-left: 4px solid #2E7D32;
+}
+
+.notification-item.error {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+    color: #C62828;
+    border-left: 4px solid #E57373;
+}
+
+.notification-item.warning {
+    background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+    color: #E65100;
+    border-left: 4px solid #FFB74D;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: currentColor;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.notification-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+}

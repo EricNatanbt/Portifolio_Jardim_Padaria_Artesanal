@@ -1,0 +1,20 @@
+{
+  "name": "jardim-padaria",
+  "version": "1.0.0",
+  "description": "Jardim Padaria Artesanal - Sistema de Pedidos Online",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Build step não necessário - site estático'",
+    "start": "netlify dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

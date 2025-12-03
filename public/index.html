@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jardim Padaria Artesanal</title>
+
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- CSS Components -->
+    <link rel="stylesheet" href="css/components/header.css">
+    <link rel="stylesheet" href="css/components/footer.css">
+    <link rel="stylesheet" href="css/components/carousel.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/cart.css">
+    <link rel="stylesheet" href="css/components/contact-modal.css">
+    <link rel="stylesheet" href="css/components/checkout-modal.css">
+
+    <!-- CSS Pages -->
+    <link rel="stylesheet" href="css/pages/inicio.css">
+    <link rel="stylesheet" href="css/pages/sobrenos.css">
+    <link rel="stylesheet" href="css/pages/menu.css">
+    <link rel="stylesheet" href="css/pages/cuidados.css">
+    <link rel="stylesheet" href="css/pages/feedbacks.css">
+
+    <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
+    <link rel="icon" type="image/png" href="img/logos/Logo.png">
+    <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
+
+
+
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="img/logos/Logo.png" alt="Logo Jardim Padaria" class="logo">
+                    <h1 class="app-title">Jardim Padaria</h1>
+                </div>
+
+                <!-- Navigation Desktop -->
+                <nav class="nav-main-desktop">
+                    <a href="#" class="nav-link active" data-page="inicio">Início</a>
+                    <a href="#" class="nav-link" data-page="sobre">Sobre Nós</a>
+                    <a href="#" class="nav-link" data-page="menu">Menu</a>
+                    <a href="#" class="nav-link" data-page="cuidados">Conservação</a>
+                    <a href="#" class="nav-link" data-page="feedbacks">Feedbacks</a>
+                </nav>
+
+                <!-- Right Icons -->
+                <div class="header-icons">
+                    <button id="cartBtn" class="cart-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span id="cartCount" class="cart-count" style="display: none;">0</span>
+                    </button>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button id="menuToggle" class="menu-toggle">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Overlay -->
+            <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+            <!-- Mobile Menu -->
+            <nav class="mobile-menu" id="mobileMenu">
+                <div class="mobile-menu-header">
+                </div>
+                <a href="#" class="mobile-nav-link active" data-page="inicio">Início</a>
+                <a href="#" class="mobile-nav-link" data-page="sobre">Sobre Nós</a>
+                <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
+                <a href="#" class="mobile-nav-link" data-page="cuidados">Conservação</a>
+                <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Notification Bar -->
+    <div id="notificationBar" class="notification-bar"></div>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Todas as páginas incluídas diretamente -->
+        <div id="page-inicio" class="page active">
+            <!-- Conteúdo da página início será carregado aqui -->
+        </div>
+
+        <div id="page-sobre" class="page">
+            <!-- Conteúdo da página sobre será carregado aqui -->
+        </div>
+
+        <div id="page-menu" class="page">
+            <section class="menu-section">
+                <div class="container">
+                    <h2 class="menu-title">FORNADA</h2>
+                    <p class="menu-intro" id="titulo-dia">Cardápio de Quinta</p>
+
+                    <div class="cardapio-container">
+                        <div class="cardapio-header">
+                            <button id="prevDay" class="nav-btn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <span class="dia-nome" id="dia-atual">Quinta-feira</span>
+                            <button id="nextDay" class="nav-btn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="cardapio-content" id="container-cardapio">
+                            <!-- Conteúdo do cardápio será injetado aqui pelo JS -->
+                        </div>
+
+                        <div class="sem-fornadas" id="sem-fornadas" style="display: none;">
+                            <h3>Sem Fornadas Hoje</h3>
+                            <p>Acompanhe nossas redes sociais para saber quando teremos a próxima fornada!</p>
+                        </div>
+                    </div>
+
+                    <p class="menu-footer-text">Clique à direita para avançar, à esquerda para voltar 🌿</p>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-cuidados" class="page">
+            <!-- Conteúdo da página guia de cuidados será carregado aqui -->
+        </div>
+
+        <div id="page-feedbacks" class="page">
+            <!-- Conteúdo da página feedbacks será carregado aqui -->
+        </div>
+    </main>
+
+    <!-- Cart Sidebar -->
+    <div id="cartSidebar" class="cart-sidebar" style="display: none;">
+        <div class="cart-overlay" id="cartOverlay"></div>
+        <div class="cart-content">
+            <div class="cart-header">
+                <h3>Carrinho</h3>
+                <button id="closeCart" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div id="cartItems" class="cart-items">
+                <p class="empty-cart">Seu carrinho está vazio</p>
+            </div>
+            <div id="cartFooter" class="cart-footer" style="display: none;">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">R$ 0.00</span>
+                </div>
+                <button class="checkout-btn">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Produto -->
+    <div id="productModal" class="modal" style="display: none;">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductName">Nome do Produto</h3>
+                <button id="closeModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="product-image-modal">
+                    <img id="modalProductImage" src="img/logos/Logo.png" alt="Logo da Padaria" style="width: 60px; height: 60px; object-fit: contain; margin: 0 auto;">
+                </div>
+                <div class="product-details">
+                    <p id="modalProductDescription" class="product-description"></p>
+                    <div class="ingredients">
+                        <h4>Ingredientes</h4>
+                        <p id="modalProductIngredients"></p>
+                    </div>
+                    <div class="product-price-modal">
+                        <span id="modalProductPrice">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="addToCartModal" class="add-to-cart-btn-modal">
+                    Adicionar ao Carrinho
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-overlay" id="checkoutModalOverlay"></div>
+        <div class="modal-content checkout-modal-content">
+            <div class="modal-header">
+                <h3>Finalizar Pedido</h3>
+                <button id="closeCheckoutModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="checkoutForm">
+                    <div class="form-group">
+                        <label for="customerName">Nome Completo:</label>
+                        <input type="text" id="customerName" name="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Telefone de Contato (WhatsApp):</label>
+                        <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX) XXXXX-XXXX" required>
+                    </div>
+                    
+                    <!-- NOVO: Opção de Retirada/Entrega -->
+                    <div class="form-group">
+                        <label for="deliveryOption">Opção de Recebimento:</label>
+                        <select id="deliveryOption" name="deliveryOption" required>
+                            <option value="entrega">Entrega</option>
+                            <option value="retirada">Retirada na Loja</option>
+                        </select>
+                    </div>
+
+                    <!-- NOVO: Forma de Pagamento -->
+                    <div class="form-group">
+                        <label for="paymentMethod">Forma de Pagamento:</label>
+                        <select id="paymentMethod" name="paymentMethod" required>
+                            <option value="pix">Pix</option>
+                            <option value="cartao">Cartão (Crédito/Débito)</option>
+                        </select>
+                    </div>
+
+                    <!-- Campos de Endereço (Visibilidade controlada pelo JS) -->
+                    <div id="addressFields">
+                    <div class="form-group">
+                        <label for="customerCep">CEP:</label>
+                        <input type="text" id="customerCep" name="customerCep" placeholder="00000-000" maxlength="9" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerStreet">Rua/Avenida:</label>
+                        <input type="text" id="customerStreet" name="customerStreet" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group address-number-group">
+                            <label for="customerNumber">Número:</label>
+                            <input type="text" id="customerNumber" name="customerNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerNeighborhood">Bairro:</label>
+                            <input type="text" id="customerNeighborhood" name="customerNeighborhood" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerComplement">Complemento (Opcional):</label>
+                        <input type="text" id="customerComplement" name="customerComplement">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerCity">Cidade/Estado:</label>
+                        <input type="text" id="customerCity" name="customerCity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerObservation">Observação no Pedido (Opcional):</label>
+                        <textarea 
+                            id="customerObservation" 
+                            name="customerObservation" 
+                            placeholder="Ex: Sem cebola, ponto da carne, alergias, etc..."
+                            rows="3"
+                            maxlength="500"
+                        ></textarea>
+                        <small style="color: #666; font-size: 0.9em;">Máximo 500 caracteres</small>
+                    </div>
+                    </div> <!-- Fecha a div addressFields -->
+                    <div class="order-summary">
+                        <h4>Resumo do Pedido</h4>
+                        <ul id="checkoutSummaryList">
+                            <!-- Itens do carrinho serão injetados aqui -->
+                        </ul>
+                        <p class="total-summary">Total: <span id="checkoutTotal">A ser calculado</span></p>
+                    </div>
+                    <button type="submit" class="checkout-submit-btn">Enviar Pedido por WhatsApp</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Opções de Contato -->
+    <div id="contactModal" class="modal" style="display: none;">
+        <div class="modal-overlay" id="contactModalOverlay"></div>
+        <div class="modal-content contact-modal-content">
+            <div class="modal-header">
+                <h3>Como você prefere entrar em contato?</h3>
+                <button id="closeContactModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body contact-options">
+                <button id="contactOptionCall" class="contact-option-btn">
+                    <img src="img/logos/whatsapp.png" alt="WhatsApp"
+                        style="width: 24px; height: 24px; margin-right: 0.5rem;">
+                    Enviar Mensagem no WhatsApp
+                </button>
+
+            </div>
+            <div class="modal-footer">
+                <button id="contactOptionCancel" class="contact-option-btn cancel-btn">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Padaria Jardim</h3>
+                <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contato</h3>
+
+                <p>📞 (83)99920-4618</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Horário</h3>
+                <p>Quarta a Sexta</p>
+                <p>14h – 18h</p>
+                <p>Sábado</p>
+                <p>10h – 15h</p>
+            </div>
+
+            <div class="footer-social">
+                <h3>Siga-nos</h3>
+                <a href="https://www.instagram.com/jardimpadariacg/" target="_blank" rel="noopener noreferrer">
+                    <img src="img/logos/instagram.png" alt="Instagram">
+                </a>
+                <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0"
+                    target="_blank" rel="noopener noreferrer">
+                    <img src="img/logos/whatsapp.png" alt="WhatsApp">
+                </a>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
+            </div>
+        </div>
+    </footer>
+
+<!-- Scripts -->
+<!-- O arquivo menuData.js foi substituído pela integração com o Supabase -->
+ <script type="module" src="js/supabaseClient.js"></script>
+ <script type="module" src="js/api-client.js"></script>
+	
+
+<!-- Supabase Client -->
+	<script type="module" src="js/components/navigation.js"></script>
+	<script type="module" src="js/components/cart.js"></script>
+	<script type="module" src="js/components/carousel.js"></script>
+	<script type="module" src="js/components/modal.js"></script>
+	<!-- Page Scripts -->
+	<script type="module" src="js/pages/inicio.js"></script>
+	<script type="module" src="js/pages/sobrenos.js"></script>
+	<script type="module" src="js/pages/menu.js"></script>
+	<script type="module" src="js/pages/cuidados.js"></script>
+	<script type="module" src="js/pages/feedbacks.js"></script>
+<!-- Main Script -->
+	<script type="module" src="js/main.js"></script>
+	
+
+
+<!-- NOVO: Pages Loader -->
+<script src="js/pages-loader.js"></script>  <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha no registro du Service Worker:', error);
+                    });
+            });
+        }
+    
+    </script>
+</body>
+
+</html>

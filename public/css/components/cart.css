@@ -1,0 +1,305 @@
+/* ============================================
+   CART SIDEBAR
+   ============================================ */
+.cart-sidebar {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+}
+
+.cart-overlay {
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.cart-content {
+    width: 100%;
+    background-color: white;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+}
+
+@media (min-width: 768px) {
+    .cart-content {
+        width: 24rem;
+    }
+}
+
+.cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.cart-header h3 {
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.close-btn {
+    padding: 0.5rem;
+    color: var(--muted-foreground);
+    border-radius: var(--radius);
+    transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+    background-color: var(--muted);
+}
+
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.empty-cart {
+    text-align: center;
+    color: var(--muted-foreground);
+    padding: 2rem 0;
+}
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.remove-item-btn {
+    padding: 0.5rem;
+    color: #DC4C46;
+    border-radius: var(--radius);
+    transition: background-color 0.2s;
+}
+
+.remove-item-btn:hover {
+    background-color: rgba(220, 76, 70, 0.1);
+}
+
+.cart-footer {
+    border-top: 1px solid var(--border);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.cart-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.cart-total span:last-child {
+    color: var(--primary);
+}
+
+.checkout-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary);
+    color: white;
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.checkout-btn:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+/* ============================================
+   CART ITEM – COM IMAGEM + CONTROLES
+   ============================================ */
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+/* Imagem do produto no carrinho */
+.cart-item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+/* Informações do item */
+.cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Nome */
+.cart-item-name {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+/* Preço */
+.cart-item-price {
+    color: var(--muted-foreground);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   CONTROLES DE QUANTIDADE
+   ============================================ */
+
+.cart-qty-controls {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.qty-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--border);
+    background-color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.qty-btn:hover {
+    background-color: var(--muted);
+}
+
+.qty-number {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+/* Botão remover item */
+.delete-item-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: #DC4C46;
+    transition: opacity 0.2s;
+}
+
+.delete-item-btn:hover {
+    opacity: 0.7;
+}
+
+/* Adicione ao seu arquivo CSS existente */
+
+/* Estilo para campos preenchidos automaticamente */
+input.auto-filled {
+    background-color: #f0f9f0 !important;
+    border-color: #4CAF50 !important;
+    border-left: 4px solid #4CAF50 !important;
+}
+
+/* Tooltip para campos auto-preenchidos */
+input.auto-filled::after {
+    content: "Preenchido automaticamente";
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+input.auto-filled:hover::after {
+    opacity: 1;
+}
+
+/* Estilo para campo CEP quando está buscando */
+input.cep-loading {
+    background-color: #fff8e1 !important;
+    border-color: #ffb300 !important;
+    color: #666;
+}
+
+/* Botão de busca ao lado do CEP */
+.cep-search-btn {
+    background: #1C3D2D;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 8px;
+    font-size: 14px;
+}
+
+.cep-search-btn:hover {
+    background: #2A5C42;
+}
+
+.cep-search-btn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Grupo de CEP com botão */
+.cep-group {
+    display: flex;
+    align-items: center;
+}
+
+.cep-group input {
+    flex: 1;
+}
+
+/* Mensagem de status do CEP */
+.cep-status {
+    font-size: 12px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cep-status.success {
+    color: #4CAF50;
+}
+
+.cep-status.error {
+    color: #f44336;
+}
+
+.cep-status.loading {
+    color: #ff9800;
+}

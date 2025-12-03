@@ -1,0 +1,41 @@
+/* Contact Modal Styles */
+.contact-modal-content {
+    max-width: 400px;
+    width: 90%;
+}
+
+.contact-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.contact-option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border: 2px solid #1C3D2D;
+    border-radius: 8px;
+    background: white;
+    color: #1C3D2D;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.contact-option-btn:hover {
+    background: #1C3D2D;
+    color: white;
+}
+
+.contact-option-btn.cancel-btn {
+    border-color: #666;
+    color: #666;
+}
+
+.contact-option-btn.cancel-btn:hover {
+    background: #666;
+    color: white;
+}
