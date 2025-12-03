@@ -239,6 +239,14 @@ async function initializePageComponents(pageName) {
                 if (typeof SobreNosPage !== 'undefined') {
                     SobreNosPage.initialize();
                     console.log('✅ Página Sobre Nós inicializada');
+                } else {
+                    // Tenta carregar dinamicamente
+                    const sobreModule = await import('./pages/sobrenos.js');
+                    window.SobreNosPage = sobreModule.default || sobreModule.SobreNosPage;
+                    if (window.SobreNosPage.initialize) {
+                        window.SobreNosPage.initialize();
+                    }
+                    console.log('✅ Página Sobre Nós inicializada');
                 }
                 break;
                 
@@ -264,21 +272,88 @@ async function initializePageComponents(pageName) {
 // ============================================
 // UTILITÁRIOS
 // ============================================
-function showNotification(message, duration = 3000, type = 'info') {
-    const notificationBar = document.getElementById('notificationBar');
-    if (notificationBar) {
-        notificationBar.textContent = message;
-        notificationBar.classList.remove('info', 'error', 'success');
-        notificationBar.classList.add(type);
-        notificationBar.classList.add('show');
 
-        setTimeout(() => {
-            notificationBar.classList.remove('show');
-        }, duration);
-    } else {
-        // Fallback para console se a notificação não estiver disponível
-        console.log(`[${type.toUpperCase()}] ${message}`);
+// ============================================ 
+// NOTIFICAÇÕES ESTILIZADAS
+// ============================================
+function showNotification(message, duration = 3000, type = 'info', important = false) {
+    // Verifica se já existe uma barra de notificação
+    let notificationBar = document.getElementById('notificationBar');
+    
+    // Se não existir, cria uma
+    if (!notificationBar) {
+        notificationBar = document.createElement('div');
+        notificationBar.id = 'notificationBar';
+        document.body.appendChild(notificationBar);
     }
+    
+    // Limpa timer anterior se existir
+    if (notificationBar._timeoutId) {
+        clearTimeout(notificationBar._timeoutId);
+    }
+    
+    // Adiciona botão de fechar se não existir
+    if (!notificationBar.querySelector('.notification-close')) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'notification-close';
+        closeBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        `;
+        closeBtn.addEventListener('click', () => {
+            notificationBar.classList.remove('show');
+            if (notificationBar._timeoutId) {
+                clearTimeout(notificationBar._timeoutId);
+            }
+        });
+        notificationBar.appendChild(closeBtn);
+    }
+    
+    // Define o texto e tipo da notificação
+    const textSpan = notificationBar.querySelector('span') || document.createElement('span');
+    textSpan.textContent = message;
+    
+    // Se não tiver span, adiciona
+    if (!notificationBar.querySelector('span')) {
+        notificationBar.insertBefore(textSpan, notificationBar.querySelector('.notification-close'));
+    }
+    
+    // Remove classes antigas
+    notificationBar.classList.remove('info', 'success', 'error', 'warning', 'important', 'show');
+    
+    // Adiciona novas classes
+    notificationBar.classList.add(type);
+    if (important) {
+        notificationBar.classList.add('important');
+    }
+    
+    // Adiciona classe show com pequeno delay para animação
+    setTimeout(() => {
+        notificationBar.classList.add('show');
+    }, 10);
+    
+    // Configura timeout para remover
+    notificationBar._timeoutId = setTimeout(() => {
+        notificationBar.classList.remove('show');
+        
+        // Remove completamente após a animação
+        setTimeout(() => {
+            notificationBar.textContent = '';
+            notificationBar._timeoutId = null;
+        }, 400);
+    }, duration);
+    
+    // Log no console para debug
+    const typeEmoji = {
+        'info': 'ℹ️',
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️'
+    }[type] || '📢';
+    
+    console.log(`${typeEmoji} ${message}`);
 }
 
 function getCurrentDayName() {
@@ -354,16 +429,13 @@ function abrirContato() {
 
 // ============================================
 // FUNÇÕES AUXILIARES PARA SIMULAÇÃO
-// ============================================
 
-// Função para alternar entre modo simulação e modo real
+// Função para alternar o modo de simulação (apenas para debug)
 function toggleSimulationMode() {
-    const currentMode = localStorage.getItem('simulationMode') || 'quarta';
-    const newMode = currentMode === 'real' ? 'quarta' : 'real';
-    localStorage.setItem('simulationMode', newMode);
-    
-    showNotification(`Modo simulação: ${newMode === 'quarta' ? 'QUARTA-FEIRA' : 'REAL'}`, 3000);
-    location.reload();
+    const currentMode = getSimulationMode();
+    const nextMode = currentMode === 'real' ? 'quarta' : 'real';
+    localStorage.setItem('simulationMode', nextMode);
+    alert(`Modo de simulação alterado para: ${nextMode}. Recarregue a página.`);
 }
 
 // Função para verificar o modo atual
@@ -381,7 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Adiciona botão de debug para alternar modo (apenas em desenvolvimento)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         const debugButton = document.createElement('button');
-        debugButton.textContent = '🔄 Alternar Modo Simulação';
         debugButton.style.position = 'fixed';
         debugButton.style.bottom = '10px';
         debugButton.style.right = '10px';

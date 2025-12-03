@@ -1,4 +1,3 @@
-// js/pages/menu.js
 import Cart from '../components/cart.js';
 
 // ============================================
@@ -147,7 +146,7 @@ class MenuInstance {
                             const diaDisponivel = produto.available_days && produto.available_days.length > 0 
                                 ? produto.available_days.join(' e ')
                                 : 'dias não especificados';
-                            const message = `❌ ${produto.name} só está disponível na(s) ${diaDisponivel}.`;
+                            const message = ` ${produto.name} só está disponível na(s) ${diaDisponivel}.`;
                             window.showNotification(message, 3000, 'error');
                         }
                     });
@@ -195,7 +194,7 @@ class MenuInstance {
                         const diaDisponivel = product.available_days && product.available_days.length > 0 
                             ? product.available_days.join(' e ')
                             : 'dias não especificados';
-                        const message = `❌ ${product.name} só está disponível na(s) ${diaDisponivel}.`;
+                        const message = ` ${product.name} só está disponível na(s) ${diaDisponivel}.`;
                         window.showNotification(message, 3000, 'error');
                         return;
                     }

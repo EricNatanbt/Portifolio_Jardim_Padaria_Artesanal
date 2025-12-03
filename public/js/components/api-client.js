@@ -1,4 +1,3 @@
-// public/js/api-client.js
 class ApiClient {
     constructor() {
         this.baseUrl = window.location.origin + '/.netlify/functions/supabase-proxy';
@@ -69,6 +68,11 @@ class ApiClient {
     async getProducts() {
         console.log('📦 Buscando produtos via API...');
         return await this._makeRequest('/get-products', 'GET');
+    }
+
+    async getOrder(orderId) {
+        console.log(`🔍 Buscando pedido ${orderId} via API...`);
+        return await this._makeRequest(`/get-order?id=${encodeURIComponent(orderId)}`, 'GET');
     }
 
     async healthCheck() {

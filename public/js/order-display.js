@@ -1,5 +1,5 @@
 // ============================================
-// EXIBIÇÃO DO PEDIDO NA PÁGINA - NOVA VERSÃO
+// EXIBIÇÃO DO PEDIDO NA PÁGINA
 // ============================================
 
 class OrderDisplay {
@@ -13,7 +13,7 @@ class OrderDisplay {
         this.addBasicStyles();
         
         // Recupera os dados do pedido da URL
-        this.getOrderFromURL();
+        this.loadOrder();
         
         // Exibe os dados do pedido
         this.displayOrder();
@@ -191,109 +191,37 @@ class OrderDisplay {
         document.head.appendChild(style);
     }
 
-    getOrderFromURL() {
+    async loadOrder() {
         const urlParams = new URLSearchParams(window.location.search);
-        
-        console.log('Parâmetros da URL:', Object.fromEntries(urlParams.entries()));
-        
-        // Verifica se há parâmetros básicos
-        if (!urlParams.has('id') && !urlParams.has('name')) {
+        const orderId = urlParams.get('id');
+
+        if (!orderId) {
             this.showError('Nenhum pedido especificado na URL.');
             return;
         }
 
         try {
-            // Recupera dados básicos
-            const orderId = urlParams.get('id') || 'JD' + Date.now().toString().slice(-6);
-            const name = decodeURIComponent(urlParams.get('name') || 'Cliente');
-            const phone = urlParams.get('phone') || '';
-            const deliveryOption = urlParams.get('delivery') || 'retirada';
-            const paymentMethod = urlParams.get('payment') || 'pix';
-            const address = decodeURIComponent(urlParams.get('address') || '');
-            const observation = decodeURIComponent(urlParams.get('obs') || '');
-            const subtotal = parseFloat(urlParams.get('subtotal')) || 0;
-            const total = parseFloat(urlParams.get('total')) || 0;
-            const itemsParam = urlParams.get('items') || '';
-            const timestamp = parseInt(urlParams.get('timestamp')) || Date.now();
+            const apiClient = new ApiClient();
+            const response = await apiClient.getOrder(orderId);
 
-            // Processa os itens do pedido
-            const items = this.parseItems(itemsParam);
-
-            // Estrutura os dados para exibição
-            this.orderData = {
-                customer: {
-                    name: name,
-                    phone: phone,
-                    deliveryOption: deliveryOption,
-                    paymentMethod: paymentMethod,
-                    address: address,
-                    observation: observation
-                },
-                order: {
-                    items: items,
-                    subtotal: subtotal,
-                    deliveryFee: total - subtotal,
-                    total: total,
-                    orderId: orderId,
-                    timestamp: new Date(timestamp).toLocaleString('pt-BR')
-                }
-            };
-            
-            console.log('Dados do pedido processados:', this.orderData);
-            
+            if (response.success) {
+                this.orderData = response.orderData;
+                this.displayOrder();
+            } else {
+                this.showError(response.message || 'Pedido não encontrado.');
+            }
         } catch (error) {
-            console.error('Erro ao processar pedido:', error);
-            this.showError('Erro ao processar os dados do pedido.');
+            console.error('Erro ao carregar pedido da API:', error);
+            this.showError('Erro ao carregar os detalhes do pedido.');
         }
     }
 
-    // Função para processar itens do parâmetro URL
-    parseItems(itemsParam) {
-        if (!itemsParam) return [];
+    getOrderFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
         
-        const items = [];
-        const itemEntries = itemsParam.split(',');
+        console.log('Parâmetros da URL:', Object.fromEntries(urlParams.entries()));
         
-        itemEntries.forEach(entry => {
-            const match = entry.match(/(\d+)x(.+)/);
-            if (match) {
-                const quantity = parseInt(match[1]);
-                const name = match[2].replace(/_/g, ' ');
-                
-                // Para demonstração, usamos preços fixos
-                // Em uma aplicação real, você teria uma lista de produtos com preços
-                const price = this.estimatePrice(name);
-                
-                items.push({
-                    name: name,
-                    price: price,
-                    quantity: quantity
-                });
-            }
-        });
-        
-        return items;
-    }
-
-    // Função auxiliar para estimar preços (para demonstração)
-    estimatePrice(productName) {
-        const priceMap = {
-            'Baguete': 13.00,
-            'Ciabatta': 8.00,
-            'Focaccia': 10.00,
-            'Pão': 12.00,
-            'Bolo': 25.00,
-            'Cookie': 5.00,
-            'Doce': 8.00
-        };
-        
-        for (const [key, price] of Object.entries(priceMap)) {
-            if (productName.toLowerCase().includes(key.toLowerCase())) {
-                return price;
-            }
-        }
-        
-        return 10.00; // Preço padrão
+        // Esta função não é mais usada, pois os dados são carregados da API.
     }
 
     displayOrder() {
@@ -303,7 +231,7 @@ class OrderDisplay {
             // Atualiza o ID do pedido
             const orderIdElement = document.getElementById('orderId');
             if (orderIdElement) {
-                orderIdElement.textContent = `Pedido: ${this.orderData.order.orderId}`;
+                orderIdElement.textContent = `Pedido: ${this.orderData.order.order_id}`;
             }
 
             // Exibe informações do cliente
@@ -318,7 +246,10 @@ class OrderDisplay {
             // Exibe timestamp
             const timestampElement = document.getElementById('orderTimestamp');
             if (timestampElement) {
-                timestampElement.textContent = `Pedido realizado em: ${this.orderData.order.timestamp}`;
+                // Formata a data do banco de dados (ISO 8601) para o formato local
+                const date = new Date(this.orderData.order.created_at);
+                const formattedDate = date.toLocaleString('pt-BR');
+                timestampElement.textContent = `Pedido realizado em: ${formattedDate}`;
             }
             
         } catch (error) {
@@ -329,6 +260,7 @@ class OrderDisplay {
 
     displayCustomerInfo() {
         const customer = this.orderData.customer;
+        const order = this.orderData.order;
         const customerInfoDiv = document.getElementById('customerInfo');
         
         if (!customerInfoDiv) return;
@@ -344,29 +276,29 @@ class OrderDisplay {
             </div>
             <div class="info-item">
                 <strong>Entrega:</strong>
-                <span>${customer.deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</span>
+                <span>${order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</span>
             </div>
             <div class="info-item">
                 <strong>Pagamento:</strong>
-                <span>${customer.paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
+                <span>${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
             </div>
         `;
         
         // Adiciona observação se existir
-        if (customer.observation && customer.observation.trim() !== '') {
+        if (order.observation && order.observation.trim() !== '') {
             customerHTML += `
             <div class="info-item">
                 <strong>Observação:</strong>
-                <span style="color: #e67e22; font-style: italic;">${this.escapeHtml(customer.observation)}</span>
+                <span style="color: #e67e22; font-style: italic;">${this.escapeHtml(order.observation)}</span>
             </div>
             `;
         }
         
-        if (customer.deliveryOption === 'entrega' && customer.address) {
+        if (order.delivery_option === 'entrega' && order.address) {
             customerHTML += `
             <div class="info-item">
                 <strong>Endereço:</strong>
-                <span>${this.escapeHtml(customer.address)}</span>
+                <span>${this.escapeHtml(order.address)}</span>
             </div>
             `;
         }
@@ -375,7 +307,7 @@ class OrderDisplay {
     }
 
     displayOrderItems() {
-        const items = this.orderData.order.items;
+        const items = this.orderData.items; // Agora vem direto de orderData.items
         const itemsContainer = document.getElementById('orderItems');
         
         if (!itemsContainer) return;
@@ -384,10 +316,11 @@ class OrderDisplay {
         
         if (items && items.length > 0) {
             items.forEach(item => {
+                // Os dados do item vêm do banco de dados, com 'price' e 'quantity'
                 const itemTotal = (item.price * item.quantity).toFixed(2);
                 itemsHTML += `
                     <div class="info-item">
-                        <span>${item.quantity}x ${this.escapeHtml(item.name)}</span>
+                        <span>${item.quantity}x ${this.escapeHtml(item.product_name)}</span>
                         <span>R$ ${itemTotal}</span>
                     </div>
                 `;
@@ -412,7 +345,7 @@ class OrderDisplay {
         if (!summaryDiv) return;
         
         const subtotal = order.subtotal || 0;
-        const deliveryFee = order.deliveryFee || 0;
+        const deliveryFee = order.delivery_fee || 0; // Usando delivery_fee do banco
         const total = order.total || (subtotal + deliveryFee);
         
         let summaryHTML = `
@@ -463,7 +396,7 @@ class OrderDisplay {
         
         const errorHTML = `
             <div style="text-align: center; padding: 40px; color: #666;">
-                <h2 style="color: #e74c3c; margin-bottom: 20px;">❌ ${message}</h2>
+                <h2 style="color: #e74c3c; margin-bottom: 20px;"> ${message}</h2>
                 <p style="margin-bottom: 30px;">Volte para a loja e tente novamente.</p>
                 <a href="index.html" class="btn btn-primary">
                     🏠 Voltar para a Loja

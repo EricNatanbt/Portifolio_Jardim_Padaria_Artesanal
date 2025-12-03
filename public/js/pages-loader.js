@@ -128,16 +128,7 @@ class PagesLoader {
                 </div>
             </section>
 
-            <!-- Products Grid -->
-            <section class="products-section">
-                <div class="container">
-                    <h3 id="sectionTitle">Destaques da Semana</h3>
-                    <p class="section-subtitle">Confira os produtos fresquinhos disponíveis hoje</p>
-                    <div id="productsGrid" class="products-grid">
-                        <!-- Produtos serão inseridos aqui pelo JavaScript -->
-                    </div>
-                </div>
-            </section>
+
 
             <!-- CTA Section -->
             <section class="cta-section">

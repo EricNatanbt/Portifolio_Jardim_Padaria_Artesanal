@@ -165,10 +165,14 @@ exports.handler = async (event, context) => {
     // Salva o pedido
     let savedOrder;
     
+    // Gera um ID de pedido curto (ex: JD-XXXXXX)
+    const shortId = 'JD-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    orderData.order_id = shortId; // Adiciona o order_id curto
+
     const result = await supabase
       .from('orders')
       .insert([orderData])
-      .select('id, total_amount, client_name')
+      .select('id, order_id, total_amount, client_name') // Adicionar order_id
       .single();
     
     if (result.error) {
@@ -277,15 +281,19 @@ exports.handler = async (event, context) => {
       console.warn('⚠️ Não foi possível atualizar estatísticas:', rpcError.message);
     }
 
+    // PASSO 5: Gerar link de detalhamento do pedido
+    const orderDetailLink = `/o.html?id=${savedOrder.order_id}`; // Usando o order_id gerado
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        orderId: savedOrder.id,
+        orderId: savedOrder.order_id, // Retornar o order_id
         clientId: clientId,
         total: savedOrder.total_amount,
-        message: 'Pedido salvo com sucesso'
+        message: 'Pedido salvo com sucesso',
+        orderDetailLink: orderDetailLink // Novo campo com o link
       })
     };
 

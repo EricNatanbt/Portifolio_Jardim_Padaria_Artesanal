@@ -1,4 +1,3 @@
-// order-display-short.js - Versão com Download Automático Direto
 class OrderDisplay {
     constructor() {
         this.orderData = null;

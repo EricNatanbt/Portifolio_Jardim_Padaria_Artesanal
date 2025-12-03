@@ -1,6 +1,5 @@
-// js/pages/inicio.js
 import { supabase } from '../supabaseClient.js';
-import Cart from '../components/cart.js'; // Adicione esta linha
+import Cart from '../components/cart.js';
 
 // ============================================
 // PÁGINA INICIAL
@@ -61,7 +60,7 @@ const InicioPage = {
 
     async getProductsForDay(day) {
         try {
-            const { data: products, error } = await supabase
+            const { data: products, error } = await window.supabase
                 .from('products')
                 .select('*')
                 .contains('available_days', [day])

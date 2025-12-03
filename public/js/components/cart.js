@@ -1,7 +1,7 @@
 // ============================================
 // COMPONENTE DO CARRINHO - VERSÃO SEGURA COM NETLIFY FUNCTIONS
 // ============================================
-import apiClient from './api-client.js'; // Novo cliente seguro
+import apiClient from './api-client.js'; 
 
 const Cart = {
     cartItems: [],
@@ -227,7 +227,7 @@ const Cart = {
         // Valida se tem 8 dígitos
         if (cleanCep.length !== 8) {
             if (cleanCep.length > 0) {
-                window.showNotification('❌ CEP inválido. Deve ter 8 dígitos.', 3000, 'error');
+                window.showNotification(' CEP inválido. Deve ter 8 dígitos.', 3000, 'error');
             }
             return null;
         }
@@ -252,7 +252,7 @@ const Cart = {
             
             // Verifica se o CEP foi encontrado
             if (data.erro) {
-                window.showNotification('❌ CEP não encontrado. Preencha manualmente.', 3000, 'error');
+                window.showNotification(' CEP não encontrado. Preencha manualmente.', 3000, 'error');
                 this._clearAddressFields();
                 return null;
             }
@@ -260,7 +260,7 @@ const Cart = {
             // Preenche os campos de endereço
             this._fillAddressFields(data);
             
-            window.showNotification('✅ Endereço encontrado! Agora insira o número.', 3000, 'success');
+            window.showNotification('Endereço encontrado! Agora insira o número.', 3000, 'success');
             
             // Foca no campo de número
             setTimeout(() => {
@@ -274,7 +274,7 @@ const Cart = {
             
         } catch (error) {
             console.error('❌ Erro ao buscar CEP:', error);
-            window.showNotification('❌ Erro ao buscar CEP. Preencha manualmente.', 3000, 'error');
+            window.showNotification(' Erro ao buscar CEP. Preencha manualmente.', 3000, 'error');
             this._clearAddressFields();
             return null;
         } finally {
@@ -355,7 +355,7 @@ const Cart = {
             const diaDisponivel = product.available_days && product.available_days.length > 0 
                 ? product.available_days.join(' e ')
                 : 'dias não especificados';
-            const message = `❌ ${product.name} só está disponível na(s) ${diaDisponivel}.`;
+            const message = ` ${product.name} só está disponível na(s) ${diaDisponivel}.`;
             window.showNotification(message, 3000, 'error');
             return;
         }
@@ -377,7 +377,7 @@ const Cart = {
         this.updateCartUI();
         
         // Feedback visual
-        window.showNotification(`✅ ${product.name} adicionado ao carrinho!`, 2000, 'success');
+        window.showNotification(` ${product.name} adicionado ao carrinho!`, 2000, 'success');
     },
 
     removeFromCart(productId) {
@@ -701,7 +701,7 @@ const Cart = {
                     street, number, neighborhood, city, cep, complement
                 });
                 
-                window.showNotification("✅ Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
+                window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
                 
                 // Limpa o carrinho
                 this.cartItems = [];
@@ -716,7 +716,7 @@ const Cart = {
                 
             } catch (error) {
                 console.error('❌ Erro ao processar pedido:', error);
-                window.showNotification("❌ Erro ao processar pedido. Tente novamente.", 5000, 'error');
+                window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
             } finally {
                 // Restaura botão
                 submitBtn.textContent = originalText;
@@ -798,17 +798,18 @@ const Cart = {
         };
 
         // PASSO 4: Salvar pedido via API segura
+        let apiResult = null;
         try {
-            const result = await apiClient.saveOrder({
+            apiResult = await apiClient.saveOrder({
                 client: clientData,
                 order: orderInfo,
                 items: orderInfo.items
             });
             
-            if (result && result.success) {
-                console.log(`✅ Pedido salvo via API: ${result.orderId}`);
-                orderInfo.apiOrderId = result.orderId;
-                clientData.apiClientId = result.clientId;
+            if (apiResult && apiResult.success) {
+                console.log(`✅ Pedido salvo via API: ${apiResult.orderId}`);
+                orderInfo.apiOrderId = apiResult.orderId;
+                clientData.apiClientId = apiResult.clientId;
             } else {
                 throw new Error('API não retornou sucesso');
             }
@@ -864,7 +865,7 @@ const Cart = {
                     price: item.price
                 }))
             }
-        }, shortId);
+        }, shortId, apiResult ? apiResult.orderDetailLink : null); // Passa o link da API, se existir
         
         // PASSO 7: Abrir WhatsApp
         this._openWhatsApp(message);
@@ -901,7 +902,7 @@ const Cart = {
         return shortId;
     },
 
-    _generateWhatsAppMessage(orderData, shortId) {
+    _generateWhatsAppMessage(orderData, shortId, apiLink = null) {
         // CORREÇÃO: Acessar dados corretamente da estrutura do orderData
         const customer = orderData.customer || {};
         const order = orderData.order || {};
@@ -915,7 +916,8 @@ const Cart = {
         const observation = customer.observation || '';
         
         const baseUrl = window.location.origin;
-        const orderLink = `${baseUrl}/o.html?i=${shortId}`;
+        // Prioriza o link gerado pela API (acesso universal)
+        const orderLink = apiLink || `${baseUrl}/o.html?i=${shortId}`;
         
         let message = `*JARDIM PADARIA ARTESANAL*\n\n`;
         message += `Olá! Meu nome é *${name}*\n\n`;
