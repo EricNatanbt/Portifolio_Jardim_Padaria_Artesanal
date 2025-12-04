@@ -1,4 +1,3 @@
-<!-- order.html - Atualizado com botões do Google Maps e Uber Flash -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -20,6 +19,7 @@
             --error: #E74C3C;
             --google-maps: #4285F4;
             --uber: #000000;
+            --whatsapp: #25D366;
         }
 
         * {
@@ -125,6 +125,8 @@
         .address-text {
             margin-bottom: 15px;
             line-height: 1.5;
+            font-size: 0.95em;
+            color: #333;
         }
 
         /* Botões de ação para o endereço */
@@ -132,43 +134,59 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
-        .address-btn {
+        .action-btn {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9em;
+            border-radius: 10px;
+            font-size: 1em;
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.3s ease;
             flex: 1;
-            min-width: 140px;
+            min-width: 160px;
             justify-content: center;
+            text-align: center;
         }
 
-        .address-btn:hover {
+        .action-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        .address-btn.google-maps {
+        .action-btn.google-maps {
             background: var(--google-maps);
             color: white;
         }
 
-        .address-btn.uber {
+        .action-btn.uber {
             background: var(--uber);
             color: white;
         }
 
-        .address-btn-icon {
-            font-size: 1.2em;
+        .action-btn.whatsapp {
+            background: var(--whatsapp);
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-btn-icon {
+            font-size: 1.3em;
         }
 
         .summary-item {
@@ -223,23 +241,6 @@
             margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
-        }
-
         .actions-footer {
             display: flex;
             gap: 15px;
@@ -257,43 +258,9 @@
         @media (max-width: 768px) {
             .order-container {
                 margin: 10px;
+                border-radius: 12px;
             }
             
-            .order-content {
-                padding: 20px;
-            }
-            
-            .info-item {
-                flex-direction: column;
-                gap: 5px;
-            }
-            
-            .address-actions {
-                flex-direction: column;
-            }
-            
-            .address-btn {
-                width: 100%;
-                min-width: unset;
-            }
-            
-            .btn {
-                width: 100%;
-                text-align: center;
-            }
-            
-            .actions-footer {
-                flex-direction: column;
-            }
-            
-            .actions-footer .btn {
-                width: 100%;
-                margin: 5px 0;
-            }
-        }
-
-        /* Versão mobile ainda mais compacta */
-        @media (max-width: 480px) {
             .order-header {
                 padding: 20px;
             }
@@ -302,18 +269,83 @@
                 font-size: 2em;
             }
             
+            .order-content {
+                padding: 20px;
+            }
+            
             .section {
                 padding: 15px;
                 margin-bottom: 20px;
             }
             
-            .address-btn {
-                padding: 12px 15px;
-                font-size: 0.85em;
+            .info-item {
+                flex-direction: column;
+                gap: 5px;
+                padding: 8px 0;
             }
             
-            .address-btn-icon {
-                font-size: 1.1em;
+            .address-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .action-btn {
+                width: 100%;
+                min-width: unset;
+                padding: 14px 20px;
+                font-size: 0.95em;
+            }
+            
+            .actions-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .actions-footer .action-btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
+
+        /* Versão mobile ainda mais compacta */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .order-header {
+                padding: 15px;
+            }
+            
+            .order-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .order-header .order-id {
+                font-size: 1em;
+            }
+            
+            .section {
+                padding: 12px;
+            }
+            
+            .section h2 {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+            
+            .action-btn {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+            
+            .action-btn-icon {
+                font-size: 1.2em;
+            }
+            
+            .timestamp {
+                font-size: 0.9em;
+                padding: 8px;
             }
         }
     </style>
@@ -339,7 +371,6 @@
         // API Client simples para buscar pedidos
         class ApiClient {
             constructor() {
-                // Usa a mesma origem da página atual
                 this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
                 console.log('🔗 API Base:', this.apiBase);
             }
@@ -425,7 +456,16 @@
                     return null;
                 }
                 const encodedAddress = encodeURIComponent(address);
+                // URL para Uber Flash (entrega)
                 return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
+            }
+
+            // Função para criar URL do WhatsApp
+            createWhatsAppUrl(phone, message = '') {
+                if (!phone) return null;
+                const cleanPhone = phone.replace(/\D/g, '');
+                const encodedMessage = encodeURIComponent(message || 'Olá, gostaria de falar sobre meu pedido!');
+                return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
             }
 
             displayOrder() {
@@ -441,6 +481,7 @@
                     const isDelivery = order.delivery_option === 'entrega' && order.address && order.address !== 'Retirada na Loja';
                     const googleMapsUrl = isDelivery ? this.createGoogleMapsUrl(order.address) : null;
                     const uberUrl = isDelivery ? this.createUberUrl(order.address) : null;
+                    const whatsappUrl = this.createWhatsAppUrl(customer.phone);
                     
                     // HTML completo do pedido
                     orderContent.innerHTML = `
@@ -474,21 +515,21 @@
                                 <!-- Endereço com botões de ação -->
                                 ${isDelivery ? `
                                 <div class="address-item">
-                                    <strong>Endereço:</strong>
+                                    <strong>Endereço de Entrega:</strong>
                                     <div class="address-text">${this.escapeHtml(order.address)}</div>
                                     
                                     <div class="address-actions">
                                         ${googleMapsUrl ? `
-                                        <a href="${googleMapsUrl}" target="_blank" class="address-btn google-maps">
-                                            <span class="address-btn-icon">🗺️</span>
-                                            <span>Google Maps</span>
+                                        <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
+                                            <span class="action-btn-icon">🗺️</span>
+                                            <span>Abrir no Google Maps</span>
                                         </a>
                                         ` : ''}
                                         
                                         ${uberUrl ? `
-                                        <a href="${uberUrl}" target="_blank" class="address-btn uber">
-                                            <span class="address-btn-icon">🚗</span>
-                                            <span>Uber Flash</span>
+                                        <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                                            <span class="action-btn-icon">🚗</span>
+                                            <span>Solicitar Uber Flash</span>
                                         </a>
                                         ` : ''}
                                     </div>
@@ -536,31 +577,42 @@
                             Pedido realizado em: ${new Date(order.created_at).toLocaleString('pt-BR')}
                         </div>
 
-                        <!-- Botões de ação -->
+                        <!-- Botões de ação principais -->
                         <div class="actions-footer">
-                            <button onclick="window.location.href='index.html'" class="btn">
-                                🏠 Voltar para a Loja
-                            </button>
-                            <button onclick="window.print()" class="btn" style="background: #4CAF50;">
-                                🖨️ Imprimir Comprovante
-                            </button>
+                            ${whatsappUrl ? `
+                            <a href="${whatsappUrl}" target="_blank" class="action-btn whatsapp">
+                                <span class="action-btn-icon">💬</span>
+                                <span>Falar no WhatsApp</span>
+                            </a>
+                            ` : ''}
                             
-                            <!-- Botões extras se for entrega -->
                             ${isDelivery ? `
-                            <div style="display: flex; gap: 10px; width: 100%;">
+                            <div class="address-actions" style="width: 100%;">
                                 ${googleMapsUrl ? `
-                                <a href="${googleMapsUrl}" target="_blank" class="btn" style="background: var(--google-maps); flex: 1;">
-                                    🗺️ Abrir no Maps
+                                <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
+                                    <span class="action-btn-icon">🗺️</span>
+                                    <span>Google Maps</span>
                                 </a>
                                 ` : ''}
                                 
                                 ${uberUrl ? `
-                                <a href="${uberUrl}" target="_blank" class="btn" style="background: var(--uber); flex: 1;">
-                                    🚗 Solicitar Uber
+                                <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                                    <span class="action-btn-icon">🚗</span>
+                                    <span>Uber Flash</span>
                                 </a>
                                 ` : ''}
                             </div>
                             ` : ''}
+                            
+                            <button onclick="window.print()" class="action-btn secondary">
+                                <span class="action-btn-icon">🖨️</span>
+                                <span>Imprimir Comprovante</span>
+                            </button>
+                            
+                            <button onclick="window.location.href='index.html'" class="action-btn primary">
+                                <span class="action-btn-icon">🏠</span>
+                                <span>Voltar para a Loja</span>
+                            </button>
                         </div>
                     `;
 
@@ -607,8 +659,9 @@
                         <div class="error">
                             <h2>❌ ${message}</h2>
                             <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
-                            <button onclick="window.location.href='index.html'" class="btn">
-                                🏠 Voltar para a Loja
+                            <button onclick="window.location.href='index.html'" class="action-btn primary">
+                                <span class="action-btn-icon">🏠</span>
+                                <span>Voltar para a Loja</span>
                             </button>
                         </div>
                     `;

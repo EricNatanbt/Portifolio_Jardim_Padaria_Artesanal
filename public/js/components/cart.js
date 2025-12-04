@@ -774,115 +774,111 @@ const Cart = {
     },
 
     // ============================================
-    // PROCESSAMENTO DO PEDIDO - VERSÃO SEGURA COM API
+    // PROCESSAMENTO DO PEDIDO - VERSÃO CORRIGIDA
     // ============================================
-// ============================================
-// PROCESSAMENTO DO PEDIDO - VERSÃO SEGURA COM API
-// ============================================
-_handleCheckoutSubmit(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    _handleCheckoutSubmit(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-    // Prevenir múltiplos envios
-    if (this._submitting) {
-        console.log('⏳ Pedido já está sendo processado...');
-        return;
-    }
+        // Prevenir múltiplos envios
+        if (this._submitting) {
+            console.log('⏳ Pedido já está sendo processado...');
+            return;
+        }
 
-    this._submitting = true;
-    
-    // Usar getElementById em vez de acessar direto do form
-    const name = document.getElementById("customerName")?.value.trim() || '';
-    const phone = document.getElementById("customerPhone")?.value.replace(/\D/g, '') || '';
-    const deliveryOption = document.getElementById("deliveryOption")?.value;
-    const paymentMethod = document.getElementById("paymentMethod")?.value;
-
-    console.log('🔍 Valores obtidos:', { name, phone, deliveryOption, paymentMethod });
-
-    if (!deliveryOption || !paymentMethod) {
-        console.error('❌ Opção de entrega ou pagamento não encontrada no DOM.');
-        window.showNotification("Erro: Opções de entrega/pagamento não encontradas. Recarregue a página.", 5000, 'error');
-        this._submitting = false;
-        return;
-    }
-    
-    const observation = document.getElementById("customerObservation")?.value.trim() || '';
-    
-    // Validações básicas
-    if (!name) {
-        window.showNotification("Por favor, informe seu nome.", 3000, 'error');
-        this._submitting = false;
-        return;
-    }
-    
-    if (phone.length < 10) {
-        window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
-        this._submitting = false;
-        return;
-    }
-
-    // Se for entrega, valida endereço
-    let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
-    if (deliveryOption === 'entrega') {
-        street = document.getElementById("customerStreet")?.value || '';
-        number = document.getElementById("customerNumber")?.value || '';
-        neighborhood = document.getElementById("customerNeighborhood")?.value || '';
-        city = document.getElementById("customerCity")?.value || '';
-        cep = document.getElementById("customerCep")?.value || '';
-        complement = document.getElementById("customerComplement")?.value || '';
+        this._submitting = true;
         
-        if (!cep || !street || !number || !neighborhood || !city) {
-            window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
+        // Usar getElementById em vez de acessar direto do form
+        const name = document.getElementById("customerName")?.value.trim() || '';
+        const phone = document.getElementById("customerPhone")?.value.replace(/\D/g, '') || '';
+        const deliveryOption = document.getElementById("deliveryOption")?.value;
+        const paymentMethod = document.getElementById("paymentMethod")?.value;
+
+        console.log('🔍 Valores obtidos:', { name, phone, deliveryOption, paymentMethod });
+
+        if (!deliveryOption || !paymentMethod) {
+            console.error('❌ Opção de entrega ou pagamento não encontrada no DOM.');
+            window.showNotification("Erro: Opções de entrega/pagamento não encontradas. Recarregue a página.", 5000, 'error');
             this._submitting = false;
             return;
         }
         
-        // Salva CEP para pré-preenchimento futuro
-        localStorage.setItem('lastCustomerCep', cep);
-    }
+        const observation = document.getElementById("customerObservation")?.value.trim() || '';
+        
+        // Validações básicas
+        if (!name) {
+            window.showNotification("Por favor, informe seu nome.", 3000, 'error');
+            this._submitting = false;
+            return;
+        }
+        
+        if (phone.length < 10) {
+            window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
+            this._submitting = false;
+            return;
+        }
 
-    // Salva telefone para pré-preenchimento futuro
-    localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
-
-    // Mostra loading
-    const submitBtn = document.querySelector('.checkout-submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = '🔄 Preparando pedido...';
-    submitBtn.disabled = true;
-
-    console.log('📤 Processando pedido via API segura...');
-    
-    // Processa o pedido com delay para evitar duplicação
-    setTimeout(async () => {
-        try {
-            await this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
-                street, number, neighborhood, city, cep, complement
-            });
+        // Se for entrega, valida endereço
+        let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
+        if (deliveryOption === 'entrega') {
+            street = document.getElementById("customerStreet")?.value || '';
+            number = document.getElementById("customerNumber")?.value || '';
+            neighborhood = document.getElementById("customerNeighborhood")?.value || '';
+            city = document.getElementById("customerCity")?.value || '';
+            cep = document.getElementById("customerCep")?.value || '';
+            complement = document.getElementById("customerComplement")?.value || '';
             
-            window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
+            if (!cep || !street || !number || !neighborhood || !city) {
+                window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
+                this._submitting = false;
+                return;
+            }
             
+            // Salva CEP para pré-preenchimento futuro
+            localStorage.setItem('lastCustomerCep', cep);
+        }
+
+        // Salva telefone para pré-preenchimento futuro
+        localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
+
+        // Mostra loading
+        const submitBtn = document.querySelector('.checkout-submit-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '🔄 Preparando pedido...';
+        submitBtn.disabled = true;
+
+        console.log('📤 Processando pedido...');
+        
+        // Processa o pedido
+        this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
+            street, number, neighborhood, city, cep, complement
+        }).then(() => {
             // Limpa o carrinho
             this.cartItems = [];
             this.deliveryFee = 0;
             this.saveCartToStorage();
             this.updateCartUI();
             
-            // Fecha o modal com delay
+            // Fecha o modal
             setTimeout(() => {
                 this.closeCheckoutModal();
-            }, 1000);
+            }, 500);
             
-        } catch (error) {
-            console.error('❌ Erro ao processar pedido:', error);
-            window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
-        } finally {
             // Restaura botão
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             this._submitting = false;
-        }
-    }, 300);
-},
+            
+        }).catch((error) => {
+            console.error('❌ Erro ao processar pedido:', error);
+            window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
+            
+            // Restaura botão
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            this._submitting = false;
+        });
+    },
 
     _formatPhoneForDisplay(phone) {
         // Formata (XX) XXXXX-XXXX
@@ -894,14 +890,12 @@ _handleCheckoutSubmit(e) {
     },
 
     async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData = {}) {
-        const orderId = 'JD' + Date.now().toString().slice(-8);
-        console.log(`📝 Criando pedido ${orderId} para ${name} (${phone}) via API...`);
+        console.log(`📝 Processando pedido para ${name} (${phone})...`);
 
         // Prepara dados do endereço
-        let fullAddress = 'Retirada na Loja';
-        
-        // CORREÇÃO: Extrai dados de addressData
         const { street, number, neighborhood, city, cep, complement } = addressData;
+        
+        let fullAddress = 'Retirada na Loja';
         
         if (deliveryOption === 'entrega' && street && number && neighborhood && city && cep) {
             fullAddress = `${street}, ${number}, ${neighborhood}, ${city} - ${cep}`;
@@ -914,36 +908,28 @@ _handleCheckoutSubmit(e) {
         const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         const total = subtotal + this.deliveryFee;
 
-        // PASSO 1: Gerar ID local para usuário
-        const userId = this._createLocalUserId(name, phone);
-        this._currentUserId = userId;
-
-        // PASSO 2: Criar objeto do cliente com TODOS os campos
+        // PASSO 1: Criar objeto do cliente
         const clientData = {
             phone: `55${phone}`,
             name: name,
             address: fullAddress,
             cep: cep,
-            
-            // CAMPOS INDIVIDUAIS DE ENDEREÇO - ESSENCIAIS!
             street: street || '',
             number: number || '',
-            address_number: number || '', // Envia com nome correto também
+            address_number: number || '',
             neighborhood: neighborhood || '',
             city: city || '',
-            city_state: city || '', // Envia com nome correto também
+            city_state: city || '',
             complement: complement || '',
-            
             observation: observation || '',
             deliveryOption: deliveryOption,
             paymentMethod: paymentMethod
         };
 
-        console.log('👤 Dados do cliente para API:', clientData);
-
-        // PASSO 3: Criar objeto do pedido
+        // PASSO 2: Criar objeto do pedido
         const orderInfo = {
             total: total,
+            subtotal: subtotal,
             deliveryFee: this.deliveryFee,
             paymentMethod: paymentMethod,
             deliveryOption: deliveryOption,
@@ -955,144 +941,65 @@ _handleCheckoutSubmit(e) {
             }))
         };
 
-         // PASSO 4: Salvar pedido via API segura
-        let apiResult = null;
-        let universalLink = null; // Nova variável para o link universal
+        // PASSO 3: Salvar no banco de dados via API
+        console.log('📤 Enviando pedido para API...');
         
         try {
-            apiResult = await apiClient.saveOrder({
+            const apiResult = await apiClient.saveOrder({
                 client: clientData,
                 order: orderInfo,
                 items: orderInfo.items
             });
             
             if (apiResult && apiResult.success) {
-                console.log(`✅ Pedido salvo via API: ${apiResult.orderId}`);
-                orderInfo.apiOrderId = apiResult.orderId;
-                clientData.apiClientId = apiResult.clientId;
+                console.log(`✅ Pedido salvo no banco: ${apiResult.orderId}`);
                 
-                // LINHA ADICIONADA: Gerar link universal com ID do banco
-                universalLink = this._generateUniversalOrderLink(apiResult.orderId);
-                console.log(`🔗 Link universal gerado: ${universalLink}`);
+                // PASSO 4: Gerar mensagem do WhatsApp com link correto
+                const message = this._generateWhatsAppMessage(
+                    clientData, 
+                    orderInfo,
+                    apiResult.orderId,
+                    apiResult.orderDetailLink
+                );
+                
+                // PASSO 5: Abrir WhatsApp
+                this._openWhatsApp(message);
+                
+                window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
+                
             } else {
                 throw new Error('API não retornou sucesso');
             }
             
         } catch (error) {
-            console.error('❌ Erro ao salvar via API:', error);
-            // Continua com salvamento local mesmo se a API falhar
+            console.error('❌ Erro ao salvar pedido no banco:', error);
+            
+            // Fallback: criar ID local
+            const localOrderId = 'JD' + Date.now().toString().slice(-8);
+            
+            // Gerar mensagem do WhatsApp com ID local
+            const message = this._generateWhatsAppMessage(
+                clientData, 
+                orderInfo,
+                localOrderId,
+                `${window.location.origin}/order.html?orderId=${localOrderId}`
+            );
+            
+            // Abrir WhatsApp mesmo com erro no banco
+            this._openWhatsApp(message);
+            
+            window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
         }
-
-        // PASSO 5: Salvar localmente (backup)
-        const shortId = this._saveToLocalStorage({
-            customer: {
-                name: name,
-                phone: `55${phone}`,
-                deliveryOption: deliveryOption,
-                paymentMethod: paymentMethod,
-                address: fullAddress,
-                observation: observation || '',
-                userId: userId,
-                
-                // Salva também campos individuais localmente
-                street: street,
-                number: number,
-                neighborhood: neighborhood,
-                city: city,
-                cep: cep,
-                complement: complement
-            },
-            order: {
-                items: this.cartItems.map(item => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                    total: item.price * item.quantity,
-                    productId: item.id
-                })),
-                subtotal: subtotal,
-                deliveryFee: this.deliveryFee,
-                total: total,
-                orderId: orderId,
-                timestamp: new Date().toLocaleString('pt-BR'),
-                userId: userId
-            }
-        });
-        
-         // PASSO 6: Gerar mensagem do WhatsApp
-        const message = this._generateWhatsAppMessage({
-            customer: clientData,
-            order: {
-                items: this.cartItems.map(item => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            }
-        }, shortId, universalLink); // Usa o link universal se disponível
-        
-        // PASSO 7: Abrir WhatsApp
-        this._openWhatsApp(message);
     },
 
-    // NOVO MÉTODO: Gerar link universal com ID do banco
-    _generateUniversalOrderLink(databaseOrderId) {
-        // Usa a origem atual (mesmo domínio) + rota da página de pedido
-        const baseUrl = window.location.origin;
-        
-        // Cria link com parâmetro "orderId" que será lido pelo banco de dados
-        // Exemplo: https://seusite.com/order.html?orderId=ABC123
-        return `${baseUrl}/order.html?orderId=${databaseOrderId}`;
-    },
-    _createLocalUserId(name, phone) {
-        // Cria um ID local baseado no telefone
-        const localUserId = `local_${phone}_${Date.now().toString(36)}`;
-        console.log(`👤 ID local gerado para usuário: ${localUserId}`);
-        return localUserId;
-    },
-
-    // ============================================
-    // FUNÇÕES DE PERSISTÊNCIA LOCAL
-    // ============================================
-    _saveToLocalStorage(orderData) {
-        // Gera ID único
-        const shortId = Date.now().toString(36).toUpperCase() + 
-                       Math.random().toString(36).substr(2, 3).toUpperCase();
-        
-        const orderKey = `order_${shortId}`;
-        localStorage.setItem(orderKey, JSON.stringify(orderData));
-        
-        // Define expiração (24 horas)
-        const expirationKey = `exp_${shortId}`;
-        localStorage.setItem(expirationKey, (Date.now() + 24 * 60 * 60 * 1000).toString());
-        
-        // Salva referência do usuário
-        if (this._currentUserId) {
-            localStorage.setItem(`user_${this._currentUserId}_last_order`, shortId);
-        }
-        
-        console.log(`💾 Pedido salvo localmente: ${orderKey} para usuário ${this._currentUserId || 'desconhecido'}`);
-        return shortId;
-    },
-
-    _generateWhatsAppMessage(orderData, shortId, universalLink = null) {
-        const customer = orderData.customer || {};
-        const order = orderData.order || {};
-        const items = order.items || [];
-        
-        // CORREÇÃO: Definir baseUrl localmente
-        const baseUrl = window.location.origin;
-        
-        const deliveryOption = customer.deliveryOption || 'entrega';
-        const paymentMethod = customer.paymentMethod || 'pix';
-        const name = customer.name || '';
-        const phone = customer.phone || '';
-        const address = customer.address || '';
-        const observation = customer.observation || '';
-        
-        // Prioriza o link universal (com ID do banco)
-        // Se não tiver, usa o link local como fallback
-        const orderLink = universalLink || `${baseUrl}/order.html?i=${shortId}`;
+    _generateWhatsAppMessage(clientData, orderInfo, orderId, orderDetailLink) {
+        const items = orderInfo.items || [];
+        const deliveryOption = clientData.deliveryOption || 'entrega';
+        const paymentMethod = clientData.paymentMethod || 'pix';
+        const name = clientData.name || '';
+        const phone = clientData.phone || '';
+        const address = clientData.address || '';
+        const observation = clientData.observation || '';
             
         let message = `*JARDIM PADARIA ARTESANAL*\n\n`;
         message += `Olá! Meu nome é *${name}*\n\n`;
@@ -1119,7 +1026,8 @@ _handleCheckoutSubmit(e) {
         }
         
         message += `\n> DETALHES DO PEDIDO\n`;
-        message += "```" + `${orderLink}` + "```\n\n";
+        message += `*ID do Pedido:* ${orderId}\n`;
+        message += `*Link:* ${orderDetailLink}\n\n`;
         
         message += `_Clique no link acima para ver todos os detalhes do pedido!_\n\n`;
         
@@ -1132,18 +1040,16 @@ _handleCheckoutSubmit(e) {
         // Garante que a mensagem é uma string
         if (typeof message !== 'string') {
             console.error('❌ Mensagem do WhatsApp não é uma string:', message);
-            message = this._generateFallbackWhatsAppMessage();
+            message = `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
         }
         
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/5583987194754?text=${encodedMessage}`;
         
-        // Abre em nova aba
+        console.log('📱 Abrindo WhatsApp com URL:', whatsappUrl);
+        
+        // Abre o WhatsApp IMEDIATAMENTE
         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-    },
-
-    _generateFallbackWhatsAppMessage() {
-        return `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
     },
 
     // ============================================
