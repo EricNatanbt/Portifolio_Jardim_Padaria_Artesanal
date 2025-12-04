@@ -8,6 +8,61 @@ let Modal = null;
 // ============================================
 // INICIALIZAÇÃO
 // ============================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        // Registra o service worker
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(function(registration) {
+                console.log('Service Worker registrado com sucesso:', registration.scope);
+                
+                // Verifica se há uma nova versão
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    console.log('Nova versão do Service Worker encontrada!');
+                    
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed') {
+                            // Nova versão instalada, recarrega a página
+                            if (navigator.serviceWorker.controller) {
+                                console.log('Nova versão pronta. Recarregando página...');
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            })
+            .catch(function(error) {
+                console.log('Falha no registro do Service Worker:', error);
+            });
+        
+        // Força verificação de atualizações a cada carregamento
+        navigator.serviceWorker.ready.then(registration => {
+            registration.update();
+        });
+    });
+
+    // Escuta mensagens do Service Worker
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data === 'skipWaiting') {
+            console.log('Pulando espera do Service Worker...');
+            window.location.reload();
+        }
+    });
+}
+
+// Força limpeza de cache ao carregar
+window.addEventListener('beforeunload', function() {
+    // Limpa cache do localStorage se necessário
+    if (localStorage.getItem('forceRefresh')) {
+        localStorage.removeItem('forceRefresh');
+        caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+                caches.delete(cacheName);
+            });
+        });
+    }
+});
+
 async function initializeApp() {
     console.log('🚀 Inicializando aplicação Jardim Padaria...');
     console.log('📅 Simulação: Hoje é QUARTA-FEIRA');

@@ -546,6 +546,20 @@
         }
     
     </script>
+    
 </body>
-
+<script>
+    if ('serviceWorker' in navigator) {
+        // Força nova versão adicionando timestamp
+        navigator.serviceWorker.register('/service-worker.js?t=' + Date.now())
+            .then(registration => {
+                console.log('Service Worker registrado:', registration);
+                // Força atualização imediata
+                registration.update();
+            })
+            .catch(error => {
+                console.log('Falha no registro:', error);
+            });
+    }
+</script>
 </html>
