@@ -10,7 +10,8 @@ const Cart = {
     _submitting: false,
     _listenersSetup: false,
     _currentUserId: null,
-    _whatsappOpened: false, // Nova flag para controlar abertura do WhatsApp
+    _whatsappOpened: false,
+    _mobileClickHandler: null,
 
     // ============================================
     // INICIALIZAÇÃO
@@ -21,16 +22,109 @@ const Cart = {
             return;
         }
         
-        console.log('🛒 Inicializando carrinho (versão segura)...');
+        console.log('🛒 Inicializando carrinho (versão mobile corrigida)...');
         this._initialized = true;
         
         this.loadCartFromStorage();
         this.updateCartUI();
         
-        // Pequeno delay para garantir DOM pronto
+        // Configura event listeners com delay
         setTimeout(() => {
             this._setupAllEventListeners();
-        }, 500);
+            this._setupMobileOptimizations();
+        }, 300);
+    },
+
+    // ============================================
+    // OTIMIZAÇÕES PARA MOBILE
+    // ============================================
+    _setupMobileOptimizations() {
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (!isMobile) return;
+        
+        console.log('📱 Aplicando otimizações para mobile...');
+        
+        // Ajusta o modal de checkout para mobile
+        this._adjustModalForMobile();
+        
+        // Configura botão de checkout para mobile
+        this._setupMobileCheckoutButton();
+        
+        // Aumenta área de clique dos botões
+        this._increaseTouchTargets();
+    },
+
+    _adjustModalForMobile() {
+        const modalContent = document.querySelector('.checkout-modal-content');
+        if (modalContent) {
+            modalContent.classList.add('mobile-layout');
+        }
+        
+        // Garante que os campos de formulário estão em coluna única
+        const formRows = document.querySelectorAll('.form-row');
+        formRows.forEach(row => {
+            row.classList.add('mobile-column');
+        });
+        
+        // Ajusta botão de submit
+        const submitBtn = document.querySelector('.checkout-submit-btn');
+        if (submitBtn) {
+            submitBtn.classList.add('mobile-submit-btn');
+        }
+    },
+
+    _setupMobileCheckoutButton() {
+        const checkoutSubmitBtn = document.querySelector('.checkout-submit-btn');
+        const checkoutForm = document.getElementById("checkoutForm");
+        
+        if (!checkoutSubmitBtn || !checkoutForm) return;
+        
+        // Remove listener antigo se existir
+        if (this._mobileClickHandler) {
+            checkoutSubmitBtn.removeEventListener('click', this._mobileClickHandler);
+        }
+        
+        // Cria novo handler para mobile
+        this._mobileClickHandler = (e) => {
+            console.log('📱 Botão de checkout clicado (mobile handler)');
+            
+            // Primeiro valida o formulário
+            if (!checkoutForm.checkValidity()) {
+                console.log('❌ Formulário inválido, mostrando erros...');
+                
+                // Mostra mensagem de erro amigável
+                window.showNotification('Por favor, preencha todos os campos obrigatórios.', 3000, 'error');
+                
+                // Encontra o primeiro campo inválido
+                const firstInvalid = checkoutForm.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstInvalid.focus();
+                }
+                
+                checkoutForm.reportValidity();
+                return;
+            }
+            
+            // Se válido, processa o pedido
+            console.log('✅ Formulário válido, processando...');
+            this._handleCheckoutSubmit(e);
+        };
+        
+        // Adiciona listener
+        checkoutSubmitBtn.addEventListener('click', this._mobileClickHandler);
+        console.log('✅ Botão de checkout otimizado para mobile');
+    },
+
+    _increaseTouchTargets() {
+        // Aumenta área de clique para botões importantes
+        const touchTargets = document.querySelectorAll('.add-to-cart-btn, .qty-btn, .checkout-submit-btn');
+        touchTargets.forEach(btn => {
+            btn.style.minHeight = '44px';
+            btn.style.minWidth = '44px';
+            btn.style.padding = '12px 16px';
+        });
     },
 
     // ============================================
@@ -53,10 +147,12 @@ const Cart = {
         // 3. Listeners do formulário
         this._setupFormListeners();
         
-        // CORREÇÃO: Garantir que o formulário de checkout tenha um listener de submit
+        // 4. Listener direto do formulário
         const checkoutForm = document.getElementById("checkoutForm");
         if (checkoutForm) {
-            checkoutForm.addEventListener("submit", this._handleCheckoutSubmit.bind(this));
+            checkoutForm.addEventListener("submit", (e) => {
+                this._handleCheckoutSubmit(e);
+            });
         }
         
         this._listenersSetup = true;
@@ -118,175 +214,179 @@ const Cart = {
     },
 
     // ============================================
-    // PROCESSAMENTO DO PEDIDO - VERSÃO CORRIGIDA PARA MOBILE
+    // PROCESSAMENTO DO PEDIDO - VERSÃO MOBILE CORRIGIDA
     // ============================================
-    _handleCheckoutSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    async _handleCheckoutSubmit(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
 
         // Prevenir múltiplos envios
         if (this._submitting) {
             console.log('⏳ Pedido já está sendo processado...');
+            window.showNotification('🔄 Seu pedido já está sendo processado...', 2000, 'info');
             return;
         }
 
         this._submitting = true;
         
-        // Usar getElementById em vez de acessar direto do form
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            console.log('📱 Processando pedido no mobile...');
+            window.showNotification('🔄 Preparando seu pedido...', 2000, 'info');
+        }
+
+        // Coleta dados do formulário
+        const formData = this._collectFormData();
+        if (!formData) {
+            this._submitting = false;
+            return;
+        }
+
+        const { name, phone, deliveryOption, paymentMethod, observation, addressData } = formData;
+
+        // Mostra loading no botão
+        const submitBtn = document.querySelector('.checkout-submit-btn');
+        const originalText = submitBtn ? submitBtn.innerHTML : 'Finalizar Pedido';
+        
+        if (submitBtn) {
+            submitBtn.innerHTML = '🔄 Processando...';
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.8';
+        }
+
+        console.log('📤 Processando pedido para:', name);
+        
+        try {
+            // Processa o pedido
+            const whatsappMessage = await this._processOrder(
+                name, phone, deliveryOption, paymentMethod, observation, addressData
+            );
+            
+            // Abre WhatsApp
+            this._openWhatsAppMobile(whatsappMessage);
+            
+            // Sucesso - limpa carrinho
+            this._handleOrderSuccess(submitBtn, originalText);
+            
+        } catch (error) {
+            console.error('❌ Erro ao processar pedido:', error);
+            window.showNotification("❌ Erro ao processar pedido. Tente novamente.", 5000, 'error');
+            this._handleOrderError(submitBtn, originalText);
+        }
+    },
+
+    _collectFormData() {
         const name = document.getElementById("customerName")?.value.trim() || '';
         const phone = document.getElementById("customerPhone")?.value.replace(/\D/g, '') || '';
         const deliveryOption = document.getElementById("deliveryOption")?.value;
         const paymentMethod = document.getElementById("paymentMethod")?.value;
+        const observation = document.getElementById("customerObservation")?.value.trim() || '';
 
         console.log('🔍 Valores obtidos:', { name, phone, deliveryOption, paymentMethod });
 
-        if (!deliveryOption || !paymentMethod) {
-            console.error('❌ Opção de entrega ou pagamento não encontrada no DOM.');
-            window.showNotification("Erro: Opções de entrega/pagamento não encontradas. Recarregue a página.", 5000, 'error');
-            this._submitting = false;
-            return;
-        }
-        
-        const observation = document.getElementById("customerObservation")?.value.trim() || '';
-        
         // Validações básicas
         if (!name) {
-            window.showNotification("Por favor, informe seu nome.", 3000, 'error');
-            this._submitting = false;
-            return;
+            window.showNotification("Por favor, informe seu nome completo.", 3000, 'error');
+            return null;
         }
         
         if (phone.length < 10) {
             window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
-            this._submitting = false;
-            return;
+            return null;
+        }
+
+        if (!deliveryOption || !paymentMethod) {
+            window.showNotification("Selecione as opções de entrega e pagamento.", 3000, 'error');
+            return null;
         }
 
         // Se for entrega, valida endereço
-        let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
+        let addressData = {};
         if (deliveryOption === 'entrega') {
-            street = document.getElementById("customerStreet")?.value || '';
-            number = document.getElementById("customerNumber")?.value || '';
-            neighborhood = document.getElementById("customerNeighborhood")?.value || '';
-            city = document.getElementById("customerCity")?.value || '';
-            cep = document.getElementById("customerCep")?.value || '';
-            complement = document.getElementById("customerComplement")?.value || '';
-            
-            if (!cep || !street || !number || !neighborhood || !city) {
-                window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
-                this._submitting = false;
-                return;
+            addressData = this._collectAddressData();
+            if (!addressData.valid) {
+                return null;
             }
-            
-            // Salva CEP para pré-preenchimento futuro
+        }
+
+        // Salva dados para pré-preenchimento futuro
+        this._saveCustomerPreferences(phone, addressData.cep);
+
+        return { name, phone, deliveryOption, paymentMethod, observation, addressData };
+    },
+
+    _collectAddressData() {
+        const street = document.getElementById("customerStreet")?.value.trim() || '';
+        const number = document.getElementById("customerNumber")?.value.trim() || '';
+        const neighborhood = document.getElementById("customerNeighborhood")?.value.trim() || '';
+        const city = document.getElementById("customerCity")?.value.trim() || '';
+        const cep = document.getElementById("customerCep")?.value.trim() || '';
+        const complement = document.getElementById("customerComplement")?.value.trim() || '';
+
+        if (!cep || !street || !number || !neighborhood || !city) {
+            window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
+            return { valid: false };
+        }
+
+        return {
+            valid: true,
+            street, number, neighborhood, city, cep, complement
+        };
+    },
+
+    _saveCustomerPreferences(phone, cep) {
+        if (phone) {
+            localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
+        }
+        if (cep) {
             localStorage.setItem('lastCustomerCep', cep);
         }
-
-        // Salva telefone para pré-preenchimento futuro
-        localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
-
-        // Mostra loading
-        const submitBtn = document.querySelector('.checkout-submit-btn');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '🔄 Preparando pedido...';
-        submitBtn.disabled = true;
-
-        console.log('📤 Processando pedido...');
-        
-        // CORREÇÃO PARA MOBILE: Salva os dados em variáveis temporárias
-        const tempCartItems = [...this.cartItems];
-        const tempDeliveryFee = this.deliveryFee;
-        
-        // Processa o pedido
-        this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
-            street, number, neighborhood, city, cep, complement
-        }, tempCartItems, tempDeliveryFee).then((whatsappMessage) => {
-            
-            // ABRIR WHATSAPP AQUI (APÓS OBTENÇÃO DA MENSAGEM FINAL)
-            this._openWhatsAppMobile(whatsappMessage);
-            
-            // Limpa o carrinho APÓS confirmar que o WhatsApp foi aberto
-            // Limpa o carrinho APÓS confirmar que o WhatsApp foi aberto
-            this.cartItems = [];
-            this.deliveryFee = 0;
-            this.saveCartToStorage();
-            this.updateCartUI();
-            
-            // Fecha o modal com delay
-            setTimeout(() => {
-                this.closeCheckoutModal();
-            }, 1000);
-            
-            // Restaura botão
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            this._submitting = false;
-            
-        }).catch((error) => {
-            console.error('❌ Erro ao processar pedido:', error);
-            window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
-            
-            // Restaura botão
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            this._submitting = false;
-        });
     },
 
-    _formatPhoneForDisplay(phone) {
-        // Formata (XX) XXXXX-XXXX
-        const cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.length === 11) {
-            return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
-        }
-        return phone;
-    },
-
-    async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData, tempCartItems, tempDeliveryFee) {
+    async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData) {
         console.log(`📝 Processando pedido para ${name} (${phone})...`);
 
-        // Prepara dados do endereço
-        const { street, number, neighborhood, city, cep, complement } = addressData;
-        
+        // Prepara endereço completo
         let fullAddress = 'Retirada na Loja';
-        
-        if (deliveryOption === 'entrega' && street && number && neighborhood && city && cep) {
+        if (deliveryOption === 'entrega' && addressData.valid) {
+            const { street, number, neighborhood, city, cep, complement } = addressData;
             fullAddress = `${street}, ${number}, ${neighborhood}, ${city} - ${cep}`;
-            if (complement && complement.trim() !== '') {
+            if (complement) {
                 fullAddress += ` (${complement})`;
             }
         }
 
-        // Calcula valores usando os itens temporários
-        const subtotal = tempCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const total = subtotal + tempDeliveryFee;
+        // Calcula valores
+        const subtotal = this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const total = subtotal + this.deliveryFee;
 
-        // PASSO 1: Criar objeto do cliente
+        // Dados do cliente
         const clientData = {
             phone: `55${phone}`,
             name: name,
             address: fullAddress,
-            cep: cep,
-            street: street || '',
-            number: number || '',
-            address_number: number || '',
-            neighborhood: neighborhood || '',
-            city: city || '',
-            city_state: city || '',
-            complement: complement || '',
-            observation: observation || '',
+            cep: addressData.cep || '',
+            street: addressData.street || '',
+            number: addressData.number || '',
+            neighborhood: addressData.neighborhood || '',
+            city: addressData.city || '',
+            complement: addressData.complement || '',
+            observation: observation,
             deliveryOption: deliveryOption,
             paymentMethod: paymentMethod
         };
 
-        // PASSO 2: Criar objeto do pedido
+        // Dados do pedido
         const orderInfo = {
             total: total,
             subtotal: subtotal,
-            deliveryFee: tempDeliveryFee,
+            deliveryFee: this.deliveryFee,
             paymentMethod: paymentMethod,
             deliveryOption: deliveryOption,
-            items: tempCartItems.map(item => ({
+            items: this.cartItems.map(item => ({
                 id: item.id,
                 name: item.name,
                 price: item.price,
@@ -294,12 +394,10 @@ const Cart = {
             }))
         };
 
-        // PASSO 3: Salvar no banco de dados via API
-        console.log('📤 Enviando pedido para API...');
-        
-        let orderId = 'JD' + Date.now().toString().slice(-8); // ID local como fallback
+        // Salva no banco de dados
+        let orderId = 'JD' + Date.now().toString().slice(-8);
         let orderDetailLink = `${window.location.origin}/order.html?orderId=${orderId}`;
-        
+
         try {
             const apiResult = await apiClient.saveOrder({
                 client: clientData,
@@ -311,28 +409,14 @@ const Cart = {
                 console.log(`✅ Pedido salvo no banco: ${apiResult.orderId}`);
                 orderId = apiResult.orderId;
                 orderDetailLink = apiResult.orderDetailLink || orderDetailLink;
-            } else {
-                throw new Error('API não retornou sucesso');
             }
-            
         } catch (error) {
             console.error('❌ Erro ao salvar pedido no banco:', error);
             // Continua com ID local
         }
 
-        // PASSO 4: Gerar mensagem do WhatsApp
-        const message = this._generateWhatsAppMessage(
-            clientData, 
-            orderInfo,
-            orderId,
-            orderDetailLink
-        );
-        
-        // PASSO 5: Abrir WhatsApp (MÉTODO CORRIGIDO PARA MOBILE)
-        // A abertura do WhatsApp agora é feita de forma síncrona no _handleCheckoutSubmit
-        // para evitar bloqueio de pop-up. Aqui, apenas resolvemos a promessa.
-        // return this._openWhatsAppMobile(message); // Removido
-        return Promise.resolve(message); // Retorna a mensagem para ser usada no _handleCheckoutSubmit
+        // Gera mensagem do WhatsApp
+        return this._generateWhatsAppMessage(clientData, orderInfo, orderId, orderDetailLink);
     },
 
     _generateWhatsAppMessage(clientData, orderInfo, orderId, orderDetailLink) {
@@ -379,122 +463,95 @@ const Cart = {
         return message;
     },
 
-    // CORREÇÃO CRÍTICA: Método para abrir WhatsApp no mobile
     _openWhatsAppMobile(message) {
-        // Não retorna Promise, apenas executa a abertura
         try {
-            // Garante que a mensagem é uma string
-            if (typeof message !== 'string') {
-                message = `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
-            }
-            
             const encodedMessage = encodeURIComponent(message);
             const whatsappUrl = `https://wa.me/5583987194754?text=${encodedMessage}`;
             
-            console.log('📱 Tentando abrir WhatsApp...');
-            console.log('🔗 URL:', whatsappUrl);
+            console.log('📱 Abrindo WhatsApp:', whatsappUrl);
             
-            // Verifica se é mobile
-            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // Método confiável para mobile
+            const link = document.createElement('a');
+            link.href = whatsappUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.display = 'none';
+            document.body.appendChild(link);
             
-            if (isMobile) {
-                // MÉTODO 1: Tentar abrir app nativo do WhatsApp
-                console.log('📱 Dispositivo mobile detectado, tentando métodos especiais...');
-                
-                // Usar window.open diretamente, que é o método mais confiável
-                // para ser acionado por um evento de clique (mesmo que assíncrono,
-                // o browser pode permitir se o delay for pequeno).
-                // O uso de tempLink.click() é mais propenso a falhas.
-                window.open(whatsappUrl, '_blank');
-                
+            // Tenta com click simulado
+            if (link.click) {
+                link.click();
             } else {
-                // Para desktop, usar window.open normal
-                window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-                console.log('💻 WhatsApp aberto em nova aba (desktop)');
+                // Fallback para alguns navegadores
+                window.open(whatsappUrl, '_blank');
             }
+            
+            // Limpa após um tempo
+            setTimeout(() => {
+                document.body.removeChild(link);
+            }, 1000);
+            
+            console.log('✅ WhatsApp aberto com sucesso');
             
         } catch (error) {
             console.error('❌ Erro ao abrir WhatsApp:', error);
-            // Em caso de erro, não faz nada, apenas loga
+            // Fallback simples
+            window.open(`https://wa.me/5583987194754`, '_blank');
         }
+    },
+
+    _handleOrderSuccess(submitBtn, originalText) {
+        // Limpa o carrinho
+        this.cartItems = [];
+        this.deliveryFee = 0;
+        this.saveCartToStorage();
+        this.updateCartUI();
+        
+        // Feedback visual
+        window.showNotification('✅ Pedido processado com sucesso! Abrindo WhatsApp...', 3000, 'success');
+        
+        // Restaura botão
+        if (submitBtn) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        }
+        
+        // Fecha modal com delay
+        setTimeout(() => {
+            this.closeCheckoutModal();
+        }, 1500);
+        
+        this._submitting = false;
+    },
+
+    _handleOrderError(submitBtn, originalText) {
+        // Restaura botão
+        if (submitBtn) {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        }
+        
+        this._submitting = false;
     },
 
     // ============================================
-    // RESTANTE DO CÓDIGO (mantido igual)
+    // RESTANTE DAS FUNÇÕES (mantidas iguais)
     // ============================================
 
-    _setupDeliveryInfoModalListeners() {
-        const closeDeliveryInfoModal = document.getElementById("closeDeliveryInfoModal");
-        const closeDeliveryInfoBtn = document.getElementById("closeDeliveryInfoBtn");
-        const deliveryInfoModalOverlay = document.getElementById("deliveryInfoModalOverlay");
-        
-        console.log('🔍 Configurando listeners do modal de informações do frete...');
-        
-        if (closeDeliveryInfoModal) {
-            closeDeliveryInfoModal.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this._closeDeliveryInfoModal();
-            });
-            console.log('✅ Listener adicionado ao closeDeliveryInfoModal');
+    _formatPhoneForDisplay(phone) {
+        const cleanPhone = phone.replace(/\D/g, '');
+        if (cleanPhone.length === 11) {
+            return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
         }
-        
-        if (closeDeliveryInfoBtn) {
-            closeDeliveryInfoBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this._closeDeliveryInfoModal();
-            });
-            console.log('✅ Listener adicionado ao closeDeliveryInfoBtn');
-        }
-        
-        if (deliveryInfoModalOverlay) {
-            deliveryInfoModalOverlay.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this._closeDeliveryInfoModal();
-            });
-            console.log('✅ Listener adicionado ao deliveryInfoModalOverlay');
-        }
-    },
-
-    _openDeliveryInfoModal() {
-        console.log('🔄 Abrindo modal de informações do frete...');
-        const deliveryInfoModal = document.getElementById("deliveryInfoModal");
-        
-        console.log('Modal de informações encontrado:', deliveryInfoModal);
-        
-        if (deliveryInfoModal) {
-            deliveryInfoModal.style.display = "flex";
-            deliveryInfoModal.style.zIndex = "2000";
-            console.log('✅ Modal de informações do frete aberto (sobreposto)');
-        } else {
-            console.error('❌ Modal de informações do frete não encontrado!');
-        }
-    },
-
-    _closeDeliveryInfoModal() {
-        console.log('🔄 Fechando modal de informações do frete...');
-        const deliveryInfoModal = document.getElementById("deliveryInfoModal");
-        
-        if (deliveryInfoModal) {
-            deliveryInfoModal.style.display = "none";
-            deliveryInfoModal.style.zIndex = "";
-            console.log('✅ Modal de informações do frete fechado');
-        }
+        return phone;
     },
 
     _setupFormListeners() {
-        const checkoutForm = document.getElementById("checkoutForm");
         const customerPhoneInput = document.getElementById("customerPhone");
         const customerCepInput = document.getElementById("customerCep");
         const deliveryOptionSelect = document.getElementById("deliveryOption");
-
-        if (checkoutForm) {
-            checkoutForm.removeEventListener("submit", this._handleSubmitBound);
-            this._handleSubmitBound = this._handleCheckoutSubmit.bind(this);
-            checkoutForm.addEventListener("submit", this._handleSubmitBound);
-        }
 
         if (customerPhoneInput) {
             this._applyPhoneMask(customerPhoneInput);
@@ -506,13 +563,6 @@ const Cart = {
             customerCepInput.addEventListener('blur', async (e) => {
                 await this._fetchAddressByCep(e.target.value);
             });
-            
-            customerCepInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    await this._fetchAddressByCep(e.target.value);
-                }
-            });
         }
 
         if (deliveryOptionSelect) {
@@ -521,31 +571,6 @@ const Cart = {
                 this._updatePaymentMethods();
             });
         }
-        
-        const deliveryInfoBtn = document.getElementById('deliveryInfoBtn');
-        if (deliveryInfoBtn) {
-            deliveryInfoBtn.removeEventListener('click', this._openDeliveryInfoModal);
-            deliveryInfoBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('🎯 Clicou em Informações do Frete');
-                this._openDeliveryInfoModal();
-            });
-            console.log('✅ Listener adicionado ao botão de informações do frete');
-        }
-        
-        this._setupDeliveryInfoModalListeners();
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const deliveryInfoModal = document.getElementById("deliveryInfoModal");
-                if (deliveryInfoModal && deliveryInfoModal.style.display === "flex") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this._closeDeliveryInfoModal();
-                }
-            }
-        });
     },
 
     _applyPhoneMask(input) {

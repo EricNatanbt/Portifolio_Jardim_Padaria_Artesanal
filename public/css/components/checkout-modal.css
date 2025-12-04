@@ -683,3 +683,182 @@
 .checkout-modal-content {
     animation: fadeIn 0.2s ease-out;
 }
+
+/* ============================================ */
+/* MODAL DE CHECKOUT - VERSÃO RESPONSIVA */
+/* ============================================ */
+
+/* Desktop - Layout horizontal (3 colunas) */
+.checkout-modal-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
+    gap: 1.5rem;
+    max-width: 1400px;
+    width: 95%;
+    max-height: 90vh;
+    height: auto;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile - Layout vertical (1 coluna) */
+@media (max-width: 768px) {
+    .checkout-modal-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 1rem;
+        width: 95%;
+        max-height: 90vh;
+        height: auto;
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+
+    /* Ajusta cada seção para ocupar toda a largura */
+    .checkout-form-section,
+    .checkout-extra-section,
+    .checkout-summary-section {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Formulário em coluna única */
+    .form-row {
+        flex-direction: column !important;
+    }
+
+    .form-group {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    .address-number-group {
+        width: 100% !important;
+    }
+
+    /* Ajusta os campos de endereço */
+    #addressFields {
+        width: 100%;
+    }
+
+    /* Card de informações do frete */
+    .delivery-info-card {
+        width: 100%;
+    }
+
+    /* Resumo do pedido */
+    .checkout-summary-section {
+        order: 3; /* Garante que fique na parte inferior */
+    }
+
+    /* Botão de submit maior no mobile */
+    .checkout-submit-btn {
+        width: 100%;
+        padding: 1.2rem;
+        font-size: 1.1rem;
+    }
+
+    /* Ajusta o modal body para scroll */
+    .modal-body {
+        max-height: calc(90vh - 120px);
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    /* Remove qualquer overflow horizontal */
+    * {
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+}
+
+/* Mobile muito pequeno */
+@media (max-width: 480px) {
+    .checkout-modal-content {
+        padding: 0.8rem;
+        margin: 0.3rem;
+    }
+
+    .section-header {
+        padding: 0.8rem;
+    }
+
+    .section-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+
+    .checkout-submit-btn {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Para telas muito altas (iPhone/Android) */
+@media (max-height: 700px) and (max-width: 768px) {
+    .checkout-modal-content {
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        max-height: calc(85vh - 120px);
+    }
+}
+
+/* Mobile-specific classes */
+.mobile-checkout .checkout-modal-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+}
+
+.mobile-checkout .modal-body {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+}
+
+.mobile-checkout .form-row.mobile-column {
+    flex-direction: column !important;
+    gap: 1rem !important;
+}
+
+.mobile-checkout .form-group {
+    width: 100% !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.mobile-checkout .address-number-group {
+    width: 100% !important;
+}
+
+/* Botão de submit fixo no bottom no mobile */
+.mobile-checkout .checkout-summary-section {
+    position: sticky;
+    bottom: 0;
+    background: var(--card);
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+}
+
+.mobile-checkout .checkout-submit-btn {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
