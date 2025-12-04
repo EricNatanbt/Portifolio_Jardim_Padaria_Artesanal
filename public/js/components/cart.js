@@ -53,6 +53,12 @@ const Cart = {
         // 3. Listeners do formulário
         this._setupFormListeners();
         
+        // CORREÇÃO: Garantir que o formulário de checkout tenha um listener de submit
+        const checkoutForm = document.getElementById("checkoutForm");
+        if (checkoutForm) {
+            checkoutForm.addEventListener("submit", this._handleCheckoutSubmit.bind(this));
+        }
+        
         this._listenersSetup = true;
     },
 

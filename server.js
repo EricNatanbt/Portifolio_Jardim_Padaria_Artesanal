@@ -1,40 +1,40 @@
 const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
 const path = require('path');
+
 const app = express();
 const port = 3000;
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
 
 // Define o diretório de arquivos estáticos
 const staticPath = path.join(__dirname, 'public');
 
-// 1. Serve arquivos estáticos com configurações específicas
-app.use(express.static(staticPath, {
-  setHeaders: (res, filePath) => {
-    // Configura MIME types corretos para arquivos JS
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-    // Adicione outros tipos se necessário
-    if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-  }
-}));
+// 1. Exemplo de rota de API (para simular o saveOrder)
+app.post('/api/saveOrder', (req, res) => {
+    console.log('API: Pedido recebido:', req.body.client.name);
+    // Simulação de salvamento no banco de dados
+    const orderId = 'JD' + Date.now().toString().slice(-8);
+    const orderDetailLink = `${req.protocol}://${req.get('host')}/order.html?orderId=${orderId}`;
+    
+    // Resposta de sucesso para o frontend
+    res.json({
+        success: true,
+        orderId: orderId,
+        orderDetailLink: orderDetailLink,
+        message: 'Pedido salvo com sucesso!'
+    });
+});
 
-// 2. Rota de fallback apenas para rotas que não correspondem a arquivos existentes
-app.get('*', (req, res, next) => {
-  const filePath = path.join(staticPath, req.path);
-  
-  // Verifica se o arquivo existe fisicamente
-  const fs = require('fs');
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      // Arquivo não existe, serve o index.html para SPA
-      res.sendFile(path.join(staticPath, 'index.html'));
-    } else {
-      // Arquivo existe, passa para o próximo middleware (express.static)
-      next();
-    }
-  });
+// 2. Serve arquivos estáticos
+app.use(express.static(staticPath));
+
+// 3. Rota de fallback para servir index.html (SPA)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 app.listen(port, () => {
