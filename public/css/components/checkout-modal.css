@@ -1,685 +1,215 @@
 /* ============================================
-   ESTILOS DO MODAL DE FINALIZAÇÃO DE PEDIDO (CHECKOUT) - LAYOUT OTIMIZADO
+   ESTILOS DO MODAL DE FINALIZAÇÃO DE PEDIDO (CHECKOUT)
    ============================================ */
 
-/* Modal principal */
 .checkout-modal-content {
-    max-width: 3000px;
-    width: 95%;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(28, 61, 45, 0.15);
-    height: auto; /* Altura automática baseada no conteúdo */
-    max-height: none; /* Remove limite de altura */
-    overflow: visible; /* Permite que o conteúdo exceda sem scroll */
+    max-width: 600px; /* Aumenta a largura para melhor visualização do formulário */
+    max-height: 95vh; /* Permite que o modal ocupe mais espaço vertical em telas pequenas */
 }
 
-/* Fix para o scroll do modal */
-.modal-content.checkout-modal-content {
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh; /* Limita a altura do modal no desktop */
-}
-
-.modal-content.checkout-modal-content .modal-body {
-    flex-grow: 1;
-    overflow-y: auto; /* Permite scroll no corpo do modal */
-}
-
-.checkout-form-section {
-    /* ... */
-    overflow-y: visible; /* Remove scroll interno do formulário */
-    padding-right: 1rem;
-}
-
-.checkout-summary-section {
-    /* ... */
-    max-height: none; /* Remove limite de altura */
-    overflow-y: visible; /* Remove scroll interno do resumo */
-}
-
-/* Corpo do modal - NOVO LAYOUT */
 .modal-body {
     padding: 1.5rem;
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    grid-template-rows: auto 1fr;
-    gap: 1.5rem;
-    min-height: auto;
-    overflow: visible; /* Remove scroll interno */
-}
-
-/* Coluna da esquerda: Formulário principal */
-.checkout-form-section {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    overflow-y: visible; /* Alterado para visible */
-    padding-right: 1rem;
-}
-
-/* Coluna da direita: Container superior (Observações + Botão Frete) */
-.checkout-extra-section {
-    grid-column: 2;
-    grid-row: 1;
-    background: #F9FDF9;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #E8F5E9;
-    margin-bottom: 0.5rem;
-}
-
-/* Coluna da direita: Container inferior (Resumo) */
-.checkout-summary-section {
-    grid-column: 2;
-    grid-row: 2;
-    background: #F9FDF9;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #E8F5E9;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: none; /* Removido limite de altura */
-    overflow-y: visible; /* Removido scroll interno */
-}
-
-/* Layout para mobile */
-@media (max-width: 768px) {
-    .checkout-modal-content {
-        max-width: 100%;
-        width: 100%;
-        max-height: 100vh; /* Ocupa a tela inteira */
-        margin: 0;
-        border-radius: 0; /* Remove bordas arredondadas para tela cheia */
-    }
-    
-    .modal-content.checkout-modal-content {
-        max-height: 100vh;
-    }
-    
-    .modal-body {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 1rem;
-        padding: 1rem;
-    }
-    
-    .checkout-form-section {
-        grid-column: 1;
-        grid-row: 1;
-        padding-right: 0;
-    }
-    
-    .checkout-extra-section {
-        grid-column: 1;
-        grid-row: 2;
-        margin-bottom: 0;
-    }
-    
-    .checkout-summary-section {
-        grid-column: 1;
-        grid-row: 3;
-        max-height: none;
-    }
-}
-
-/* Cabeçalhos das seções */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0.5rem 0 0.75rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #E8F5E9;
-}
-
-.section-header h3,
-.section-header h4 {
-    color: #1C3D2D;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    margin: 0;
-    font-weight: 500;
+    display: block; /* Remove o grid do modal padrão */
+    overflow-y: auto; /* Garante rolagem no corpo do modal de checkout */
 }
 
 /* Estilos de Formulário */
 .form-group {
-    margin-bottom: 0.75rem;
-    position: relative;
+    margin-bottom: 1.25rem;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #1C3D2D;
-    font-size: 0.9rem;
+    color: var(--primary-dark);
+    font-size: 0.95rem;
 }
 
 .form-group input[type="text"],
 .form-group input[type="tel"],
+.form-group input[type="number"],
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid #D4E8DC;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    color: #333;
-    background-color: white;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    color: var(--foreground);
+    background-color: var(--input);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-    border-color: #1C3D2D;
-    box-shadow: 0 0 0 3px rgba(28, 61, 45, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--accent-light);
     outline: none;
 }
 
-/* Layout em linha dos campos */
 .form-row {
     display: flex;
-    gap: 0.6rem;
-    align-items: flex-start;
+    gap: 1rem;
 }
 
 .form-row > .form-group {
     flex: 1;
-    min-width: 0;
 }
 
-/* Campos específicos */
+/* Estilo específico para o campo CEP */
 #customerCep {
-    max-width: 130px;
+    max-width: 150px; /* Limita a largura do campo CEP */
 }
 
-.address-number-group {
-    flex: 0 0 100px;
-}
-
-#customerObservation {
-    min-height: 80px;
-    max-height: 100px;
-    resize: vertical;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    display: block;
-}
-
-/* Estilos para select */
-.form-group select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231C3D2D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E" );
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 2.5rem;
-}
-
-/* Campos desabilitados */
-.form-group input:disabled,
-.form-group select:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Seção do Resumo */
-.checkout-summary-section {
-    background: #F9FDF9;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #E8F5E9;
-}
-
+/* Estilos do Resumo do Pedido */
 .order-summary {
-    margin-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: var(--muted);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
 }
 
 .order-summary h4 {
-    font-size: 1rem;
-    color: #1C3D2D;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
 }
 
-/* Lista de itens */
 #checkoutSummaryList {
     list-style: none;
     padding: 0;
-    margin-bottom: 0.5rem;
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #E8F5E9;
-    border-radius: 6px;
-    padding: 0.5rem;
-    background: white;
+    margin-bottom: 1rem;
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: 1rem;
 }
 
 #checkoutSummaryList li {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.4rem 0.3rem;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 0.85rem;
-    line-height: 1.2;
-}
-
-#checkoutSummaryList li:last-child {
-    border-bottom: none;
-}
-
-/* Totais */
-.summary-totals {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #E8F5E9;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--muted-foreground);
 }
 
 .total-summary {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 0.5rem;
-    background: linear-gradient(135deg, #1C3D2D 0%, #2A5C42 100%);
-    color: white;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-}
-
-.total-summary span:first-child {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.total-summary span:last-child {
+    font-size: 1.1rem;
     font-weight: 700;
-    font-size: 1rem;
+    color: var(--primary-dark);
 }
 
-/* Seção de detalhes */
-.delivery-payment-section {
-    background: white;
-    padding: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid #E8F5E9;
-    margin-bottom: 1rem;
-}
-
-.delivery-payment-section h5 {
-    color: #1C3D2D;
-    font-size: 0.95rem;
-    margin-bottom: 0.8rem;
-    font-weight: 600;
-}
-
-#deliveryDetails p,
-#paymentDetails p {
-    margin: 0.4rem 0;
-    font-size: 0.9rem;
-    color: #555;
-}
-
-/* Botões */
 .checkout-submit-btn {
     width: 100%;
-    padding: 0.8rem;
-    background: linear-gradient(135deg, #1C3D2D 0%, #2A5C42 100%);
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 0.5rem;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .checkout-submit-btn:hover {
-    background: linear-gradient(135deg, #0F2620 0%, #1C3D2D 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.2);
+    background: var(--primary-dark);
+    transform: translateY(-1px);
 }
 
-.checkout-submit-btn:disabled {
-    background: #cccccc;
+/* Estilos para o campo de número da casa */
+.address-number-group {
+    flex: 0 0 120px; /* Largura fixa para o número */
+}
+
+/* Estilos para campos desabilitados */
+.form-group input:disabled,
+.form-group select:disabled {
+    background-color: var(--border);
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-/* Card Expansível de Informações do Frete */
-.delivery-info-card {
-    margin: 0.5rem 0;
-    border: 1px solid #E8F5E9;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    opacity: 0.8;
 }
+
+/* Estilos específicos para o SELECT */
+.form-group select {
+    /* Remove a aparência nativa do select */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Adiciona um ícone de seta customizado */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23303823' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem; /* Espaço para a seta */
 }
-.delivery-info-toggle {
-    width: 100%;
-    padding: 0.8rem 1rem;
-    background: #F9FDF9;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+
+/* Adicione ao seu CSS existente */
+.order-summary {
+    background: var(--muted);
+    padding: var(--spacing-md);
+    border-radius: var(--radius);
+    margin: var(--spacing-lg) 0;
+}
+
+.order-summary h4 {
+    color: var(--primary);
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+}
+
+.order-summary ul {
+    list-style: none;
+    margin-bottom: var(--spacing-md);
+}
+
+.order-summary li {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    color: #1C3D2D;
-}
-
-.delivery-info-toggle:hover {
-    background: #E8F5E9;
-}
-
-.delivery-info-toggle .toggle-header {
-    display: flex;
     align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border);
 }
 
-.delivery-info-content {
-    /* Estilos iniciais controlados pelo JS */
-    padding: 0 1rem;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+.order-summary li:last-child {
+    border-bottom: none;
 }
 
-.delivery-info-content p {
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin-bottom: 0.75rem;
-    color: #555;
-}
-
-.delivery-info-content .info-section {
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #f0f0f0;
-}
-
-.delivery-info-content .info-section h4 {
-    font-size: 1rem;
-    color: #1C3D2D;
-    margin-bottom: 0.5rem;
-}
-
-.delivery-info-content .simple-list {
-    list-style: disc;
-    padding-left: 1.2rem;
-    margin-bottom: 0.75rem;
-}
-
-.delivery-info-content .simple-list li {
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: #555;
-}
-
-.delivery-info-content .inline-options {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 0.75rem;
-}
-
-.delivery-info-content .inline-option {
-    background: #E8F5E9;
-    color: #1C3D2D;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.delivery-info-content .simple-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-    margin-bottom: 0.75rem;
-}
-
-.delivery-info-content .simple-option {
-    padding: 8px;
-    border: 1px solid #D4E8DC;
-    border-radius: 6px;
-    background: #F9FDF9;
-}
-
-.delivery-info-content .simple-option h5 {
-    font-size: 0.9rem;
+.total-summary {
     font-weight: 600;
-    color: #1C3D2D;
-    margin-bottom: 4px;
+    font-size: 1.1em;
+    color: var(--primary);
+    text-align: center;
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--primary);
 }
 
-.delivery-info-content .simple-option p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: #777;
-}
-
-.delivery-info-content .final-note {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background: #D4E8DC;
-    border-radius: 6px;
-    margin-top: 1rem;
-}
-
-.delivery-info-content .final-note p {
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #1C3D2D;
-}
-
-.toggle-icon {
-    transition: transform 0.3s ease;
-}
-
-/* Ajuste para o header do card de frete */
-.delivery-info-content .section-header {
-    margin: 0.5rem 0;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid #E8F5E9;
-}
-
-.delivery-info-content .section-header h4 {
-    font-size: 1rem;
+/* Estilos para o status do frete */
+.delivery-fee-status {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    text-align: center;
     font-weight: 600;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    color: #1565c0;
 }
 
-/* Ajuste para mobile */
-@media (max-width: 768px) {
-    .delivery-info-toggle {
-        padding: 0.7rem 0.8rem;
-        font-size: 0.9rem;
-    }
-    
-    .delivery-info-content {
-        padding: 0 0.8rem;
-    }
-    
-    .delivery-info-content p {
-        font-size: 0.85rem;
-    }
-    
-    .delivery-info-content .simple-list {
-        padding-left: 1rem;
-    }
-    
-    .delivery-info-content .simple-list li {
-        font-size: 0.8rem;
-    }
-    
-    .delivery-info-content .inline-option {
-        font-size: 0.75rem;
-    }
-    
-    .delivery-info-content .simple-option h5 {
-        font-size: 0.85rem;
-    }
-    
-    .delivery-info-content .simple-option p {
-        font-size: 0.7rem;
-    }
-}/* Ajustes para mobile */
-@media (max-width: 768px) {
-    .address-number-group {
-        flex: 1;
-    }
-    
-    #customerCep {
-        max-width: 100%;
-    }
-    
-    .form-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    
-    .form-group input[type="text"],
-    .form-group input[type="tel"],
-    .form-group textarea,
-    .form-group select {
-        padding: 0.7rem 0.9rem;
-    }
-    
-    #customerObservation {
-        min-height: 100px;
-    }
-    
-    .checkout-submit-btn {
-        padding: 0.9rem;
-        font-size: 1rem;
-    }
+.delivery-fee-status.calculating {
+    background: #fff3e0;
+    border-color: #ffe0b2;
+    color: #ef6c00;
 }
 
-/* Scrollbar */
-.checkout-modal-content::-webkit-scrollbar,
-.checkout-summary-section::-webkit-scrollbar,
-#checkoutSummaryList::-webkit-scrollbar {
-    width: 4px;
-}
-
-.checkout-modal-content::-webkit-scrollbar-track,
-.checkout-summary-section::-webkit-scrollbar-track,
-#checkoutSummaryList::-webkit-scrollbar-track {
-    background: #f8f9fa;
-}
-
-.checkout-modal-content::-webkit-scrollbar-thumb,
-.checkout-summary-section::-webkit-scrollbar-thumb,
-#checkoutSummaryList::-webkit-scrollbar-thumb {
-    background: #A2B28E;
-    border-radius: 2px;
-}
-
-/* Validação */
-.form-group.required label:after {
-    content: " *";
-    color: #e74c3c;
-}
-
-.form-group.error input,
-.form-group.error textarea,
-.form-group.error select {
-    border-color: #e74c3c;
-    background-color: #ffeaea;
-}
-
-.error-message {
-    color: #e74c3c;
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-    display: none;
-}
-
-.form-group.error .error-message {
-    display: block;
-}
-
-/* Grupo CEP */
-.cep-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.cep-group input {
-    flex: 1;
-}
-
-/* Status do CEP */
-.cep-status {
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    display: none;
-}
-
-.cep-status.success {
-    display: block;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.cep-status.error {
-    display: block;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.cep-status.loading {
-    display: block;
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
-}
-
-/* Opção dinheiro condicional */
-.cash-option {
-    display: none;
-}
-
-/* Animação */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.checkout-modal-content {
-    animation: fadeIn 0.2s ease-out;
+/* Preview da imagem (para desenvolvimento) */
+.image-preview {
+    max-width: 100%;
+    margin: 10px 0;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
 }

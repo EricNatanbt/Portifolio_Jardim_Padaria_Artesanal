@@ -19,6 +19,8 @@
 }
 
 .modal-content {
+    display: flex;
+    flex-direction: column;
     background: white;
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -45,6 +47,9 @@
 }
 
 .modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Para rolagem suave em iOS */
     padding: 1.5rem;
     display: grid;
     grid-template-columns: 120px 1fr;
@@ -120,6 +125,9 @@
 /* Responsividade */
 @media (max-width: 768px) {
     .modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Para rolagem suave em iOS */
         grid-template-columns: 1fr;
         text-align: center;
     }
@@ -189,23 +197,4 @@
 .contact-modal-content .modal-footer {
     border-top: none;
     padding-top: 0;
-}
-/* Estilo para modais sobrepostos */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-}
-
-/* Aumentar z-index para modal de informações do frete */
-#deliveryInfoModal {
-    z-index: 1002; /* Maior que o modal de checkout */
-}
-
-/* Fazer o overlay do modal de informações do frete ser mais transparente */
-#deliveryInfoModal .modal-overlay {
-    background: rgba(0, 0, 0, 0.5); /* Mais transparente que os outros overlays */
 }
