@@ -190,3 +190,22 @@
     border-top: none;
     padding-top: 0;
 }
+/* Estilo para modais sobrepostos */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+/* Aumentar z-index para modal de informações do frete */
+#deliveryInfoModal {
+    z-index: 1002; /* Maior que o modal de checkout */
+}
+
+/* Fazer o overlay do modal de informações do frete ser mais transparente */
+#deliveryInfoModal .modal-overlay {
+    background: rgba(0, 0, 0, 0.5); /* Mais transparente que os outros overlays */
+}

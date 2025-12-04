@@ -266,7 +266,7 @@ class OrderDisplay {
     }
 
     displayOrderItems( ) {
-        const items = this.orderData.order.items;
+                const items = this.orderData.order.items;
         const itemsTable = document.getElementById('orderItems');
         
         if (!itemsTable || !items) return;

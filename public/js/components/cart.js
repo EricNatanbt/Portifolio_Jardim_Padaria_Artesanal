@@ -103,57 +103,205 @@ const Cart = {
         }
         
         if (checkoutModalOverlay) {
-            checkoutModalOverlay.addEventListener("click", (e) => {
+checkoutModalOverlay.addEventListener("click", (e) => {
+            e.preventDefault();
+            // Verifica se o modal de informações do frete está aberto. Se estiver, não fecha o modal de checkout.
+            const deliveryInfoModal = document.getElementById("deliveryInfoModal");
+            if (deliveryInfoModal && deliveryInfoModal.style.display === 'flex') {
+                return;
+            }
+            this.closeCheckoutModal();
+        });
+        }
+    },
+
+   // NOVO: Atualizar opções de pagamento baseado na opção de entrega
+_updatePaymentMethods() {
+    const deliveryOptionSelect = document.getElementById("deliveryOption");
+    const paymentMethodSelect = document.getElementById("paymentMethod");
+    
+    if (!deliveryOptionSelect || !paymentMethodSelect) return;
+    
+    // Salva a opção atual selecionada
+    const currentValue = paymentMethodSelect.value;
+    
+    // Limpa as opções atuais
+    paymentMethodSelect.innerHTML = '';
+    
+    // Opções para entrega
+    if (deliveryOptionSelect.value === 'entrega') {
+        paymentMethodSelect.innerHTML = `
+            <option value="pix">Pix</option>
+            <option value="cartao">Cartão (Crédito/Débito)</option>
+        `;
+    } 
+    // Opções para retirada (inclui dinheiro)
+    else if (deliveryOptionSelect.value === 'retirada') {
+        paymentMethodSelect.innerHTML = `
+            <option value="pix">Pix</option>
+            <option value="cartao">Cartão (Crédito/Débito)</option>
+            <option value="dinheiro">Dinheiro</option>
+        `;
+    }
+    
+    // Tenta restaurar a opção anterior, se ainda estiver disponível
+    const availableValues = Array.from(paymentMethodSelect.options).map(opt => opt.value);
+    if (availableValues.includes(currentValue)) {
+        paymentMethodSelect.value = currentValue;
+    }
+},
+
+// FUNÇÕES DO MODAL DE INFORMAÇÕES DO FRETE - CORRIGIDO:
+// FUNÇÕES DO MODAL DE INFORMAÇÕES DO FRETE - VERSÃO CORRIGIDA:
+_setupDeliveryInfoModalListeners() {
+    const closeDeliveryInfoModal = document.getElementById("closeDeliveryInfoModal");
+    const closeDeliveryInfoBtn = document.getElementById("closeDeliveryInfoBtn");
+    const deliveryInfoModalOverlay = document.getElementById("deliveryInfoModalOverlay");
+    
+    console.log('🔍 Configurando listeners do modal de informações do frete...');
+    
+    // Remove listeners antigos para evitar duplicação
+    if (closeDeliveryInfoModal) {
+        closeDeliveryInfoModal.removeEventListener("click", this._closeDeliveryInfoModal);
+        closeDeliveryInfoModal.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Garante que o clique não se propague para o modal de checkout subjacente
+            this._closeDeliveryInfoModal();
+        });
+        console.log('✅ Listener adicionado ao closeDeliveryInfoModal');
+    }
+    
+    if (closeDeliveryInfoBtn) {
+        closeDeliveryInfoBtn.removeEventListener("click", this._closeDeliveryInfoModal);
+        closeDeliveryInfoBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Garante que o clique não se propague para o modal de checkout subjacente
+            this._closeDeliveryInfoModal();
+        });
+        console.log('✅ Listener adicionado ao closeDeliveryInfoBtn');
+    }
+    
+    if (deliveryInfoModalOverlay) {
+        deliveryInfoModalOverlay.removeEventListener("click", this._closeDeliveryInfoModal);
+        deliveryInfoModalOverlay.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Garante que o clique não se propague para o modal de checkout subjacente
+            this._closeDeliveryInfoModal();
+        });
+        console.log('✅ Listener adicionado ao deliveryInfoModalOverlay');
+    }
+},
+
+_openDeliveryInfoModal() {
+    console.log('🔄 Abrindo modal de informações do frete...');
+    const deliveryInfoModal = document.getElementById("deliveryInfoModal");
+    
+    console.log('Modal de informações encontrado:', deliveryInfoModal);
+    
+    if (deliveryInfoModal) {
+        // NÃO fecha o modal de checkout - apenas abre o modal de informações
+        // como overlay/sobreposição
+        
+        // Abre o modal de informações
+        deliveryInfoModal.style.display = "flex";
+        
+        // Traz para frente com z-index alto
+        deliveryInfoModal.style.zIndex = "2000";
+        
+        console.log('✅ Modal de informações do frete aberto (sobreposto)');
+    } else {
+        console.error('❌ Modal de informações do frete não encontrado!');
+    }
+},
+
+_closeDeliveryInfoModal() {
+    console.log('🔄 Fechando modal de informações do frete...');
+    const deliveryInfoModal = document.getElementById("deliveryInfoModal");
+    
+    if (deliveryInfoModal) {
+        deliveryInfoModal.style.display = "none";
+        deliveryInfoModal.style.zIndex = "";
+        console.log('✅ Modal de informações do frete fechado');
+    }
+},
+
+_setupFormListeners() {
+    const checkoutForm = document.getElementById("checkoutForm");
+    const customerPhoneInput = document.getElementById("customerPhone");
+    const customerCepInput = document.getElementById("customerCep");
+    const deliveryOptionSelect = document.getElementById("deliveryOption");
+
+    if (checkoutForm) {
+        // Remove qualquer listener antigo
+        checkoutForm.removeEventListener("submit", this._handleSubmitBound);
+        
+        // Cria novo handler bindado
+        this._handleSubmitBound = this._handleCheckoutSubmit.bind(this);
+        checkoutForm.addEventListener("submit", this._handleSubmitBound);
+    }
+
+    // Máscara de telefone
+    if (customerPhoneInput) {
+        this._applyPhoneMask(customerPhoneInput);
+    }
+
+    // Máscara de CEP
+    if (customerCepInput) {
+        this._applyCepMask(customerCepInput);
+        
+        // Auto-preenchimento de endereço ao sair do campo CEP
+        customerCepInput.addEventListener('blur', async (e) => {
+            await this._fetchAddressByCep(e.target.value);
+        });
+        
+        // Também busca ao pressionar Enter
+        customerCepInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
                 e.preventDefault();
-                this.closeCheckoutModal();
-            });
-        }
-    },
-
-    _setupFormListeners() {
-        const checkoutForm = document.getElementById("checkoutForm");
-        const customerPhoneInput = document.getElementById("customerPhone");
-        const customerCepInput = document.getElementById("customerCep");
-        const deliveryOptionSelect = document.getElementById("deliveryOption");
-
-        if (checkoutForm) {
-            // Remove qualquer listener antigo
-            checkoutForm.removeEventListener("submit", this._handleSubmitBound);
-            
-            // Cria novo handler bindado
-            this._handleSubmitBound = this._handleCheckoutSubmit.bind(this);
-            checkoutForm.addEventListener("submit", this._handleSubmitBound);
-        }
-
-        // Máscara de telefone
-        if (customerPhoneInput) {
-            this._applyPhoneMask(customerPhoneInput);
-        }
-
-        // Máscara de CEP
-        if (customerCepInput) {
-            this._applyCepMask(customerCepInput);
-            
-            // Auto-preenchimento de endereço ao sair do campo CEP
-            customerCepInput.addEventListener('blur', async (e) => {
                 await this._fetchAddressByCep(e.target.value);
-            });
-            
-            // Também busca ao pressionar Enter
-            customerCepInput.addEventListener('keypress', async (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    await this._fetchAddressByCep(e.target.value);
-                }
-            });
-        }
+            }
+        });
+    }
 
-        // Toggle campos de endereço
-        if (deliveryOptionSelect) {
-            this._setupDeliveryOptionToggle();
+    // Toggle campos de endereço
+    if (deliveryOptionSelect) {
+        this._setupDeliveryOptionToggle();
+        
+        // Adiciona listener para atualizar opções de pagamento
+        deliveryOptionSelect.addEventListener('change', () => {
+            this._updatePaymentMethods();
+        });
+    }
+    
+    // Botão de informações do frete - CORRIGIDO
+    const deliveryInfoBtn = document.getElementById('deliveryInfoBtn');
+    if (deliveryInfoBtn) {
+        // Remove qualquer listener antigo
+        deliveryInfoBtn.removeEventListener('click', this._openDeliveryInfoModal);
+        deliveryInfoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Garante que o clique não se propague para o overlay do modal de checkout
+            console.log('🎯 Clicou em Informações do Frete');
+            this._openDeliveryInfoModal();
+        });
+        console.log('✅ Listener adicionado ao botão de informações do frete');
+    }
+    
+    // Listeners para o modal de informações do frete
+    this._setupDeliveryInfoModalListeners();
+    
+    // Adiciona listener para ESC key - fecha apenas o modal de informações
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const deliveryInfoModal = document.getElementById("deliveryInfoModal");
+            if (deliveryInfoModal && deliveryInfoModal.style.display === "flex") {
+                e.preventDefault();
+                e.stopPropagation();
+                this._closeDeliveryInfoModal();
+            }
         }
-    },
-
+    });
+},
     // ============================================
     // FUNÇÕES AUXILIARES DE FORMULÁRIO
     // ============================================
@@ -187,35 +335,41 @@ const Cart = {
     },
 
     _setupDeliveryOptionToggle() {
-        const deliveryOptionSelect = document.getElementById("deliveryOption");
-        const addressFieldsDiv = document.getElementById("addressFields");
+    const deliveryOptionSelect = document.getElementById("deliveryOption");
+    const addressFieldsDiv = document.getElementById("addressFields");
+    
+    if (!deliveryOptionSelect || !addressFieldsDiv) return;
+
+    const toggleAddressFields = () => {
+        if (deliveryOptionSelect.value === 'retirada') {
+            addressFieldsDiv.style.display = 'none';
+            // Remove required dos campos de endereço
+            addressFieldsDiv.querySelectorAll('input').forEach(input => {
+                input.removeAttribute('required');
+            });
+            // Zera o frete
+            this.deliveryFee = 0;
+            this.updateCheckoutSummary();
+        } else {
+            addressFieldsDiv.style.display = 'block';
+            // Adiciona required aos campos
+            const requiredFields = ['customerCep', 'customerStreet', 'customerNumber', 'customerNeighborhood', 'customerCity'];
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) field.setAttribute('required', '');
+            });
+        }
         
-        if (!deliveryOptionSelect || !addressFieldsDiv) return;
+        // NOVO: Atualiza opções de pagamento
+        this._updatePaymentMethods();
+    };
 
-        const toggleAddressFields = () => {
-            if (deliveryOptionSelect.value === 'retirada') {
-                addressFieldsDiv.style.display = 'none';
-                // Remove required dos campos de endereço
-                addressFieldsDiv.querySelectorAll('input').forEach(input => {
-                    input.removeAttribute('required');
-                });
-                // Zera o frete
-                this.deliveryFee = 0;
-                this.updateCheckoutSummary();
-            } else {
-                addressFieldsDiv.style.display = 'block';
-                // Adiciona required aos campos
-                const requiredFields = ['customerCep', 'customerStreet', 'customerNumber', 'customerNeighborhood', 'customerCity'];
-                requiredFields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field) field.setAttribute('required', '');
-                });
-            }
-        };
-
-        deliveryOptionSelect.addEventListener('change', toggleAddressFields);
-        toggleAddressFields(); // Executa na inicialização
-    },
+    deliveryOptionSelect.addEventListener('change', toggleAddressFields);
+    toggleAddressFields(); // Executa na inicialização
+    
+    // NOVO: Também chama para configurar as opções de pagamento iniciais
+    this._updatePaymentMethods();
+},
 
     // ============================================
     // BUSCA DE ENDEREÇO POR CEP (VIA CEP API)

@@ -342,7 +342,7 @@ class OrderDisplay {
         const order = this.orderData.order;
         const summaryDiv = document.getElementById('orderSummary');
         
-        if (!summaryDiv) return;
+                if (!summaryDiv) return;
         
         const subtotal = order.subtotal || 0;
         const deliveryFee = order.delivery_fee || 0; // Usando delivery_fee do banco

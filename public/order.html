@@ -326,7 +326,7 @@
                                     <strong>Pagamento:</strong>
                                     <span>${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
                                 </div>
-                                ${order.observation ? `
+                               ${order.observation ? `
                                 <div class="info-item">
                                     <strong>Observação:</strong>
                                     <span style="color: #e67e22;">${this.escapeHtml(order.observation)}</span>

@@ -30,10 +30,6 @@
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
 
-
-
-
-
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
@@ -235,83 +231,159 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="checkoutForm">
-                    <div class="form-group">
-                        <label for="customerName">Nome Completo:</label>
-                        <input type="text" id="customerName" name="customerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPhone">Telefone de Contato (WhatsApp):</label>
-                        <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX) XXXXX-XXXX" required>
+                <!-- COLUNA DA ESQUERDA: Formulário Principal -->
+                <div class="checkout-form-section">
+                    <form id="checkoutForm">
+                        <!-- Informações Pessoais -->
+                        <div class="section-header">
+                            <div class="header-icon">👤</div>
+                            <h3>Informações Pessoais</h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group required">
+                                <label for="customerName">Nome:</label>
+                                <input type="text" id="customerName" name="customerName" required placeholder="Nome completo">
+                            </div>
+                            <div class="form-group required">
+                                <label for="customerPhone">Telefone:</label>
+                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX ) XXXXX-XXXX" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Entrega e Pagamento -->
+                        <div class="section-header">
+                            <div class="header-icon">🚚</div>
+                            <h3>Entrega e Pagamento</h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group required">
+                                <label for="deliveryOption">Recebimento:</label>
+                                <select id="deliveryOption" name="deliveryOption" required>
+                                    <option value="entrega">Entrega</option>
+                                    <option value="retirada">Retirada na Loja</option>
+                                </select>
+                            </div>
+                            <div class="form-group required">
+                                <label for="paymentMethod">Pagamento:</label>
+                                <select id="paymentMethod" name="paymentMethod" required>
+                                    <option value="pix">Pix</option>
+                                    <option value="cartao">Cartão</option>
+                                    <option value="dinheiro" class="cash-option">Dinheiro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Endereço -->
+                        <div id="addressFields">
+                            <div class="section-header">
+                                <div class="header-icon">📍</div>
+                                <h3>Endereço de Entrega</h3>
+                            </div>
+                            
+                            <div class="form-group required">
+                                <label for="customerCep">CEP:</label>
+                                <div class="cep-group">
+                                    <input type="text" id="customerCep" name="customerCep" placeholder="00000-000" maxlength="9" required>
+                                </div>
+                            </div>
+                            <div class="form-group required">
+                                <label for="customerStreet">Rua:</label>
+                                <input type="text" id="customerStreet" name="customerStreet" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group address-number-group required">
+                                    <label for="customerNumber">Número:</label>
+                                    <input type="text" id="customerNumber" name="customerNumber" required>
+                                </div>
+                                <div class="form-group required">
+                                    <label for="customerNeighborhood">Bairro:</label>
+                                    <input type="text" id="customerNeighborhood" name="customerNeighborhood" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="customerComplement">Complemento:</label>
+                                    <input type="text" id="customerComplement" name="customerComplement" placeholder="Apto, casa, etc.">
+                                </div>
+                                <div class="form-group required">
+                                    <label for="customerCity">Cidade/Estado:</label>
+                                    <input type="text" id="customerCity" name="customerCity" required>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- COLUNA DA DIREITA: PARTE SUPERIOR (Observações + Botão Frete) -->
+                <div class="checkout-extra-section">
+                    <div class="section-header">
+                        <div class="header-icon">📝</div>
+                        <h3>Observações</h3>
                     </div>
                     
-                    <!-- NOVO: Opção de Retirada/Entrega -->
                     <div class="form-group">
-                        <label for="deliveryOption">Opção de Recebimento:</label>
-                        <select id="deliveryOption" name="deliveryOption" required>
-                            <option value="entrega">Entrega</option>
-                            <option value="retirada">Retirada na Loja</option>
-                        </select>
-                    </div>
-
-                    <!-- NOVO: Forma de Pagamento -->
-                    <div class="form-group">
-                        <label for="paymentMethod">Forma de Pagamento:</label>
-                        <select id="paymentMethod" name="paymentMethod" required>
-                            <option value="pix">Pix</option>
-                            <option value="cartao">Cartão (Crédito/Débito)</option>
-                        </select>
-                    </div>
-
-                    <!-- Campos de Endereço (Visibilidade controlada pelo JS) -->
-                    <div id="addressFields">
-                    <div class="form-group">
-                        <label for="customerCep">CEP:</label>
-                        <input type="text" id="customerCep" name="customerCep" placeholder="00000-000" maxlength="9" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerStreet">Rua/Avenida:</label>
-                        <input type="text" id="customerStreet" name="customerStreet" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group address-number-group">
-                            <label for="customerNumber">Número:</label>
-                            <input type="text" id="customerNumber" name="customerNumber" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="customerNeighborhood">Bairro:</label>
-                            <input type="text" id="customerNeighborhood" name="customerNeighborhood" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerComplement">Complemento (Opcional):</label>
-                        <input type="text" id="customerComplement" name="customerComplement">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerCity">Cidade/Estado:</label>
-                        <input type="text" id="customerCity" name="customerCity" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="customerObservation">Observação no Pedido (Opcional):</label>
+                        <label for="customerObservation">Observação do Pedido:</label>
                         <textarea 
                             id="customerObservation" 
                             name="customerObservation" 
                             placeholder="Ex: Sem cebola, ponto da carne, alergias, etc..."
                             rows="3"
-                            maxlength="500"
+                            maxlength="300"
                         ></textarea>
-                        <small style="color: #666; font-size: 0.9em;">Máximo 500 caracteres</small>
+                        <small style="color: #666; font-size: 0.8em; display: block; margin-top: 0.25rem;">
+                            Máximo 300 caracteres
+                        </small>
                     </div>
-                    </div> <!-- Fecha a div addressFields -->
+                    
+                    <!-- Botão de Informações do Frete -->
+                    <button type="button" id="deliveryInfoBtn" class="delivery-info-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Informações do Frete
+                    </button>
+                </div>
+                
+                <!-- COLUNA DA DIREITA: PARTE INFERIOR (Resumo do Pedido) -->
+                <div class="checkout-summary-section">
+                    <div class="section-header">
+                        <div class="header-icon">📋</div>
+                        <h3>Resumo do Pedido</h3>
+                    </div>
+                    
                     <div class="order-summary">
-                        <h4>Resumo do Pedido</h4>
+                        <h4>Seus Itens</h4>
                         <ul id="checkoutSummaryList">
                             <!-- Itens do carrinho serão injetados aqui -->
-                        </ul>
-                        <p class="total-summary">Total: <span id="checkoutTotal">A ser calculado</span></p>
+                        </ul>  
+
+                
+                            
+                            <div class="total-summary">
+                                <span>TOTAL:</span>
+                                <span id="checkoutTotal">R$ 0,00</span>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="checkout-submit-btn">Enviar Pedido por WhatsApp</button>
-                </form>
+                    
+                    <button type="submit" form="checkoutForm" class="checkout-submit-btn">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+     style="margin-right: 6px;">
+    <polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+
+                        Finalizar Pedido
+                    </button>
+                    
+                    <p style="text-align: center; margin-top: 8px; font-size: 0.8em; color: #666;">
+                        Você será redirecionado para o WhatsApp para finalizar o pedido.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -345,7 +417,95 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Modal de Informações do Frete -->
+    <div id="deliveryInfoModal" class="modal" style="display: none;">
+        <div class="modal-overlay" id="deliveryInfoModalOverlay"></div>
+        <div class="modal-content delivery-info-modal-content">
+            <div class="modal-header">
+                <h3>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 12px;">
+                        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    Informações do Frete
+                </h3>
+                <button id="closeDeliveryInfoModal" class="close-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delivery-info-container">
+                    
+                    <!-- Introdução -->
+                    <p class="intro-text">
+                        Nossa entrega é feita por motoboys parceiros, garantindo agilidade e o cuidado que seus produtos merecem.
+                    </p>
+
+                    <!-- Seção 1: Cuidados -->
+                    <div class="info-section">
+                        <div class="section-header">
+                            <h4>Nossos Cuidados</h4>
+                        </div>
+                        <ul class="simple-list">
+                            <li>Embalagem cuidadosa para evitar danos</li>
+                            <li>Códigos de coleta para maior segurança</li>
+                            <li>Acompanhamento em tempo real da entrega</li>
+                        </ul>
+                    </div>
+
+                    <!-- Seção 2: Garantias -->
+                    <div class="info-section">
+                        <div class="section-header">
+                            <h4>Nossas Garantias</h4>
+                        </div>
+                        <p class="section-text">Em caso de problemas com a entrega, oferecemos:</p>
+                        <div class="inline-options">
+                            <span class="inline-option">Estorno de 100% do valor</span>
+                            <span class="inline-option">Reposição dos produtos</span>
+                        </div>
+                    </div>
+
+                    <!-- Seção 3: Opções -->
+                    <div class="info-section">
+                        <div class="section-header">
+                            <h4>Opções Alternativas</h4>
+                        </div>
+                        <div class="simple-grid">
+                            <div class="simple-option">
+                                <h5>Retirada na Loja</h5>
+                                <p>Economize no frete - Horário combinado</p>
+                            </div>
+                            <div class="simple-option">
+                                <h5>Mesmo Bairro</h5>
+                                <p>Entrega gratuita mediante agendamento</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nota final -->
+                    <div class="final-note">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 10px;">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        <p>Experiência segura e tranquila, desde o forno até sua mesa.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeDeliveryInfoBtn" class="btn-primary simple-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path d="M5 12h14M12 5l7 7-7 7"></path>
+                    </svg>
+                    Entendi
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -356,7 +516,6 @@
 
             <div class="footer-section">
                 <h3>Contato</h3>
-
                 <p>📞 (83)99920-4618</p>
             </div>
 
@@ -385,42 +544,134 @@
     </footer>
 
 <!-- Scripts -->
-<!-- O arquivo menuData.js foi substituído pela integração com o Supabase -->
- <script type="module" src="js/supabaseClient.js"></script>
- <script type="module" src="js/api-client.js"></script>
-	
-
-<!-- Supabase Client -->
-	<script type="module" src="js/components/navigation.js"></script>
-	<script type="module" src="js/components/cart.js"></script>
-	<script type="module" src="js/components/carousel.js"></script>
-	<script type="module" src="js/components/modal.js"></script>
-	<!-- Page Scripts -->
-	<script type="module" src="js/pages/inicio.js"></script>
-	<script type="module" src="js/pages/sobrenos.js"></script>
-	<script type="module" src="js/pages/menu.js"></script>
-	<script type="module" src="js/pages/cuidados.js"></script>
-	<script type="module" src="js/pages/feedbacks.js"></script>
+<script type="module" src="js/supabaseClient.js"></script>
+<script type="module" src="js/api-client.js"></script>
+<script type="module" src="js/components/navigation.js"></script>
+<script type="module" src="js/components/cart.js"></script>
+<script type="module" src="js/components/carousel.js"></script>
+<script type="module" src="js/components/modal.js"></script>
+<!-- Page Scripts -->
+<script type="module" src="js/pages/inicio.js"></script>
+<script type="module" src="js/pages/sobrenos.js"></script>
+<script type="module" src="js/pages/menu.js"></script>
+<script type="module" src="js/pages/cuidados.js"></script>
+<script type="module" src="js/pages/feedbacks.js"></script>
 <!-- Main Script -->
-	<script type="module" src="js/main.js"></script>
-	
-
+<script type="module" src="js/main.js"></script>
 
 <!-- NOVO: Pages Loader -->
-<script src="js/pages-loader.js"></script>  <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-                    .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Falha no registro du Service Worker:', error);
-                    });
-            });
-        }
-    
-    </script>
-</body>
+<script src="js/pages-loader.js"></script>
 
+<script>
+    if ('serviceWorker' in navigator ) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+                .then(registration => {
+                    console.log('Service Worker registrado com sucesso:', registration);
+                })
+                .catch(error => {
+                    console.log('Falha no registro du Service Worker:', error);
+                });
+        });
+    }
+    
+    // SCRIPT DE CONTROLE DO MODAL DE INFORMAÇÕES DO FRETE
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚚 Inicializando controle do modal de informações do frete...');
+        
+        // Função para abrir o modal
+        function openDeliveryInfoModal() {
+            console.log('🎯 Abrindo modal de informações do frete...');
+            const modal = document.getElementById('deliveryInfoModal');
+            if (modal) {
+                // Fecha o modal de checkout se estiver aberto
+                const checkoutModal = document.getElementById('checkoutModal');
+                if (checkoutModal && checkoutModal.style.display === 'flex') {
+                    checkoutModal.style.display = 'none';
+                }
+                
+                // Abre o modal de informações
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                console.log('✅ Modal aberto com sucesso');
+            } else {
+                console.error('❌ Modal não encontrado!');
+            }
+        }
+        
+        // Função para fechar o modal
+        function closeDeliveryInfoModal() {
+            console.log('🎯 Fechando modal de informações do frete...');
+            const modal = document.getElementById('deliveryInfoModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                console.log('✅ Modal fechado com sucesso');
+            }
+        }
+        
+        // Configurar event listeners após um delay para garantir que o DOM esteja pronto
+        setTimeout(function() {
+            // Botão para abrir o modal
+            const deliveryInfoBtn = document.getElementById('deliveryInfoBtn');
+            if (deliveryInfoBtn) {
+                console.log('✅ Botão de informações do frete encontrado');
+                // Remove qualquer listener anterior (evita duplicação)
+                deliveryInfoBtn.replaceWith(deliveryInfoBtn.cloneNode(true));
+                
+                // Pega o novo elemento
+                const newBtn = document.getElementById('deliveryInfoBtn');
+                newBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openDeliveryInfoModal();
+                });
+                console.log('✅ Listener adicionado ao botão');
+            } else {
+                console.error('❌ Botão de informações do frete não encontrado!');
+            }
+            
+            // Botões para fechar o modal
+            const closeDeliveryInfoModal = document.getElementById('closeDeliveryInfoModal');
+            const closeDeliveryInfoBtn = document.getElementById('closeDeliveryInfoBtn');
+            const deliveryInfoModalOverlay = document.getElementById('deliveryInfoModalOverlay');
+            
+            if (closeDeliveryInfoModal) {
+                closeDeliveryInfoModal.addEventListener('click', closeDeliveryInfoModal);
+                console.log('✅ Listener adicionado ao closeDeliveryInfoModal');
+            }
+            
+            if (closeDeliveryInfoBtn) {
+                closeDeliveryInfoBtn.addEventListener('click', closeDeliveryInfoModal);
+                console.log('✅ Listener adicionado ao closeDeliveryInfoBtn');
+            }
+            
+            if (deliveryInfoModalOverlay) {
+                deliveryInfoModalOverlay.addEventListener('click', closeDeliveryInfoModal);
+                console.log('✅ Listener adicionado ao deliveryInfoModalOverlay');
+            }
+            
+            // Fechar com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('deliveryInfoModal');
+                    if (modal && modal.style.display === 'flex') {
+                        closeDeliveryInfoModal();
+                    }
+                }
+            });
+            
+            console.log('✅ Todos os listeners configurados');
+            
+        }, 1000); // Delay de 1 segundo para garantir que tudo esteja carregado
+        
+        // Debug: Adiciona um botão de teste temporário
+        const testBtn = document.createElement('button');
+        testBtn.textContent = '🧪 Testar Modal Frete';
+        testBtn.style.cssText = 'position: fixed; top: 70px; left: 10px; z-index: 9999; padding: 8px 12px; background: #1C3D2D; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;';
+        testBtn.onclick = openDeliveryInfoModal;
+        document.body.appendChild(testBtn);
+    });
+</script>
+</body>
 </html>
