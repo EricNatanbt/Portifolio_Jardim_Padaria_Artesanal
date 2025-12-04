@@ -8,31 +8,27 @@
     <title>Jardim Padaria Artesanal</title>
 
     <!-- CSS Principal -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=2.0.0">
 
     <!-- CSS Components -->
-    <link rel="stylesheet" href="css/components/header.css">
-    <link rel="stylesheet" href="css/components/footer.css">
-    <link rel="stylesheet" href="css/components/carousel.css">
-    <link rel="stylesheet" href="css/components/modal.css">
-    <link rel="stylesheet" href="css/components/cart.css">
-    <link rel="stylesheet" href="css/components/contact-modal.css">
-    <link rel="stylesheet" href="css/components/checkout-modal.css">
+    <link rel="stylesheet" href="css/components/header.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/footer.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/carousel.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/modal.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/cart.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/contact-modal.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/checkout-modal.css?v=2.0.0">
 
     <!-- CSS Pages -->
-    <link rel="stylesheet" href="css/pages/inicio.css">
-    <link rel="stylesheet" href="css/pages/sobrenos.css">
-    <link rel="stylesheet" href="css/pages/menu.css">
-    <link rel="stylesheet" href="css/pages/cuidados.css">
-    <link rel="stylesheet" href="css/pages/feedbacks.css">
+    <link rel="stylesheet" href="css/pages/inicio.css?v=2.0.0">
+    <link rel="stylesheet" href="css/pages/sobrenos.css?v=2.0.0">
+    <link rel="stylesheet" href="css/pages/menu.css?v=2.0.0">
+    <link rel="stylesheet" href="css/pages/cuidados.css?v=2.0.0">
+    <link rel="stylesheet" href="css/pages/feedbacks.css?v=2.0.0">
 
     <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
-
-
-
-
 
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
@@ -510,56 +506,87 @@
     </footer>
 
 <!-- Scripts -->
-<!-- O arquivo menuData.js foi substituído pela integração com o Supabase -->
- <script type="module" src="js/supabaseClient.js"></script>
- <script type="module" src="js/api-client.js"></script>
-	
-
-<!-- Supabase Client -->
-	<script type="module" src="js/components/navigation.js"></script>
-	<script type="module" src="js/components/cart.js"></script>
-	<script type="module" src="js/components/carousel.js"></script>
-	<script type="module" src="js/components/modal.js"></script>
-	<!-- Page Scripts -->
-	<script type="module" src="js/pages/inicio.js"></script>
-	<script type="module" src="js/pages/sobrenos.js"></script>
-	<script type="module" src="js/pages/menu.js"></script>
-	<script type="module" src="js/pages/cuidados.js"></script>
-	<script type="module" src="js/pages/feedbacks.js"></script>
+<script type="module" src="js/supabaseClient.js?v=2.0.0"></script>
+<script type="module" src="js/api-client.js?v=2.0.0"></script>
+<script type="module" src="js/components/navigation.js?v=2.0.0"></script>
+<script type="module" src="js/components/cart.js?v=2.0.0"></script>
+<script type="module" src="js/components/carousel.js?v=2.0.0"></script>
+<script type="module" src="js/components/modal.js?v=2.0.0"></script>
+<!-- Page Scripts -->
+<script type="module" src="js/pages/inicio.js?v=2.0.0"></script>
+<script type="module" src="js/pages/sobrenos.js?v=2.0.0"></script>
+<script type="module" src="js/pages/menu.js?v=2.0.0"></script>
+<script type="module" src="js/pages/cuidados.js?v=2.0.0"></script>
+<script type="module" src="js/pages/feedbacks.js?v=2.0.0"></script>
 <!-- Main Script -->
-	<script type="module" src="js/main.js"></script>
-	
-
-
+<script type="module" src="js/main.js?v=2.0.0"></script>
 <!-- NOVO: Pages Loader -->
-<script src="js/pages-loader.js"></script>  <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-                    .then(registration => {
-                        console.log('Service Worker registrado com sucesso:', registration);
-                    })
-                    .catch(error => {
-                        console.log('Falha no registro du Service Worker:', error);
-                    });
-            });
-        }
-    
-    </script>
-    
-</body>
+<script src="js/pages-loader.js?v=2.0.0"></script>
+
+<!-- CORRIGIDO: Único script do Service Worker -->
 <script>
+    // Service Worker - Registro simplificado
     if ('serviceWorker' in navigator) {
-        // Força nova versão adicionando timestamp
-        navigator.serviceWorker.register('/service-worker.js?t=' + Date.now())
-            .then(registration => {
-                console.log('Service Worker registrado:', registration);
-                // Força atualização imediata
-                registration.update();
-            })
-            .catch(error => {
-                console.log('Falha no registro:', error);
-            });
+        // Limpa Service Workers antigos primeiro
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+                registration.unregister();
+                console.log('Service Worker antigo removido');
+            }
+            
+            // Aguarda um pouco antes de registrar o novo
+            setTimeout(() => {
+                // Registra o novo Service Worker sem parâmetros de versão
+                navigator.serviceWorker.register('/service-worker.js', {
+                    scope: '/',
+                    updateViaCache: 'none' // Importante: não usar cache para o SW
+                })
+                .then(registration => {
+                    console.log('✅ Service Worker registrado com sucesso');
+                    
+                    // Verifica se há uma nova versão
+                    if (registration.waiting) {
+                        console.log('🔄 Nova versão aguardando - recarregando...');
+                        registration.waiting.postMessage({type: 'SKIP_WAITING'});
+                        window.location.reload();
+                        return;
+                    }
+                    
+                    // Escuta por atualizações
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('🔄 Atualização encontrada para Service Worker');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('🔄 Nova versão instalada - recarregando...');
+                                newWorker.postMessage({type: 'SKIP_WAITING'});
+                                window.location.reload();
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.log('❌ Falha no registro do Service Worker:', error);
+                });
+            }, 100);
+        });
     }
+    
+    // Força limpeza de cache ao entrar
+    window.addEventListener('load', function() {
+        // Se houver parâmetro de limpeza, limpa cache
+        if (window.location.search.includes('clearCache')) {
+            if ('caches' in window) {
+                caches.keys().then(cacheNames => {
+                    cacheNames.forEach(cacheName => {
+                        caches.delete(cacheName);
+                        console.log('🗑️ Cache limpo:', cacheName);
+                    });
+                });
+            }
+        }
+    });
 </script>
+</body>
 </html>
