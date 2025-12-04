@@ -200,7 +200,12 @@ const Cart = {
         // Processa o pedido
         this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
             street, number, neighborhood, city, cep, complement
-        }, tempCartItems, tempDeliveryFee).then(() => {
+        }, tempCartItems, tempDeliveryFee).then((whatsappMessage) => {
+            
+            // ABRIR WHATSAPP AQUI (APÓS OBTENÇÃO DA MENSAGEM FINAL)
+            this._openWhatsAppMobile(whatsappMessage);
+            
+            // Limpa o carrinho APÓS confirmar que o WhatsApp foi aberto
             // Limpa o carrinho APÓS confirmar que o WhatsApp foi aberto
             this.cartItems = [];
             this.deliveryFee = 0;
@@ -324,7 +329,10 @@ const Cart = {
         );
         
         // PASSO 5: Abrir WhatsApp (MÉTODO CORRIGIDO PARA MOBILE)
-        return this._openWhatsAppMobile(message);
+        // A abertura do WhatsApp agora é feita de forma síncrona no _handleCheckoutSubmit
+        // para evitar bloqueio de pop-up. Aqui, apenas resolvemos a promessa.
+        // return this._openWhatsAppMobile(message); // Removido
+        return Promise.resolve(message); // Retorna a mensagem para ser usada no _handleCheckoutSubmit
     },
 
     _generateWhatsAppMessage(clientData, orderInfo, orderId, orderDetailLink) {
@@ -373,67 +381,42 @@ const Cart = {
 
     // CORREÇÃO CRÍTICA: Método para abrir WhatsApp no mobile
     _openWhatsAppMobile(message) {
-        return new Promise((resolve, reject) => {
-            try {
-                // Garante que a mensagem é uma string
-                if (typeof message !== 'string') {
-                    message = `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
-                }
-                
-                const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://wa.me/5583987194754?text=${encodedMessage}`;
-                
-                console.log('📱 Tentando abrir WhatsApp...');
-                console.log('🔗 URL:', whatsappUrl);
-                
-                // Verifica se é mobile
-                const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                    // MÉTODO 1: Tentar abrir app nativo do WhatsApp
-                    console.log('📱 Dispositivo mobile detectado, tentando métodos especiais...');
-                    
-                    // Método seguro para mobile: criar link visível e simular clique
-                    const tempLink = document.createElement('a');
-                    tempLink.href = whatsappUrl;
-                    tempLink.target = '_blank';
-                    tempLink.rel = 'noopener noreferrer';
-                    tempLink.style.display = 'none';
-                    document.body.appendChild(tempLink);
-                    
-                    // Simular clique com timeout
-                    setTimeout(() => {
-                        try {
-                            tempLink.click();
-                            console.log('✅ Clique simulado no link do WhatsApp');
-                            
-                            // Remove o link após o clique
-                            setTimeout(() => {
-                                document.body.removeChild(tempLink);
-                            }, 1000);
-                            
-                            resolve();
-                            
-                        } catch (clickError) {
-                            console.error('❌ Erro ao clicar no link:', clickError);
-                            // Fallback para window.open
-                            window.open(whatsappUrl, '_blank');
-                            resolve();
-                        }
-                    }, 100);
-                    
-                } else {
-                    // Para desktop, usar window.open normal
-                    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-                    console.log('💻 WhatsApp aberto em nova aba (desktop)');
-                    resolve();
-                }
-                
-            } catch (error) {
-                console.error('❌ Erro ao abrir WhatsApp:', error);
-                reject(error);
+        // Não retorna Promise, apenas executa a abertura
+        try {
+            // Garante que a mensagem é uma string
+            if (typeof message !== 'string') {
+                message = `*JARDIM PADARIA ARTESANAL*\n\nOlá! Acabei de fazer um pedido no site.\n\nPor favor, entre em contato comigo para finalizar o pedido!\n\nObrigado!`;
             }
-        });
+            
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/5583987194754?text=${encodedMessage}`;
+            
+            console.log('📱 Tentando abrir WhatsApp...');
+            console.log('🔗 URL:', whatsappUrl);
+            
+            // Verifica se é mobile
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // MÉTODO 1: Tentar abrir app nativo do WhatsApp
+                console.log('📱 Dispositivo mobile detectado, tentando métodos especiais...');
+                
+                // Usar window.open diretamente, que é o método mais confiável
+                // para ser acionado por um evento de clique (mesmo que assíncrono,
+                // o browser pode permitir se o delay for pequeno).
+                // O uso de tempLink.click() é mais propenso a falhas.
+                window.open(whatsappUrl, '_blank');
+                
+            } else {
+                // Para desktop, usar window.open normal
+                window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                console.log('💻 WhatsApp aberto em nova aba (desktop)');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao abrir WhatsApp:', error);
+            // Em caso de erro, não faz nada, apenas loga
+        }
     },
 
     // ============================================
