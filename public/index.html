@@ -30,6 +30,10 @@
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
 
+
+
+
+
     <link
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
@@ -217,7 +221,7 @@
         </div>
     </div>
 
-    <!-- Modal de Checkout -->
+<!-- Modal de Checkout -->
     <div id="checkoutModal" class="modal" style="display: none;">
         <div class="modal-overlay" id="checkoutModalOverlay"></div>
         <div class="modal-content checkout-modal-content">
@@ -467,8 +471,6 @@
         </div>
     </div>
 
-    
-
     <!-- Footer -->
     <footer>
         <div class="footer-content">
@@ -479,6 +481,7 @@
 
             <div class="footer-section">
                 <h3>Contato</h3>
+
                 <p>📞 (83)99920-4618</p>
             </div>
 
@@ -507,68 +510,42 @@
     </footer>
 
 <!-- Scripts -->
-<script type="module" src="js/supabaseClient.js"></script>
-<script type="module" src="js/api-client.js"></script>
-<script type="module" src="js/components/navigation.js"></script>
-<script type="module" src="js/components/cart.js"></script>
-<script type="module" src="js/components/carousel.js"></script>
-<script type="module" src="js/components/modal.js"></script>
-<!-- Page Scripts -->
-<script type="module" src="js/pages/inicio.js"></script>
-<script type="module" src="js/pages/sobrenos.js"></script>
-<script type="module" src="js/pages/menu.js"></script>
-<script type="module" src="js/pages/cuidados.js"></script>
-<script type="module" src="js/pages/feedbacks.js"></script>
+<!-- O arquivo menuData.js foi substituído pela integração com o Supabase -->
+ <script type="module" src="js/supabaseClient.js"></script>
+ <script type="module" src="js/api-client.js"></script>
+	
+
+<!-- Supabase Client -->
+	<script type="module" src="js/components/navigation.js"></script>
+	<script type="module" src="js/components/cart.js"></script>
+	<script type="module" src="js/components/carousel.js"></script>
+	<script type="module" src="js/components/modal.js"></script>
+	<!-- Page Scripts -->
+	<script type="module" src="js/pages/inicio.js"></script>
+	<script type="module" src="js/pages/sobrenos.js"></script>
+	<script type="module" src="js/pages/menu.js"></script>
+	<script type="module" src="js/pages/cuidados.js"></script>
+	<script type="module" src="js/pages/feedbacks.js"></script>
 <!-- Main Script -->
-<script type="module" src="js/main.js"></script>
+	<script type="module" src="js/main.js"></script>
+	
+
 
 <!-- NOVO: Pages Loader -->
-<script src="js/pages-loader.js"></script>
-
-<script>
-    if ('serviceWorker' in navigator ) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
-                .then(registration => {
-                    console.log('Service Worker registrado com sucesso:', registration);
-                })
-                .catch(error => {
-                    console.log('Falha no registro du Service Worker:', error);
-                });
-        });
-    }
+<script src="js/pages-loader.js"></script>  <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha no registro du Service Worker:', error);
+                    });
+            });
+        }
     
-// SCRIPT DE CONTROLE DO CARD EXPANSÍVEL DE INFORMAÇÕES DO FRETE
-	    document.addEventListener('DOMContentLoaded', function() {
-	        const toggleButton = document.getElementById('deliveryInfoToggle');
-	        const content = document.getElementById('deliveryInfoContent');
-	        const toggleIcon = document.getElementById('toggleIcon');
-	
-	        if (toggleButton && content && toggleIcon) {
-	            // Inicializa o conteúdo como fechado
-	            content.style.maxHeight = '0';
-	            content.style.overflow = 'hidden';
-	            content.style.transition = 'max-height 0.3s ease-out, padding 0.3s ease-out';
-	            content.style.padding = '0 1rem';
-	            
-	            toggleButton.addEventListener('click', function() {
-	                const isExpanded = content.style.maxHeight !== '0px';
-	                
-	                if (isExpanded) {
-	                    // Fechar
-	                    content.style.maxHeight = '0';
-	                    content.style.padding = '0 1rem';
-	                    toggleIcon.style.transform = 'rotate(0deg)';
-	                } else {
-	                    // Abrir
-	                    // Define uma altura máxima grande o suficiente para o conteúdo
-	                    content.style.maxHeight = content.scrollHeight + 'px';
-	                    content.style.padding = '1rem 1rem';
-	                    toggleIcon.style.transform = 'rotate(180deg)';
-	                }
-	            });
-	        }
-	    });
-</script>
+    </script>
 </body>
+
 </html>
