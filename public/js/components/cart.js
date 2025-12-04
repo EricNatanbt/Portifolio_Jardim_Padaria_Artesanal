@@ -188,9 +188,9 @@ _handleCheckoutSubmit(e) {
     console.log('📤 Processando pedido...');
     
     // CORREÇÃO: Remove o setTimeout e processa diretamente
-this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
-    street, number, neighborhood, city, cep, complement
-}).then(() => {
+    this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
+        street, number, neighborhood, city, cep, complement
+    }).then(() => {
         // Limpa o carrinho APÓS confirmar que o WhatsApp foi aberto
         this.cartItems = [];
         this.deliveryFee = 0;
@@ -385,7 +385,7 @@ _openWhatsAppMobile(message) {
             if (isMobile) {
                 // Para mobile, use window.location que funciona melhor
                 console.log('📱 Redirecionando para WhatsApp (mobile)...');
-                window.location.href = whatsappUrl;
+                window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
             } else {
                 // Para desktop, nova aba normal
                 console.log('💻 Abrindo nova aba (desktop)...');
