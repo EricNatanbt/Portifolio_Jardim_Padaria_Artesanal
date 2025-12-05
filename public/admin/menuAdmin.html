@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Editar Produtos</title>
+    <link rel="stylesheet" href="css/menuAdmin.css">
+
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Painel do Administrador</h1>
+
+        <!-- Pesquisar Produto -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Pesquisar produto..." />
+            <button id="btnSearch">Pesquisar</button>
+        </div>
+
+        <!-- Resultado da Busca -->
+        <div id="productList" class="product-list"></div>
+
+        <!-- Formulário de Edição/Cadastro -->
+        <div class="form-container">
+            <h2 id="formTitle">Cadastrar / Editar Produto</h2>
+
+            <label>Nome do Produto</label>
+            <input type="text" id="productName" />
+
+            <label>Preço (R$)</label>
+            <input type="number" step="0.01" id="productPrice" />
+
+            <label>Disponível?</label>
+            <select id="productStatus">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+
+            <label>Dia Disponível</label>
+            <input type="date" id="availableDate" />
+
+            <div class="btn-row">
+                <button id="btnSave">Salvar</button>
+                <button id="btnDelete" class="danger">Excluir</button>
+                <button id="btnNew">Novo Produto</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/menuAdmin.js"></script>
+</body>
+</html>
+
+
