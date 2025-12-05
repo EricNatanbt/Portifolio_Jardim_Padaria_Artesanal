@@ -196,7 +196,8 @@
             </div>
             <div class="modal-body">
                 <div class="product-image-modal">
-                    <img id="modalProductImage" src="img/logos/Logo.png" alt="Logo da Padaria" style="width: 60px; height: 60px; object-fit: contain; margin: 0 auto;">
+                    <img id="modalProductImage" src="img/logos/Logo.png" alt="Logo da Padaria"
+                        style="width: 60px; height: 60px; object-fit: contain; margin: 0 auto;">
                 </div>
                 <div class="product-details">
                     <p id="modalProductDescription" class="product-description"></p>
@@ -217,7 +218,7 @@
         </div>
     </div>
 
-<!-- Modal de Checkout -->
+    <!-- Modal de Checkout -->
     <div id="checkoutModal" class="modal" style="display: none;">
         <div class="modal-overlay" id="checkoutModalOverlay"></div>
         <div class="modal-content checkout-modal-content">
@@ -239,24 +240,26 @@
                             <div class="header-icon">👤</div>
                             <h3>Informações Pessoais</h3>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group required">
                                 <label for="customerName">Nome:</label>
-                                <input type="text" id="customerName" name="customerName" required placeholder="Nome completo">
+                                <input type="text" id="customerName" name="customerName" required
+                                    placeholder="Nome completo">
                             </div>
                             <div class="form-group required">
                                 <label for="customerPhone">Telefone:</label>
-                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX ) XXXXX-XXXX" required>
+                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX ) XXXXX-XXXX"
+                                    required>
                             </div>
                         </div>
-                        
+
                         <!-- Entrega e Pagamento -->
                         <div class="section-header">
                             <div class="header-icon">🚚</div>
                             <h3>Entrega e Pagamento</h3>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group required">
                                 <label for="deliveryOption">Recebimento:</label>
@@ -281,11 +284,12 @@
                                 <div class="header-icon">📍</div>
                                 <h3>Endereço de Entrega</h3>
                             </div>
-                            
+
                             <div class="form-group required">
                                 <label for="customerCep">CEP:</label>
                                 <div class="cep-group">
-                                    <input type="text" id="customerCep" name="customerCep" placeholder="00000-000" maxlength="9" required>
+                                    <input type="text" id="customerCep" name="customerCep" placeholder="00000-000"
+                                        maxlength="9" required>
                                 </div>
                             </div>
                             <div class="form-group required">
@@ -305,7 +309,8 @@
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="customerComplement">Complemento:</label>
-                                    <input type="text" id="customerComplement" name="customerComplement" placeholder="Apto, casa, etc.">
+                                    <input type="text" id="customerComplement" name="customerComplement"
+                                        placeholder="Apto, casa, etc.">
                                 </div>
                                 <div class="form-group required">
                                     <label for="customerCity">Cidade/Estado:</label>
@@ -315,47 +320,46 @@
                         </div>
                     </form>
                 </div>
-                
+
                 <!-- COLUNA DA DIREITA: PARTE SUPERIOR (Observações + Botão Frete) -->
                 <div class="checkout-extra-section">
                     <div class="section-header">
                         <div class="header-icon">📝</div>
                         <h3>Observações</h3>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="customerObservation">Observação do Pedido:</label>
-                        <textarea 
-                            id="customerObservation" 
-                            name="customerObservation" 
-                            placeholder="Ex: Sem cebola, ponto da carne, alergias, etc..."
-                            rows="3"
-                            maxlength="300"
-                        ></textarea>
+                        <textarea id="customerObservation" name="customerObservation"
+                            placeholder="Ex: Sem cebola, ponto da carne, alergias, etc..." rows="3"
+                            maxlength="300"></textarea>
                         <small style="color: #666; font-size: 0.8em; display: block; margin-top: 0.25rem;">
                             Máximo 300 caracteres
                         </small>
                     </div>
-                    
+
                     <!-- Card Expansível de Informações do Frete -->
                     <div class="delivery-info-card">
                         <button type="button" id="deliveryInfoToggle" class="delivery-info-toggle">
                             <div class="toggle-header">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" style="margin-right: 8px;">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <line x1="12" y1="16" x2="12" y2="12"></line>
                                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                                 </svg>
                                 <span>Informações do Frete</span>
                             </div>
-                            <svg id="toggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="toggle-icon">
+                            <svg id="toggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" class="toggle-icon">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </button>
                         <div id="deliveryInfoContent" class="delivery-info-content">
                             <div class="delivery-info-container">
                                 <p class="intro-text">
-                                    Nossa entrega é feita por motoboys parceiros, garantindo agilidade e o cuidado que seus produtos merecem.
+                                    Nossa entrega é feita por motoboys parceiros, garantindo agilidade e o cuidado que
+                                    seus produtos merecem.
                                 </p>
                                 <div class="info-section">
                                     <div class="section-header">
@@ -397,45 +401,44 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- COLUNA DA DIREITA: PARTE INFERIOR (Resumo do Pedido) -->
                 <div class="checkout-summary-section">
                     <div class="section-header">
                         <div class="header-icon">📋</div>
                         <h3>Resumo do Pedido</h3>
                     </div>
-                    
+
                     <div class="order-summary">
                         <h4>Seus Itens</h4>
                         <ul id="checkoutSummaryList">
                             <!-- Itens do carrinho serão injetados aqui -->
                         </ul><br>
 
-                
-                            
-                            <div class="total-summary">
-                                <span>TOTAL:</span>
-                                <span id="checkoutTotal">R$ 0,00</span>
-                            </div>
+
+
+                        <div class="total-summary">
+                            <span>TOTAL:</span>
+                            <span id="checkoutTotal">R$ 0,00</span>
                         </div>
                     </div>
-                    
-                    <button type="submit" form="checkoutForm" class="checkout-submit-btn">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-     style="margin-right: 6px;">
-    <polyline points="20 6 9 17 4 12"></polyline>
-</svg>
-
-                        Finalizar Pedido
-                    </button>
-                    
-                    <p style="text-align: center; margin-top: 8px; font-size: 0.8em; color: #666;">
-                        Você será redirecionado para o WhatsApp para finalizar o pedido.
-                    </p>
                 </div>
+
+                <button type="submit" form="checkoutForm" class="checkout-submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+
+                    Finalizar Pedido
+                </button>
+
+                <p style="text-align: center; margin-top: 8px; font-size: 0.8em; color: #666;">
+                    Você será redirecionado para o WhatsApp para finalizar o pedido.
+                </p>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Modal de Opções de Contato -->
@@ -505,88 +508,89 @@
         </div>
     </footer>
 
-<!-- Scripts -->
-<script type="module" src="js/supabaseClient.js?v=2.0.0"></script>
-<script type="module" src="js/api-client.js?v=2.0.0"></script>
-<script type="module" src="js/components/navigation.js?v=2.0.0"></script>
-<script type="module" src="js/components/cart.js?v=2.0.0"></script>
-<script type="module" src="js/components/carousel.js?v=2.0.0"></script>
-<script type="module" src="js/components/modal.js?v=2.0.0"></script>
-<!-- Page Scripts -->
-<script type="module" src="js/pages/inicio.js?v=2.0.0"></script>
-<script type="module" src="js/pages/sobrenos.js?v=2.0.0"></script>
-<script type="module" src="js/pages/menu.js?v=2.0.0"></script>
-<script type="module" src="js/pages/cuidados.js?v=2.0.0"></script>
-<script type="module" src="js/pages/feedbacks.js?v=2.0.0"></script>
-<!-- Main Script -->
-<script type="module" src="js/main.js?v=2.0.0"></script>
-<!-- NOVO: Pages Loader -->
-<script src="js/pages-loader.js?v=2.0.0"></script>
+    <!-- Scripts -->
+    <script type="module" src="js/supabaseClient.js?v=2.0.0"></script>
+    <script type="module" src="js/api-client.js?v=2.0.0"></script>
+    <script type="module" src="js/components/navigation.js?v=2.0.0"></script>
+    <script type="module" src="js/components/cart.js?v=2.0.0"></script>
+    <script type="module" src="js/components/carousel.js?v=2.0.0"></script>
+    <script type="module" src="js/components/modal.js?v=2.0.0"></script>
+    <!-- Page Scripts -->
+    <script type="module" src="js/pages/inicio.js?v=2.0.0"></script>
+    <script type="module" src="js/pages/sobrenos.js?v=2.0.0"></script>
+    <script type="module" src="js/pages/menu.js?v=2.0.0"></script>
+    <script type="module" src="js/pages/cuidados.js?v=2.0.0"></script>
+    <script type="module" src="js/pages/feedbacks.js?v=2.0.0"></script>
+    <!-- Main Script -->
+    <script type="module" src="js/main.js?v=2.0.0"></script>
+    <!-- NOVO: Pages Loader -->
+    <script src="js/pages-loader.js?v=2.0.0"></script>
 
-<!-- CORRIGIDO: Único script do Service Worker -->
-<script>
-    // Service Worker - Registro simplificado
-    if ('serviceWorker' in navigator) {
-        // Limpa Service Workers antigos primeiro
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let registration of registrations) {
-                registration.unregister();
-                console.log('Service Worker antigo removido');
-            }
-            
-            // Aguarda um pouco antes de registrar o novo
-            setTimeout(() => {
-                // Registra o novo Service Worker sem parâmetros de versão
-                navigator.serviceWorker.register('/service-worker.js', {
-                    scope: '/',
-                    updateViaCache: 'none' // Importante: não usar cache para o SW
-                })
-                .then(registration => {
-                    console.log('✅ Service Worker registrado com sucesso');
-                    
-                    // Verifica se há uma nova versão
-                    if (registration.waiting) {
-                        console.log('🔄 Nova versão aguardando - recarregando...');
-                        registration.waiting.postMessage({type: 'SKIP_WAITING'});
-                        window.location.reload();
-                        return;
-                    }
-                    
-                    // Escuta por atualizações
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        console.log('🔄 Atualização encontrada para Service Worker');
-                        
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('🔄 Nova versão instalada - recarregando...');
-                                newWorker.postMessage({type: 'SKIP_WAITING'});
+    <!-- CORRIGIDO: Único script do Service Worker -->
+    <script>
+        // Service Worker - Registro simplificado
+        if ('serviceWorker' in navigator) {
+            // Limpa Service Workers antigos primeiro
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service Worker antigo removido');
+                }
+
+                // Aguarda um pouco antes de registrar o novo
+                setTimeout(() => {
+                    // Registra o novo Service Worker sem parâmetros de versão
+                    navigator.serviceWorker.register('/service-worker.js', {
+                        scope: '/',
+                        updateViaCache: 'none' // Importante: não usar cache para o SW
+                    })
+                        .then(registration => {
+                            console.log('✅ Service Worker registrado com sucesso');
+
+                            // Verifica se há uma nova versão
+                            if (registration.waiting) {
+                                console.log('🔄 Nova versão aguardando - recarregando...');
+                                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                                 window.location.reload();
+                                return;
                             }
+
+                            // Escuta por atualizações
+                            registration.addEventListener('updatefound', () => {
+                                const newWorker = registration.installing;
+                                console.log('🔄 Atualização encontrada para Service Worker');
+
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        console.log('🔄 Nova versão instalada - recarregando...');
+                                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                        window.location.reload();
+                                    }
+                                });
+                            });
+                        })
+                        .catch(error => {
+                            console.log('❌ Falha no registro do Service Worker:', error);
+                        });
+                }, 100);
+            });
+        }
+
+        // Força limpeza de cache ao entrar
+        window.addEventListener('load', function () {
+            // Se houver parâmetro de limpeza, limpa cache
+            if (window.location.search.includes('clearCache')) {
+                if ('caches' in window) {
+                    caches.keys().then(cacheNames => {
+                        cacheNames.forEach(cacheName => {
+                            caches.delete(cacheName);
+                            console.log('🗑️ Cache limpo:', cacheName);
                         });
                     });
-                })
-                .catch(error => {
-                    console.log('❌ Falha no registro do Service Worker:', error);
-                });
-            }, 100);
-        });
-    }
-    
-    // Força limpeza de cache ao entrar
-    window.addEventListener('load', function() {
-        // Se houver parâmetro de limpeza, limpa cache
-        if (window.location.search.includes('clearCache')) {
-            if ('caches' in window) {
-                caches.keys().then(cacheNames => {
-                    cacheNames.forEach(cacheName => {
-                        caches.delete(cacheName);
-                        console.log('🗑️ Cache limpo:', cacheName);
-                    });
-                });
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
+
 </html>
