@@ -1,116 +1,128 @@
-/* paleta */
 :root {
-  --green: #34572b;
-  --cream: #fff8e1;
-  --brown: #8b5e3c;
+  --primary: #1C3D2D;
+  --primary-dark: #0F2620;
+  --secondary: #A2B28E;
+  --accent: #F5C8B0;
+  --accent-light: #F9E4D4;
+  --background: #FCF9F5;
+  --foreground: #1C3D2D;
+  --muted: #E8F0EB;
+  --muted-foreground: #5A7A6A;
+
+  /* Espaçamentos menores */
+  --spacing-xs: .25rem;
+  --spacing-sm: .35rem;
+  --spacing-md: .65rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: .75rem;
+  --spacing-2xl: 1.25rem;
+
+  --radius: .55rem;
+  --radius-lg: .75rem;
 }
 
-/* rodapé */
+/* ====== FOOTER ====== */
+
 footer {
-  background: linear-gradient(180deg, #fff8e1 0%, #fff4d0 100%);
-  border-top: 6px solid #34572b;
-  box-shadow: 0 -6px 18px rgba(0,0,0,0.10);
-  color: var(--brown);
-  font-family: "Segoe UI", sans-serif;
-  padding: 18px 20px; 
+  background: var(--background);
+  padding: var(--spacing-xl) var(--spacing-md);
+  border-top: 2px solid var(--primary);
+  font-family: "Inter", sans-serif;
+  color: var(--foreground);
+  font-size: 0.9rem;
 }
 
-/* grid principal */
+/* Container */
 .footer-content {
-  max-width: 1100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-xl);
+  max-width: 1200px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-
-  transform: translateY(10px);
-  animation: fadeUp .6s ease forwards;
-  opacity: 0;
+  padding: 0 var(--spacing-sm);
 }
 
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Sections */
+.footer-section {
+  min-width: 150px;
 }
 
-/* cada bloco */
 .footer-section h3 {
-  margin-bottom: 10px;
-  font-size: 1.3rem;
-  color: var(--green);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: var(--spacing-xs);
 }
 
 .footer-section p {
-  margin: 6px 0;
-  line-height: 1.4;
-  font-size: 14px;
+  font-size: 0.85rem;
+  color: var(--primary);
+  line-height: 1.35;
 }
 
-/* --- BLOCO SIGA-NOS --- */
-.footer-social {
-  text-align: left; /* pode mudar pra center se quiser */
-}
-
-.footer-social h3 {
-  font-size: 1rem;     /* menor tamanho do título */
-  color: var(--green);
-  margin-bottom: 6px;  /* menos espaço entre o texto e os ícones */
-}
-
-/* ÍCONES */
-.footer-social a {
-  display: inline-block;
-  margin-right: 6px; /* aproxima os ícones */
-}
-
-.footer-social img {
-  width: 24px;  /* diminui o tamanho dos ícones */
-  height: 24px;
-  border-radius: 6px;
-  backdrop-filter: blur(2px);
+/* Payment Icons */
+.footer-payment-icons img {
+  width: 28px;
+  margin-right: var(--spacing-xs);
   transition: .25s ease;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
-  vertical-align: middle;
+  opacity: 0.9;
 }
 
-.footer-social img:hover {
-  transform: translateY(-4px) scale(1.09);
-  filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+.footer-payment-icons img:hover {
+  transform: translateY(-2px);
+  opacity: 1;
 }
 
-/* subtexto */
+/* Social Icons */
+.footer-social-icons a img {
+  width: 30px;
+  margin-right: var(--spacing-sm);
+  transition: .25s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+}
+
+.footer-social-icons a img:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Bottom text */
 .footer-bottom {
-  margin-top: 12px;
   text-align: center;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-sm);
 }
 
 .footer-bottom p {
-  font-size: 0.72rem;
-  opacity: .55;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
 }
 
-/* remove espaço embaixo */
-body {
-  margin: 0;
-  padding: 0;
-}
+/* ====== RESPONSIVO ====== */
 
-/* responsividade */
-@media (max-width: 800px) {
+@media (max-width: 980px) {
   .footer-content {
-    grid-template-columns: 1fr 1fr;
+    flex-wrap: wrap;
+    justify-content: center;
     text-align: center;
   }
 
-  .footer-social {
-    text-align: center;
+  .footer-section {
+    min-width: 200px;
+  }
+
+  .footer-payment-icons img,
+  .footer-social-icons img {
+    margin: var(--spacing-xs);
   }
 }
 
-@media (max-width: 500px) {
-  .footer-content {
-    grid-template-columns: 1fr;
+@media (max-width: 600px) {
+  footer {
+    padding: var(--spacing-lg) var(--spacing-sm);
+  }
+
+  .footer-bottom p {
+    font-size: .7rem;
   }
 }
