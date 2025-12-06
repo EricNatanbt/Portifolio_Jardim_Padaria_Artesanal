@@ -152,6 +152,18 @@ const Cart = {
         if (deliveryOptionSelect) {
             this._setupDeliveryOptionToggle();
         }
+         const deliveryInfoToggle = document.getElementById('deliveryInfoToggle');
+    if (deliveryInfoToggle) {
+        deliveryInfoToggle.addEventListener('click', () => {
+            const content = document.getElementById('deliveryInfoContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            // Alternar a classe 'expanded' no conteúdo
+            content.classList.toggle('expanded');
+            // Alternar a classe 'active' no botão
+            deliveryInfoToggle.classList.toggle('active');
+        });
+    }
     },
 
     // ============================================
@@ -628,103 +640,104 @@ const Cart = {
         }
     },
 
-    // ============================================
-    // PROCESSAMENTO DO PEDIDO - VERSÃO SEGURA COM API
-    // ============================================
-    _handleCheckoutSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
+// ============================================
+// PROCESSAMENTO DO PEDIDO - VERSÃO SEGURA COM API
+// ============================================
+_handleCheckoutSubmit(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-        // Prevenir múltiplos envios
-        if (this._submitting) {
-            console.log('⏳ Pedido já está sendo processado...');
-            return;
-        }
+    // Prevenir múltiplos envios
+    if (this._submitting) {
+        console.log('⏳ Pedido já está sendo processado...');
+        return;
+    }
 
-        this._submitting = true;
+    this._submitting = true;
+    
+    // CORREÇÃO: Buscar elementos diretamente pelo ID ao invés de usar form.elementName
+    const form = e.target;
+    const name = document.getElementById("customerName")?.value.trim() || '';
+    const phone = document.getElementById("customerPhone")?.value.replace(/\D/g, '') || '';
+    const deliveryOption = document.getElementById("deliveryOption")?.value || '';
+    const paymentMethod = document.getElementById("paymentMethod")?.value || '';
+    const observation = document.getElementById("customerObservation")?.value.trim() || '';
+    
+    // Validações básicas
+    if (!name) {
+        window.showNotification("Por favor, informe seu nome.", 3000, 'error');
+        this._submitting = false;
+        return;
+    }
+    
+    if (phone.length < 10) {
+        window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
+        this._submitting = false;
+        return;
+    }
+
+    // Se for entrega, valida endereço
+    let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
+    if (deliveryOption === 'entrega') {
+        street = document.getElementById("customerStreet")?.value || '';
+        number = document.getElementById("customerNumber")?.value || '';
+        neighborhood = document.getElementById("customerNeighborhood")?.value || '';
+        city = document.getElementById("customerCity")?.value || '';
+        cep = document.getElementById("customerCep")?.value || '';
+        complement = document.getElementById("customerComplement")?.value || '';
         
-        const form = e.target;
-        const name = form.customerName.value.trim();
-        const phone = form.customerPhone.value.replace(/\D/g, '');
-        const deliveryOption = form.deliveryOption.value;
-        const paymentMethod = form.paymentMethod.value;
-        const observation = form.customerObservation.value.trim();
-        
-        // Validações básicas
-        if (!name) {
-            window.showNotification("Por favor, informe seu nome.", 3000, 'error');
+        if (!cep || !street || !number || !neighborhood || !city) {
+            window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
             this._submitting = false;
             return;
         }
         
-        if (phone.length < 10) {
-            window.showNotification("Por favor, insira um telefone válido com DDD.", 3000, 'error');
+        // Salva CEP para pré-preenchimento futuro
+        localStorage.setItem('lastCustomerCep', cep);
+    }
+
+    // Salva telefone para pré-preenchimento futuro
+    localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
+
+    // Mostra loading
+    const submitBtn = document.querySelector('.checkout-submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = '🔄 Preparando pedido...';
+    submitBtn.disabled = true;
+
+    console.log('📤 Processando pedido via API segura...');
+    
+    // Processa o pedido com delay para evitar duplicação
+    setTimeout(async () => {
+        try {
+            await this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
+                street, number, neighborhood, city, cep, complement
+            });
+            
+            window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
+            
+            // Limpa o carrinho
+            this.cartItems = [];
+            this.deliveryFee = 0;
+            this.saveCartToStorage();
+            this.updateCartUI();
+            
+            // Fecha o modal com delay
+            setTimeout(() => {
+                this.closeCheckoutModal();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Erro ao processar pedido:', error);
+            window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
+        } finally {
+            // Restaura botão
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
             this._submitting = false;
-            return;
         }
-
-        // Se for entrega, valida endereço
-        let street = '', number = '', neighborhood = '', city = '', cep = '', complement = '';
-        if (deliveryOption === 'entrega') {
-            street = document.getElementById("customerStreet")?.value || '';
-            number = document.getElementById("customerNumber")?.value || '';
-            neighborhood = document.getElementById("customerNeighborhood")?.value || '';
-            city = document.getElementById("customerCity")?.value || '';
-            cep = document.getElementById("customerCep")?.value || '';
-            complement = document.getElementById("customerComplement")?.value || '';
-            
-            if (!cep || !street || !number || !neighborhood || !city) {
-                window.showNotification("Por favor, preencha todos os campos de endereço para entrega.", 3000, 'error');
-                this._submitting = false;
-                return;
-            }
-            
-            // Salva CEP para pré-preenchimento futuro
-            localStorage.setItem('lastCustomerCep', cep);
-        }
-
-        // Salva telefone para pré-preenchimento futuro
-        localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
-
-        // Mostra loading
-        const submitBtn = form.querySelector('.checkout-submit-btn');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '🔄 Preparando pedido...';
-        submitBtn.disabled = true;
-
-        console.log('📤 Processando pedido via API segura...');
-        
-        // Processa o pedido com delay para evitar duplicação
-        setTimeout(async () => {
-            try {
-                await this._processOrder(name, phone, deliveryOption, paymentMethod, observation, {
-                    street, number, neighborhood, city, cep, complement
-                });
-                
-                window.showNotification(" Pedido enviado! Abrindo WhatsApp...", 3000, 'success');
-                
-                // Limpa o carrinho
-                this.cartItems = [];
-                this.deliveryFee = 0;
-                this.saveCartToStorage();
-                this.updateCartUI();
-                
-                // Fecha o modal com delay
-                setTimeout(() => {
-                    this.closeCheckoutModal();
-                }, 1000);
-                
-            } catch (error) {
-                console.error('❌ Erro ao processar pedido:', error);
-                window.showNotification(" Erro ao processar pedido. Tente novamente.", 5000, 'error');
-            } finally {
-                // Restaura botão
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                this._submitting = false;
-            }
-        }, 300);
-    },
+    }, 300);
+},
 
     _formatPhoneForDisplay(phone) {
         // Formata (XX) XXXXX-XXXX

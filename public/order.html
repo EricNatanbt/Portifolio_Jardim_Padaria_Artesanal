@@ -17,6 +17,9 @@
             --border: #D4E8DC;
             --success: #27AE60;
             --error: #E74C3C;
+            --google-maps: #4285F4;
+            --uber: #000000;
+            --whatsapp: #25D366;
         }
 
         * {
@@ -112,6 +115,80 @@
             font-weight: 600;
         }
 
+        /* Estilo especial para item de endereço */
+        .address-item {
+            display: block;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .address-text {
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 0.95em;
+            color: #333;
+        }
+
+        /* Botões de ação para o endereço */
+        .address-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 160px;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .action-btn.google-maps {
+            background: var(--google-maps);
+            color: white;
+        }
+
+        .action-btn.uber {
+            background: var(--uber);
+            color: white;
+        }
+
+        .action-btn.whatsapp {
+            background: var(--whatsapp);
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .action-btn-icon {
+            font-size: 1.3em;
+        }
+
         .summary-item {
             display: flex;
             justify-content: space-between;
@@ -164,21 +241,12 @@
             margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background: var(--primary-dark);
+        .actions-footer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
         }
 
         @keyframes spin {
@@ -186,19 +254,98 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Responsividade para mobile */
         @media (max-width: 768px) {
             .order-container {
                 margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .order-header {
+                padding: 20px;
+            }
+            
+            .order-header h1 {
+                font-size: 2em;
+            }
+            
+            .order-content {
+                padding: 20px;
+            }
+            
+            .section {
+                padding: 15px;
+                margin-bottom: 20px;
             }
             
             .info-item {
                 flex-direction: column;
                 gap: 5px;
+                padding: 8px 0;
             }
             
-            .btn {
+            .address-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .action-btn {
                 width: 100%;
-                text-align: center;
+                min-width: unset;
+                padding: 14px 20px;
+                font-size: 0.95em;
+            }
+            
+            .actions-footer {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .actions-footer .action-btn {
+                width: 100%;
+                margin: 0;
+            }
+        }
+
+        /* Versão mobile ainda mais compacta */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .order-header {
+                padding: 15px;
+            }
+            
+            .order-header h1 {
+                font-size: 1.8em;
+            }
+            
+            .order-header .order-id {
+                font-size: 1em;
+            }
+            
+            .section {
+                padding: 12px;
+            }
+            
+            .section h2 {
+                font-size: 1.3em;
+                margin-bottom: 10px;
+            }
+            
+            .action-btn {
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+            
+            .action-btn-icon {
+                font-size: 1.2em;
+            }
+            
+            .timestamp {
+                font-size: 0.9em;
+                padding: 8px;
             }
         }
     </style>
@@ -224,7 +371,6 @@
         // API Client simples para buscar pedidos
         class ApiClient {
             constructor() {
-                // Usa a mesma origem da página atual
                 this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
                 console.log('🔗 API Base:', this.apiBase);
             }
@@ -295,6 +441,33 @@
                 }
             }
 
+            // Função para criar URL do Google Maps
+            createGoogleMapsUrl(address) {
+                if (!address || address === 'Retirada na Loja') {
+                    return null;
+                }
+                const encodedAddress = encodeURIComponent(address);
+                return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+            }
+
+            // Função para criar URL do Uber
+            createUberUrl(address) {
+                if (!address || address === 'Retirada na Loja') {
+                    return null;
+                }
+                const encodedAddress = encodeURIComponent(address);
+                // URL para Uber Flash (entrega)
+                return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
+            }
+
+            // Função para criar URL do WhatsApp
+            createWhatsAppUrl(phone, message = '') {
+                if (!phone) return null;
+                const cleanPhone = phone.replace(/\D/g, '');
+                const encodedMessage = encodeURIComponent(message || 'Olá, gostaria de falar sobre meu pedido!');
+                return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+            }
+
             displayOrder() {
                 if (!this.orderData) return;
 
@@ -303,6 +476,12 @@
 
                 try {
                     const { customer, order, items } = this.orderData;
+                    
+                    // Verifica se é entrega para mostrar botões de endereço
+                    const isDelivery = order.delivery_option === 'entrega' && order.address && order.address !== 'Retirada na Loja';
+                    const googleMapsUrl = isDelivery ? this.createGoogleMapsUrl(order.address) : null;
+                    const uberUrl = isDelivery ? this.createUberUrl(order.address) : null;
+                    const whatsappUrl = this.createWhatsAppUrl(customer.phone);
                     
                     // HTML completo do pedido
                     orderContent.innerHTML = `
@@ -332,10 +511,28 @@
                                     <span style="color: #e67e22;">${this.escapeHtml(order.observation)}</span>
                                 </div>
                                 ` : ''}
-                                ${order.delivery_option === 'entrega' && order.address ? `
-                                <div class="info-item">
-                                    <strong>Endereço:</strong>
-                                    <span>${this.escapeHtml(order.address)}</span>
+                                
+                                <!-- Endereço com botões de ação -->
+                                ${isDelivery ? `
+                                <div class="address-item">
+                                    <strong>Endereço de Entrega:</strong>
+                                    <div class="address-text">${this.escapeHtml(order.address)}</div>
+                                    
+                                    <div class="address-actions">
+                                        ${googleMapsUrl ? `
+                                        <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
+                                            <span class="action-btn-icon">🗺️</span>
+                                            <span>Abrir no Google Maps</span>
+                                        </a>
+                                        ` : ''}
+                                        
+                                        ${uberUrl ? `
+                                        <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                                            <span class="action-btn-icon">🚗</span>
+                                            <span>Solicitar Uber Flash</span>
+                                        </a>
+                                        ` : ''}
+                                    </div>
                                 </div>
                                 ` : ''}
                             </div>
@@ -380,13 +577,41 @@
                             Pedido realizado em: ${new Date(order.created_at).toLocaleString('pt-BR')}
                         </div>
 
-                        <!-- Botão de voltar -->
-                        <div style="text-align: center; margin-top: 30px;">
-                            <button onclick="window.location.href='index.html'" class="btn">
-                                🏠 Voltar para a Loja
+                        <!-- Botões de ação principais -->
+                        <div class="actions-footer">
+                            ${whatsappUrl ? `
+                            <a href="${whatsappUrl}" target="_blank" class="action-btn whatsapp">
+                                <span class="action-btn-icon">💬</span>
+                                <span>Falar no WhatsApp</span>
+                            </a>
+                            ` : ''}
+                            
+                            ${isDelivery ? `
+                            <div class="address-actions" style="width: 100%;">
+                                ${googleMapsUrl ? `
+                                <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
+                                    <span class="action-btn-icon">🗺️</span>
+                                    <span>Google Maps</span>
+                                </a>
+                                ` : ''}
+                                
+                                ${uberUrl ? `
+                                <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                                    <span class="action-btn-icon">🚗</span>
+                                    <span>Uber Flash</span>
+                                </a>
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                            
+                            <button onclick="window.print()" class="action-btn secondary">
+                                <span class="action-btn-icon">🖨️</span>
+                                <span>Imprimir Comprovante</span>
                             </button>
-                            <button onclick="window.print()" class="btn" style="margin-left: 10px; background: #4CAF50;">
-                                🖨️ Imprimir Comprovante
+                            
+                            <button onclick="window.location.href='index.html'" class="action-btn primary">
+                                <span class="action-btn-icon">🏠</span>
+                                <span>Voltar para a Loja</span>
                             </button>
                         </div>
                     `;
@@ -434,8 +659,9 @@
                         <div class="error">
                             <h2>❌ ${message}</h2>
                             <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
-                            <button onclick="window.location.href='index.html'" class="btn">
-                                🏠 Voltar para a Loja
+                            <button onclick="window.location.href='index.html'" class="action-btn primary">
+                                <span class="action-btn-icon">🏠</span>
+                                <span>Voltar para a Loja</span>
                             </button>
                         </div>
                     `;

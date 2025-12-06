@@ -1,8 +1,48 @@
 // ============================================
 // EXIBIÇÃO DO PEDIDO NA PÁGINA
 // ============================================
+// ============================================
+// COMPATIBILIDADE COM LINKS DE PEDIDO
+// ============================================
+
+// Verifica se é um link com ID do banco
+function isDatabaseOrderId(orderId) {
+    return orderId && orderId.startsWith('JD') && orderId.length > 3;
+}
+
+// Tenta carregar do banco primeiro, depois do localStorage
+async function loadOrderData(orderId) {
+    // Se for ID do banco
+    if (isDatabaseOrderId(orderId)) {
+        try {
+            const apiClient = new ApiClient();
+            const response = await apiClient.getOrder(orderId);
+            
+            if (response.success && response.orderData) {
+                console.log('✅ Pedido carregado do banco:', orderId);
+                return response.orderData;
+            }
+        } catch (error) {
+            console.error('❌ Erro ao carregar do banco:', error);
+        }
+    }
+    
+    // Fallback: tenta carregar do localStorage
+    try {
+        const savedOrder = localStorage.getItem(`order_${orderId}`);
+        if (savedOrder) {
+            console.log('✅ Pedido carregado do localStorage:', orderId);
+            return JSON.parse(savedOrder);
+        }
+    } catch (error) {
+        console.error('❌ Erro ao carregar do localStorage:', error);
+    }
+    
+    return null;
+}
 
 class OrderDisplay {
+    
     constructor() {
         this.orderData = null;
         this.init();
@@ -216,6 +256,7 @@ class OrderDisplay {
         }
     }
 
+    
     getOrderFromURL() {
         const urlParams = new URLSearchParams(window.location.search);
         
@@ -342,7 +383,7 @@ class OrderDisplay {
         const order = this.orderData.order;
         const summaryDiv = document.getElementById('orderSummary');
         
-        if (!summaryDiv) return;
+                if (!summaryDiv) return;
         
         const subtotal = order.subtotal || 0;
         const deliveryFee = order.delivery_fee || 0; // Usando delivery_fee do banco
