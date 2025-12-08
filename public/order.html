@@ -368,14 +368,167 @@
     </div>
 
     <script>
-        // API Client simples para buscar pedidos
-        class ApiClient {
+        // ============================================
+        // UTILITÁRIOS PARA NORMALIZAÇÃO DE DADOS
+        // ============================================
+        class OrderDataUtils {
+            static normalizeOrderData(orderData) {
+                if (!orderData) return null;
+                
+                // Se já estiver normalizado, retorna como está
+                if (orderData.normalized === true) return orderData;
+                
+                // Extrai dados do cliente
+                const clientData = orderData.client || orderData.customer || {};
+                const orderInfo = orderData.order || orderData;
+                const items = orderData.items || orderInfo.items || [];
+                
+                // Normaliza os dados
+                return {
+                    normalized: true,
+                    
+                    // Dados do cliente
+                    customer: {
+                        name: clientData.name || '',
+                        phone: clientData.phone || '',
+                        address: clientData.address || orderInfo.address || '',
+                        observation: clientData.observation || orderInfo.observation || '',
+                        delivery_option: clientData.delivery_option || clientData.deliveryOption || 'entrega',
+                        payment_method: clientData.payment_method || clientData.paymentMethod || 'pix'
+                    },
+                    
+                    // Dados do pedido
+                    order: {
+                        order_id: orderInfo.order_id || orderInfo.id || 'JD' + Date.now().toString().slice(-8),
+                        id: orderInfo.id || orderInfo.order_id || '',
+                        total: parseFloat(orderInfo.total || orderInfo.total_amount || 0),
+                        subtotal: parseFloat(orderInfo.subtotal || orderInfo.total_amount || 0),
+                        delivery_fee: parseFloat(orderInfo.delivery_fee || orderInfo.deliveryFee || 0),
+                        delivery_option: orderInfo.delivery_option || orderInfo.deliveryOption || 'entrega',
+                        payment_method: orderInfo.payment_method || orderInfo.paymentMethod || 'pix',
+                        observation: orderInfo.observation || '',
+                        created_at: orderInfo.created_at || orderInfo.createdAt || orderInfo.timestamp || new Date().toISOString(),
+                        status: orderInfo.status || 'pendente'
+                    },
+                    
+                    // Itens do pedido
+                    items: items.map(item => ({
+                        product_id: item.product_id || item.id || '',
+                        product_name: item.product_name || item.name || '',
+                        name: item.name || item.product_name || '',
+                        price: parseFloat(item.price || 0),
+                        quantity: parseInt(item.quantity || 1)
+                    }))
+                };
+            }
+            
+            static formatDate(dateString) {
+                try {
+                    if (!dateString) return 'Data não disponível';
+                    const date = new Date(dateString);
+                    if (isNaN(date.getTime())) return 'Data inválida';
+                    return date.toLocaleDateString('pt-BR') + ' às ' + date.toLocaleTimeString('pt-BR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                } catch (error) {
+                    console.warn('⚠️ Erro ao formatar data:', dateString, error);
+                    return 'Data inválida';
+                }
+            }
+            
+            static formatPaymentMethod(method) {
+                if (!method) return 'Método Desconhecido';
+                const lowerMethod = method.toLowerCase();
+                
+                if (lowerMethod.includes('pix')) return '💰 Pix';
+                if (lowerMethod.includes('dinheiro')) return '💵 Dinheiro';
+                if (lowerMethod.includes('cartao') || lowerMethod.includes('cartão')) return '💳 Cartão';
+                if (lowerMethod.includes('card')) return '💳 Cartão';
+                
+                return method;
+            }
+            
+            static formatPhone(phone) {
+                if (!phone) return 'Não informado';
+                const cleanPhone = phone.toString().replace(/\D/g, '');
+                
+                // Remove código do país se tiver
+                if (cleanPhone.startsWith('55') && cleanPhone.length === 13) {
+                    const cleanLocal = cleanPhone.substring(2);
+                    return `(${cleanLocal.substring(0,2)}) ${cleanLocal.substring(2,7)}-${cleanLocal.substring(7)}`;
+                }
+                
+                if (cleanPhone.length === 11) {
+                    return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
+                }
+                
+                if (cleanPhone.length === 10) {
+                    return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,6)}-${cleanPhone.substring(6)}`;
+                }
+                
+                return phone;
+            }
+            
+            static escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            static createGoogleMapsUrl(address) {
+                if (!address || address === 'Retirada na Loja') return '#';
+                const encodedAddress = encodeURIComponent(address);
+                return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+            }
+            
+            static createUberUrl(address) {
+                if (!address || address === 'Retirada na Loja') return '#';
+                const encodedAddress = encodeURIComponent(address);
+                return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
+            }
+            
+            static createWhatsAppUrl(phone) {
+                if (!phone) return '#';
+                const cleanPhone = phone.toString().replace(/\D/g, '');
+                const message = encodeURIComponent('Olá, gostaria de falar sobre meu pedido!');
+                return `https://wa.me/${cleanPhone}?text=${message}`;
+            }
+        }
+
+        // ============================================
+        // EXIBIÇÃO DO PEDIDO
+        // ============================================
+        class OrderDisplayFromDatabase {
             constructor() {
                 this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
-                console.log('🔗 API Base:', this.apiBase);
+                this.orderData = null;
+                this.init();
             }
 
-            async getOrder(orderId) {
+            async init() {
+                await this.loadOrder();
+                this.displayOrder();
+            }
+
+            async loadOrder() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const orderId = urlParams.get('orderId');
+                const shortId = urlParams.get('i');
+                
+                console.log('🔍 Buscando pedido:', { orderId, shortId });
+
+                if (orderId) {
+                    await this.fetchOrderFromDatabase(orderId);
+                } else if (shortId) {
+                    await this.fetchOrderFromLocalStorage(shortId);
+                } else {
+                    this.showError('Nenhum pedido especificado na URL.');
+                }
+            }
+
+            async fetchOrderFromDatabase(orderId) {
                 try {
                     console.log(`📋 Buscando pedido ${orderId}...`);
                     const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
@@ -389,83 +542,51 @@
                     const result = await response.json();
                     console.log('📦 Resposta da API:', result);
                     
-                    return result;
-                } catch (error) {
-                    console.error('❌ Erro ao buscar pedido:', error);
-                    return {
-                        success: false,
-                        error: error.message,
-                        message: 'Erro ao buscar pedido'
-                    };
-                }
-            }
-        }
-
-        // Classe para exibir o pedido
-        class OrderDisplayFromDatabase {
-            constructor() {
-                this.apiClient = new ApiClient();
-                this.orderData = null;
-                this.init();
-            }
-
-            async init() {
-                await this.loadOrderFromDatabase();
-                this.displayOrder();
-            }
-
-            async loadOrderFromDatabase() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const orderId = urlParams.get('orderId');
-                
-                if (!orderId) {
-                    this.showError('Nenhum pedido especificado na URL.');
-                    return;
-                }
-
-                try {
-                    console.log(`📋 Buscando pedido ${orderId} do banco de dados...`);
-                    
-                    const response = await this.apiClient.getOrder(orderId);
-                    
-                    if (response.success && response.orderData) {
-                        this.orderData = response.orderData;
+                    if (result.success && result.orderData) {
+                        this.orderData = OrderDataUtils.normalizeOrderData(result.orderData);
                         console.log('✅ Pedido carregado do banco:', this.orderData);
                     } else {
-                        console.error('❌ Erro na resposta:', response);
-                        this.showError(response.message || 'Pedido não encontrado no banco de dados.');
+                        this.showError(result.message || 'Pedido não encontrado no banco de dados.');
                     }
                 } catch (error) {
-                    console.error('❌ Erro ao carregar pedido:', error);
+                    console.error('❌ Erro ao buscar pedido:', error);
                     this.showError('Erro ao carregar os detalhes do pedido. Tente novamente.');
                 }
             }
 
-            // Função para criar URL do Google Maps
-            createGoogleMapsUrl(address) {
-                if (!address || address === 'Retirada na Loja') {
-                    return null;
-                }
-                const encodedAddress = encodeURIComponent(address);
-                return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-            }
+            async fetchOrderFromLocalStorage(shortId) {
+                try {
+                    console.log(`📋 Buscando pedido ${shortId} do localStorage...`);
+                    
+                    // Verifica expiração
+                    const expirationKey = `exp_${shortId}`;
+                    const expiration = localStorage.getItem(expirationKey);
+                    const now = Date.now();
+                    
+                    if (expiration && now > parseInt(expiration)) {
+                        this.showError('Este pedido expirou. Faça um novo pedido.');
+                        localStorage.removeItem(expirationKey);
+                        localStorage.removeItem(`order_${shortId}`);
+                        return;
+                    }
 
-            // Função para criar URL do Uber
-            createUberUrl(address) {
-                if (!address || address === 'Retirada na Loja') {
-                    return null;
+                    // Carrega dados do pedido
+                    const orderKey = `order_${shortId}`;
+                    const savedOrder = localStorage.getItem(orderKey);
+                    
+                    if (!savedOrder) {
+                        this.showError('Pedido não encontrado no armazenamento local.');
+                        return;
+                    }
+                    
+                    const parsedOrder = JSON.parse(savedOrder);
+                    this.orderData = OrderDataUtils.normalizeOrderData(parsedOrder);
+                    console.log('✅ Pedido carregado do localStorage:', this.orderData);
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao carregar do localStorage:', error);
+                    this.showError('Erro ao carregar pedido do armazenamento local.');
                 }
-                const encodedAddress = encodeURIComponent(address);
-                // URL para Uber Flash (entrega)
-                return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
-            }
-
-            // Função para criar URL do WhatsApp
-            createWhatsAppUrl(phone, message = '') {
-                if (!phone) return null;
-                const cleanPhone = phone.replace(/\D/g, '');
-                const encodedMessage = encodeURIComponent(message || 'Olá, gostaria de falar sobre meu pedido!');
-                return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
             }
 
             displayOrder() {
@@ -478,10 +599,10 @@
                     const { customer, order, items } = this.orderData;
                     
                     // Verifica se é entrega para mostrar botões de endereço
-                    const isDelivery = order.delivery_option === 'entrega' && order.address && order.address !== 'Retirada na Loja';
-                    const googleMapsUrl = isDelivery ? this.createGoogleMapsUrl(order.address) : null;
-                    const uberUrl = isDelivery ? this.createUberUrl(order.address) : null;
-                    const whatsappUrl = this.createWhatsAppUrl(customer.phone);
+                    const isDelivery = order.delivery_option === 'entrega' && customer.address && customer.address !== 'Retirada na Loja';
+                    const googleMapsUrl = isDelivery ? OrderDataUtils.createGoogleMapsUrl(customer.address) : null;
+                    const uberUrl = isDelivery ? OrderDataUtils.createUberUrl(customer.address) : null;
+                    const whatsappUrl = OrderDataUtils.createWhatsAppUrl(customer.phone);
                     
                     // HTML completo do pedido
                     orderContent.innerHTML = `
@@ -491,11 +612,11 @@
                             <div class="info-grid">
                                 <div class="info-item">
                                     <strong>Nome:</strong>
-                                    <span>${this.escapeHtml(customer.name)}</span>
+                                    <span>${OrderDataUtils.escapeHtml(customer.name)}</span>
                                 </div>
                                 <div class="info-item">
                                     <strong>Telefone:</strong>
-                                    <span>${this.formatPhone(customer.phone)}</span>
+                                    <span>${OrderDataUtils.formatPhone(customer.phone)}</span>
                                 </div>
                                 <div class="info-item">
                                     <strong>Entrega:</strong>
@@ -503,12 +624,12 @@
                                 </div>
                                 <div class="info-item">
                                     <strong>Pagamento:</strong>
-                                    <span>${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
+                                    <span>${OrderDataUtils.formatPaymentMethod(order.payment_method)}</span>
                                 </div>
                                 ${order.observation ? `
                                 <div class="info-item">
                                     <strong>Observação:</strong>
-                                    <span style="color: #e67e22;">${this.escapeHtml(order.observation)}</span>
+                                    <span style="color: #e67e22;">${OrderDataUtils.escapeHtml(order.observation)}</span>
                                 </div>
                                 ` : ''}
                                 
@@ -516,17 +637,17 @@
                                 ${isDelivery ? `
                                 <div class="address-item">
                                     <strong>Endereço de Entrega:</strong>
-                                    <div class="address-text">${this.escapeHtml(order.address)}</div>
+                                    <div class="address-text">${OrderDataUtils.escapeHtml(customer.address)}</div>
                                     
                                     <div class="address-actions">
-                                        ${googleMapsUrl ? `
+                                        ${googleMapsUrl !== '#' ? `
                                         <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
                                             <span class="action-btn-icon">🗺️</span>
                                             <span>Abrir no Google Maps</span>
                                         </a>
                                         ` : ''}
                                         
-                                        ${uberUrl ? `
+                                        ${uberUrl !== '#' ? `
                                         <a href="${uberUrl}" target="_blank" class="action-btn uber">
                                             <span class="action-btn-icon">🚗</span>
                                             <span>Solicitar Uber Flash</span>
@@ -544,7 +665,7 @@
                             <div class="info-grid">
                                 ${items && items.length > 0 ? items.map(item => `
                                 <div class="info-item">
-                                    <span>${item.quantity}x ${this.escapeHtml(item.product_name)}</span>
+                                    <span>${item.quantity}x ${OrderDataUtils.escapeHtml(item.product_name || item.name)}</span>
                                     <span>R$ ${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}</span>
                                 </div>
                                 `).join('') : '<p>Nenhum item encontrado</p>'}
@@ -574,12 +695,12 @@
 
                         <!-- Timestamp -->
                         <div class="timestamp" id="orderTimestamp">
-                            Pedido realizado em: ${new Date(order.created_at).toLocaleString('pt-BR')}
+                            Pedido realizado em: ${OrderDataUtils.formatDate(order.created_at)}
                         </div>
 
                         <!-- Botões de ação principais -->
                         <div class="actions-footer">
-                            ${whatsappUrl ? `
+                            ${whatsappUrl !== '#' ? `
                             <a href="${whatsappUrl}" target="_blank" class="action-btn whatsapp">
                                 <span class="action-btn-icon">💬</span>
                                 <span>Falar no WhatsApp</span>
@@ -588,14 +709,14 @@
                             
                             ${isDelivery ? `
                             <div class="address-actions" style="width: 100%;">
-                                ${googleMapsUrl ? `
+                                ${googleMapsUrl !== '#' ? `
                                 <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
                                     <span class="action-btn-icon">🗺️</span>
                                     <span>Google Maps</span>
                                 </a>
                                 ` : ''}
                                 
-                                ${uberUrl ? `
+                                ${uberUrl !== '#' ? `
                                 <a href="${uberUrl}" target="_blank" class="action-btn uber">
                                     <span class="action-btn-icon">🚗</span>
                                     <span>Uber Flash</span>
@@ -619,7 +740,7 @@
                     // Atualiza header
                     const orderIdElement = document.getElementById('orderId');
                     if (orderIdElement) {
-                        orderIdElement.textContent = `Pedido: ${order.order_id}`;
+                        orderIdElement.textContent = `Pedido: ${order.order_id || order.id || 'N/A'}`;
                     }
 
                     const statusElement = document.getElementById('orderStatus');
@@ -632,24 +753,6 @@
                     console.error('Erro ao exibir pedido:', error);
                     this.showError('Erro ao exibir os dados do pedido.');
                 }
-            }
-
-            formatPhone(phone) {
-                if (!phone) return 'Não informado';
-                const cleanPhone = phone.replace(/\D/g, '');
-                if (cleanPhone.length === 12) { // +55 format
-                    return `(${cleanPhone.substring(2, 4)}) ${cleanPhone.substring(4, 9)}-${cleanPhone.substring(9)}`;
-                } else if (cleanPhone.length === 11) {
-                    return `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
-                }
-                return phone;
-            }
-
-            escapeHtml(text) {
-                if (!text) return '';
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
             }
 
             showError(message) {
@@ -676,7 +779,9 @@
             }
         }
 
-        // Inicializa quando a página carregar
+        // ============================================
+        // INICIALIZAÇÃO
+        // ============================================
         document.addEventListener('DOMContentLoaded', () => {
             console.log('📄 Página order.html carregada');
             console.log('🔍 URL:', window.location.href);

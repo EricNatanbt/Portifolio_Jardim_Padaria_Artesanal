@@ -8,8 +8,10 @@ class PagesLoader {
             'inicio': this.getInicioContent(),
             'sobre': this.getSobreContent(),
             'cuidados': this.getCuidadosContent(),
-            'feedbacks': this.getFeedbacksContent()
+            'feedbacks': this.getFeedbacksContent(),
+            'pedidos': this.getPedidosContent()  // NOVO: Página de pedidos
         };
+        this.footerContent = this.getFooterContent();
         this.init();
     }
 
@@ -33,7 +35,15 @@ class PagesLoader {
             if (typeof initializeApp === 'function') {
                 initializeApp();
             }
+            this.loadFooter();
         }, 100);
+    }
+
+    loadFooter() {
+        const footerPlaceholder = document.getElementById('footer-placeholder');
+        if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = this.getFooterContent();
+        }
     }
 
     getInicioContent() {
@@ -190,7 +200,7 @@ class PagesLoader {
 
                                 <div class="text-slide">
                                     <p>Ainda somos uma micro padaria artesanal, funcionando exclusivamente por delivery, 
-                                    mas com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
+                                    mais com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
                                     seguimos alimentando também o sonho de abrir um espaço físico para acolher nossos clientes 
                                     como gostaríamos. </p>
                                 </div>
@@ -312,7 +322,7 @@ class PagesLoader {
                     <h2>Dicas dos Padeiros</h2>
 
                     <p class="guia-intro">Nossos pães chegam a vocês fresquinhos, todos os dias, alguns ainda quentes! 
-                    E esse sabor saindo do forno é incomparável. Então, talvez você se pergunte: “como posso preservar esse sabor especial da melhor maneira possível?”.</p>
+                    E esse sabor saindo do forno é incomparável. Então, talvez você se pergunte: "como posso preservar esse sabor especial da melhor maneira possível?".</p>
                     <div class="guia-cards">
 
 
@@ -443,6 +453,496 @@ class PagesLoader {
                     </div>
                 </div>
             </section>
+        `;
+    }
+
+    // NOVO: Método para carregar a página de pedidos
+    getPedidosContent() {
+    return `
+        <div class="pedidos-page">
+            <div class="pedidos-container">
+                <div class="pedidos-header">
+                    <h1>🍞 Meus Pedidos</h1>
+                    <p>Jardim Padaria - Acompanhe seus pedidos</p>
+                </div>
+                
+                <div class="pedidos-controls">
+                    <div class="date-filter">
+                        <input type="date" id="startDate">
+                        <span>até</span>
+                        <input type="date" id="endDate">
+                        <button id="applyDateFilter" class="action-btn btn-primary">Filtrar</button>
+                        <button id="clearDateFilter" class="action-btn btn-secondary">Limpar</button>
+                    </div>
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">Todos os Status</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="preparando">Preparando</option>
+                        <option value="pronto">Pronto</option>
+                        <option value="entregue">Entregue</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                    
+                    <select id="paymentFilter" class="filter-select">
+                        <option value="">Todos os Pagamentos</option>
+                        <option value="pix">Pix</option>
+                        <option value="cartao">Cartão</option>
+                        <option value="dinheiro">Dinheiro</option>
+                    </select>
+                    
+                    <input type="text" id="searchInput" class="filter-select search-input" placeholder="Buscar por ID do pedido...">
+                </div>
+                
+                <div class="pedidos-table-container">
+                    <div class="table-header">
+                        <h3>Histórico de Pedidos</h3>
+                        <span class="order-count" id="orderCount">0 pedidos</span>
+                    </div>
+                    <div class="pedidos-table">
+                        <table id="pedidosTable">
+                            <thead>
+                                <tr>
+                                    <th data-sort="order_id" class="sortable">ID</th>
+                                    <th data-sort="total" class="sortable">Total</th>
+                                    <th data-sort="status" class="sortable">Status</th>
+                                    <th data-sort="delivery_option" class="sortable">Entrega</th>
+                                    <th data-sort="payment_method" class="sortable">Pagamento</th>
+                                    <th data-sort="created_at" class="sortable">Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidosBody">
+                                <tr>
+                                    <td colspan="7" class="loading">
+                                        <div class="loading-spinner"></div>
+                                        <p>Carregando seus pedidos...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="noOrdersMessage" class="no-orders" style="display: none;">
+                    <h3>Nenhum pedido encontrado</h3>
+                    <p>Você ainda não fez nenhum pedido ou não há pedidos correspondentes aos filtros aplicados.</p>
+                    <p>Que tal fazer seu primeiro pedido? <a href="#" data-page="menu" style="color: var(--primary); font-weight: bold;">Clique aqui para ver o cardápio!</a></p>
+                </div>
+                
+                <div class="pedidos-footer">
+                    <p>🍞 Jardim Padaria | Seus pedidos estão seguros conosco</p>
+                </div>
+            </div>
+            
+            <!-- Modal de Detalhes do Pedido -->
+            <div class="modal" id="orderModal" style="display: none;">
+                <div class="modal-overlay" onclick="window.PedidosPage?.closeModal()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Detalhes do Pedido</h3>
+                        <button class="close-btn" onclick="window.PedidosPage?.closeModal()">×</button>
+                    </div>
+                    <div id="orderModalContent">
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando detalhes do pedido...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+            /* Estilos específicos para a página de pedidos - EXATO MESMO DESIGN DA PÁGINA ANTIGA */
+            :root {
+                --primary: #1C3D2D;
+                --primary-light: #2A5C42;
+                --secondary: #A2B28E;
+                --background: #FCF9F5;
+                --card: #FFFFFF;
+                --border: #D4E8DC;
+                --success: #27AE60;
+                --warning: #E67E22;
+                --error: #E74C3C;
+                --info: #3498DB;
+                --text-primary: #333333;
+                --text-secondary: #666666;
+                --text-light: #888888;
+            }
+            
+            .pedidos-page {
+                min-height: calc(100vh - 200px);
+                background: var(--background);
+                color: var(--text-primary);
+                line-height: 1.6;
+                font-size: 14px;
+                padding: 20px;
+            }
+            
+            .pedidos-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                min-height: 100vh;
+            }
+            
+            /* Header */
+            .pedidos-header {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+                color: white;
+                padding: 2rem;
+                border-radius: 1rem;
+                margin-bottom: 2rem;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(28, 61, 45, 0.2);
+            }
+            
+            .pedidos-header h1 {
+                color: white;
+                margin-bottom: 0.5rem;
+                font-size: 2rem;
+            }
+            
+            /* Controls */
+            .pedidos-controls {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+            
+            .refresh-btn {
+                padding: 0.75rem 1.5rem;
+                background: var(--success);
+                color: white;
+                border: none;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                font-weight: 600;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .refresh-btn:hover {
+                background: #219653;
+                transform: translateY(-2px);
+            }
+            
+            .date-filter {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+            
+            .date-filter input {
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 0.25rem;
+            }
+            
+            .filter-controls {
+                display: flex;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .filter-select, .search-input {
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 0.25rem;
+                min-width: 180px;
+            }
+            
+            .search-input {
+                flex: 1;
+                min-width: 250px;
+            }
+            
+            /* Table */
+            .table-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+            }
+            
+            .order-count {
+                background: var(--primary-light);
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 2rem;
+                font-size: 0.9rem;
+            }
+            
+            .pedidos-table-container {
+                background: var(--card);
+                border-radius: 0.5rem;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                margin-bottom: 2rem;
+            }
+            
+            .pedidos-table {
+                overflow-x: auto;
+            }
+            
+            .pedidos-table table {
+                width: 100%;
+                border-collapse: collapse;
+                min-width: 1200px;
+            }
+            
+            .pedidos-table th {
+                background: #f8f9fa;
+                color: var(--text-secondary);
+                padding: 1rem;
+                text-align: left;
+                font-weight: 600;
+                border-bottom: 2px solid var(--border);
+            }
+            
+            .pedidos-table th.sortable {
+                cursor: pointer;
+            }
+            
+            .pedidos-table td {
+                padding: 1rem;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .pedidos-table tr:nth-child(even) {
+                background: #fafbfc;
+            }
+            
+            .pedidos-table tr:hover {
+                background: #f0f7f2;
+            }
+            
+            /* Status Badges */
+            .status-badge {
+                display: inline-block;
+                padding: 0.25rem 0.75rem;
+                border-radius: 1rem;
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+            
+            .status-pendente { background: #FFF3E0; color: #E67E22; }
+            .status-preparando { background: #E3F2FD; color: #1976D2; }
+            .status-pronto { background: #E8F5E9; color: #2E7D32; }
+            .status-entregue { background: #E8F5E9; color: #1B5E20; }
+            .status-cancelado { background: #FFEBEE; color: #C62828; }
+            
+            /* Action Buttons */
+            .action-btn {
+                padding: 0.5rem 1rem;
+                border: none;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 0.9rem;
+                transition: all 0.3s;
+                margin-right: 0.5rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
+            
+            .btn-primary { background: var(--primary); color: white; }
+            .btn-secondary { background: var(--secondary); color: var(--primary); }
+            .btn-success { background: var(--success); color: white; }
+            .btn-info { background: var(--info); color: white; }
+            
+            /* Loading */
+            .loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+            }
+            
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid var(--primary);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin-bottom: 1rem;
+            }
+            
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            /* Footer */
+            .pedidos-footer {
+                text-align: center;
+                padding: 2rem;
+                color: var(--text-light);
+                border-top: 1px solid var(--border);
+                margin-top: 2rem;
+            }
+            
+            /* Modal */
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            
+            .modal-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+            }
+            
+            .modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 0.5rem;
+                max-width: 800px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                z-index: 1001;
+                position: relative;
+            }
+            
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+            }
+            
+            .close-btn {
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                color: #666;
+            }
+            
+            /* No orders message */
+            .no-orders {
+                background: #f9f9f9;
+                padding: 3rem;
+                border-radius: 0.5rem;
+                text-align: center;
+                margin-top: 2rem;
+            }
+            
+            .no-orders h3 {
+                margin-bottom: 1rem;
+                color: var(--text-primary);
+            }
+            
+            .no-orders p {
+                margin-bottom: 1rem;
+                color: var(--text-secondary);
+            }
+            
+            @media (max-width: 768px) {
+                .pedidos-controls {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                
+                .filter-controls {
+                    flex-direction: column;
+                }
+                
+                .filter-select, .search-input {
+                    width: 100%;
+                }
+                
+                .date-filter {
+                    width: 100%;
+                    justify-content: center;
+                }
+            }
+        </style>
+    `;
+}
+
+    getFooterContent() {
+        return `
+            <footer>
+                <div class="footer-content">
+                    <!-- Sobre -->
+                    <section class="footer-section">
+                        <h3>Padaria Jardim</h3>
+                        <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
+                    </section>
+
+                    <!-- Contato -->
+                    <section class="footer-section">
+                        <h3>Contato</h3>
+                        <p>📍 Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
+                        <p>📞 (83) 99920-4618</p>
+                    </section>
+
+                    <!-- Horário -->
+                    <section class="footer-section">
+                        <h3>Horário</h3>
+                        <p>Terça a domingo</p>
+                        <p>07h - 19h</p>
+                    </section>
+
+                    <!-- Formas de Pagamento -->
+                    <section class="footer-section">
+                        <h3>Formas de Pagamento</h3>
+                        <div class="footer-payment-icons">
+                            <img src="img/payment/cardVisa.png" alt="Visa">
+                            <img src="img/payment/cardMastercard.png" alt="MasterCard">
+                            <img src="img/payment/cardElo.png" alt="Elo">
+                            <img src="img/payment/pix.png" alt="Pix">
+                            <img src="img/payment/cash.png" alt="Dinheiro">
+                        </div>
+                    </section>
+
+                    <!-- Siga-nos -->
+                    <section class="footer-section">
+                        <h3>Siga-nos</h3>
+                        <div class="footer-social-icons">
+                            <a href="https://www.instagram.com/jardimpadariacg/">
+                                <img src="img/logos/instagram.png" alt="Instagram">
+                            </a>
+                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0">
+                                <img src="img/logos/whatsapp.png" alt="WhatsApp">
+                            </a>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
+                </div>
+            </footer>
         `;
     }
 }

@@ -1,59 +1,20 @@
 // ============================================
 // EXIBIÇÃO DO PEDIDO NA PÁGINA
 // ============================================
-// ============================================
-// COMPATIBILIDADE COM LINKS DE PEDIDO
-// ============================================
-
-// Verifica se é um link com ID do banco
-function isDatabaseOrderId(orderId) {
-    return orderId && orderId.startsWith('JD') && orderId.length > 3;
-}
-
-// Tenta carregar do banco primeiro, depois do localStorage
-async function loadOrderData(orderId) {
-    // Se for ID do banco
-    if (isDatabaseOrderId(orderId)) {
-        try {
-            const apiClient = new ApiClient();
-            const response = await apiClient.getOrder(orderId);
-            
-            if (response.success && response.orderData) {
-                console.log('✅ Pedido carregado do banco:', orderId);
-                return response.orderData;
-            }
-        } catch (error) {
-            console.error('❌ Erro ao carregar do banco:', error);
-        }
-    }
-    
-    // Fallback: tenta carregar do localStorage
-    try {
-        const savedOrder = localStorage.getItem(`order_${orderId}`);
-        if (savedOrder) {
-            console.log('✅ Pedido carregado do localStorage:', orderId);
-            return JSON.parse(savedOrder);
-        }
-    } catch (error) {
-        console.error('❌ Erro ao carregar do localStorage:', error);
-    }
-    
-    return null;
-}
 
 class OrderDisplay {
-    
     constructor() {
         this.orderData = null;
+        this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
         this.init();
     }
 
-    init() {
+    async init() {
         // Adiciona CSS básico para a página
         this.addBasicStyles();
         
-        // Recupera os dados do pedido da URL
-        this.loadOrder();
+        // Recupera os dados do pedido
+        await this.loadOrder();
         
         // Exibe os dados do pedido
         this.displayOrder();
@@ -233,36 +194,115 @@ class OrderDisplay {
 
     async loadOrder() {
         const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('id');
+        const orderId = urlParams.get('orderId');
+        const shortId = urlParams.get('i');
 
-        if (!orderId) {
+        if (!orderId && !shortId) {
             this.showError('Nenhum pedido especificado na URL.');
             return;
         }
 
         try {
-            const apiClient = new ApiClient();
-            const response = await apiClient.getOrder(orderId);
-
-            if (response.success) {
-                this.orderData = response.orderData;
-                this.displayOrder();
-            } else {
-                this.showError(response.message || 'Pedido não encontrado.');
+            if (orderId) {
+                // Busca pelo ID do banco de dados
+                await this.fetchOrderFromDatabase(orderId);
+            } else if (shortId) {
+                // Busca pelo shortId (compatibilidade com links antigos)
+                await this.fetchOrderFromLocalStorage(shortId);
             }
         } catch (error) {
-            console.error('Erro ao carregar pedido da API:', error);
+            console.error('❌ Erro ao carregar pedido:', error);
             this.showError('Erro ao carregar os detalhes do pedido.');
         }
     }
 
-    
-    getOrderFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
+    async fetchOrderFromDatabase(orderId) {
+        try {
+            console.log(`📋 Buscando pedido ${orderId} da API...`);
+            const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.orderData) {
+                this.orderData = this.normalizeOrderData(result.orderData);
+                console.log('✅ Pedido carregado da API:', this.orderData);
+            } else {
+                this.showError(result.message || 'Pedido não encontrado no banco de dados.');
+            }
+        } catch (error) {
+            console.error('❌ Erro na API:', error);
+            this.showError('Erro ao buscar pedido do banco de dados.');
+        }
+    }
+
+    async fetchOrderFromLocalStorage(shortId) {
+        try {
+            const orderKey = `order_${shortId}`;
+            const savedOrder = localStorage.getItem(orderKey);
+            
+            if (savedOrder) {
+                const parsed = JSON.parse(savedOrder);
+                this.orderData = this.normalizeOrderData(parsed);
+                console.log('✅ Pedido carregado do localStorage:', this.orderData);
+            } else {
+                this.showError('Pedido não encontrado no armazenamento local.');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao carregar do localStorage:', error);
+            this.showError('Erro ao carregar pedido do armazenamento local.');
+        }
+    }
+
+    normalizeOrderData(orderData) {
+        if (!orderData) return null;
         
-        console.log('Parâmetros da URL:', Object.fromEntries(urlParams.entries()));
+        // Se já estiver normalizado, retorna como está
+        if (orderData.normalized === true) return orderData;
         
-        // Esta função não é mais usada, pois os dados são carregados da API.
+        // Extrai dados do cliente
+        const clientData = orderData.client || orderData.customer || {};
+        const orderInfo = orderData.order || orderData;
+        const items = orderData.items || orderInfo.items || [];
+        
+        // Normaliza os dados
+        return {
+            normalized: true,
+            
+            // Dados do cliente
+            customer: {
+                name: clientData.name || '',
+                phone: clientData.phone || '',
+                address: clientData.address || orderInfo.address || '',
+                observation: clientData.observation || orderInfo.observation || ''
+            },
+            
+            // Dados do pedido
+            order: {
+                order_id: orderInfo.order_id || orderInfo.id || orderData.order_id || '',
+                id: orderInfo.id || orderInfo.order_id || '',
+                total: parseFloat(orderInfo.total || orderInfo.total_amount || 0),
+                subtotal: parseFloat(orderInfo.subtotal || orderInfo.total_amount || 0),
+                delivery_fee: parseFloat(orderInfo.delivery_fee || orderInfo.deliveryFee || 0),
+                delivery_option: orderInfo.delivery_option || orderInfo.deliveryOption || 'entrega',
+                payment_method: orderInfo.payment_method || orderInfo.paymentMethod || 'pix',
+                observation: orderInfo.observation || '',
+                created_at: orderInfo.created_at || orderInfo.createdAt || orderInfo.timestamp || new Date().toISOString(),
+                status: orderInfo.status || 'pendente'
+            },
+            
+            // Itens do pedido
+            items: items.map(item => ({
+                product_id: item.product_id || item.id || '',
+                product_name: item.product_name || item.name || '',
+                name: item.name || item.product_name || '',
+                price: parseFloat(item.price || 0),
+                quantity: parseInt(item.quantity || 1)
+            }))
+        };
     }
 
     displayOrder() {
@@ -271,8 +311,9 @@ class OrderDisplay {
         try {
             // Atualiza o ID do pedido
             const orderIdElement = document.getElementById('orderId');
+            const orderId = this.orderData.order?.order_id || this.orderData.order?.id || 'Indefinido';
             if (orderIdElement) {
-                orderIdElement.textContent = `Pedido: ${this.orderData.order.order_id}`;
+                orderIdElement.textContent = `Pedido: ${orderId}`;
             }
 
             // Exibe informações do cliente
@@ -285,14 +326,8 @@ class OrderDisplay {
             this.displayOrderSummary();
 
             // Exibe timestamp
-            const timestampElement = document.getElementById('orderTimestamp');
-            if (timestampElement) {
-                // Formata a data do banco de dados (ISO 8601) para o formato local
-                const date = new Date(this.orderData.order.created_at);
-                const formattedDate = date.toLocaleString('pt-BR');
-                timestampElement.textContent = `Pedido realizado em: ${formattedDate}`;
-            }
-            
+            this.displayTimestamp();
+
         } catch (error) {
             console.error('Erro ao exibir pedido:', error);
             this.showError('Erro ao carregar os dados do pedido.');
@@ -306,6 +341,15 @@ class OrderDisplay {
         
         if (!customerInfoDiv) return;
         
+        // Formata o telefone
+        const formattedPhone = this.formatPhone(customer.phone);
+        
+        // Formata o método de pagamento
+        const paymentMethod = this.formatPaymentMethod(order.payment_method);
+        
+        // Formata a opção de entrega
+        const deliveryOption = order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega (Delivery)';
+        
         let customerHTML = `
             <div class="info-item">
                 <strong>Nome:</strong>
@@ -313,15 +357,15 @@ class OrderDisplay {
             </div>
             <div class="info-item">
                 <strong>Telefone:</strong>
-                <span>${this.formatPhone(customer.phone)}</span>
+                <span>${formattedPhone}</span>
             </div>
             <div class="info-item">
                 <strong>Entrega:</strong>
-                <span>${order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</span>
+                <span>${deliveryOption}</span>
             </div>
             <div class="info-item">
                 <strong>Pagamento:</strong>
-                <span>${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
+                <span>${paymentMethod}</span>
             </div>
         `;
         
@@ -335,11 +379,11 @@ class OrderDisplay {
             `;
         }
         
-        if (order.delivery_option === 'entrega' && order.address) {
+        if (order.delivery_option === 'entrega' && customer.address) {
             customerHTML += `
             <div class="info-item">
                 <strong>Endereço:</strong>
-                <span>${this.escapeHtml(order.address)}</span>
+                <span>${this.escapeHtml(customer.address)}</span>
             </div>
             `;
         }
@@ -348,7 +392,7 @@ class OrderDisplay {
     }
 
     displayOrderItems() {
-        const items = this.orderData.items; // Agora vem direto de orderData.items
+        const items = this.orderData.items;
         const itemsContainer = document.getElementById('orderItems');
         
         if (!itemsContainer) return;
@@ -357,17 +401,15 @@ class OrderDisplay {
         
         if (items && items.length > 0) {
             items.forEach(item => {
-                // Os dados do item vêm do banco de dados, com 'price' e 'quantity'
                 const itemTotal = (item.price * item.quantity).toFixed(2);
                 itemsHTML += `
                     <div class="info-item">
-                        <span>${item.quantity}x ${this.escapeHtml(item.product_name)}</span>
+                        <span>${item.quantity}x ${this.escapeHtml(item.product_name || item.name)}</span>
                         <span>R$ ${itemTotal}</span>
                     </div>
                 `;
             });
         } else {
-            // Fallback: mostra apenas o total se não conseguir processar os itens
             itemsHTML = `
                 <div class="info-item">
                     <span>Pedido personalizado</span>
@@ -383,10 +425,10 @@ class OrderDisplay {
         const order = this.orderData.order;
         const summaryDiv = document.getElementById('orderSummary');
         
-                if (!summaryDiv) return;
+        if (!summaryDiv) return;
         
         const subtotal = order.subtotal || 0;
-        const deliveryFee = order.delivery_fee || 0; // Usando delivery_fee do banco
+        const deliveryFee = order.delivery_fee || 0;
         const total = order.total || (subtotal + deliveryFee);
         
         let summaryHTML = `
@@ -415,14 +457,63 @@ class OrderDisplay {
         summaryDiv.innerHTML = summaryHTML;
     }
 
+    displayTimestamp() {
+        const timestampElement = document.getElementById('orderTimestamp');
+        if (timestampElement) {
+            const rawDate = this.orderData.order?.created_at;
+            let formattedDate = 'Data Inválida';
+            
+            if (rawDate) {
+                try {
+                    const date = new Date(rawDate);
+                    if (!isNaN(date)) {
+                        formattedDate = date.toLocaleString('pt-BR');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Erro ao formatar data:', rawDate, error);
+                }
+            }
+            
+            timestampElement.textContent = `Pedido realizado em: ${formattedDate}`;
+        }
+    }
+
     formatPhone(phone) {
         if (!phone) return 'Não informado';
         
         const cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.length === 11) {
-            return `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+        
+        // Remove código do país se tiver
+        if (cleanPhone.startsWith('55') && cleanPhone.length === 13) {
+            const cleanLocal = cleanPhone.substring(2);
+            return `(${cleanLocal.substring(0,2)}) ${cleanLocal.substring(2,7)}-${cleanLocal.substring(7)}`;
         }
+        
+        if (cleanPhone.length === 11) {
+            return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
+        }
+        
         return phone;
+    }
+
+    formatPaymentMethod(method) {
+        if (!method) return 'Método Desconhecido';
+        const lowerMethod = method.toLowerCase();
+        
+        if (lowerMethod.includes('pix')) {
+            return '💰 Pix';
+        }
+        if (lowerMethod.includes('dinheiro')) {
+            return '💵 Dinheiro';
+        }
+        if (lowerMethod.includes('cartao') || lowerMethod.includes('cartão')) {
+            return '💳 Cartão';
+        }
+        if (lowerMethod.includes('card')) {
+            return '💳 Cartão';
+        }
+        
+        return method;
     }
 
     escapeHtml(text) {
