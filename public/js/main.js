@@ -112,10 +112,15 @@ async function loadComponents() {
         const cartModule = await import('./components/cart.js');
         Cart = cartModule.default || cartModule.Cart;
         window.Cart = Cart;
+
+        // Carrega Carousel
+        const carouselModule = await import('./components/carousel.js');
+        window.Carousel = carouselModule.default || carouselModule.Carousel;
         
         console.log('✅ Componentes carregados:', { 
             Modal: !!Modal, 
-            Cart: !!Cart 
+            Cart: !!Cart,
+            Carousel: !!window.Carousel
         });
         
     } catch (error) {

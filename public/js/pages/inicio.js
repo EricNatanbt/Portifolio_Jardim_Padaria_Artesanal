@@ -9,27 +9,17 @@ const InicioPage = {
     },
 
     async setupCarousel() {
-        // Código do carrossel existente...
         console.log('🔄 Configurando carrossel...');
         
-        const carouselSlide = document.querySelector('.products-carousel .carousel-slide');
-        if (!carouselSlide) return;
-        
-        const images = carouselSlide.querySelectorAll('img');
-        if (images.length === 0) return;
-        
-        let currentIndex = 0;
-        const totalImages = images.length;
-        
-        // Mostra a primeira imagem
-        images[0].classList.add('active');
-        
-        // Alterna as imagens a cada 3 segundos
-        setInterval(() => {
-            images[currentIndex].classList.remove('active');
-            currentIndex = (currentIndex + 1) % totalImages;
-            images[currentIndex].classList.add('active');
-        }, 3000);
+        if (window.Carousel && window.Carousel.initialize) {
+            //Adicionado para ficar uma chamada padronizada
+            window.Carousel.initialize('.products-carousel', {
+                delay: 3000,
+                autoPlay: true
+            });
+        } else {
+            console.error('❌ Componente Carousel não encontrado para inicializar.');
+        }
     },
 
     async setupTodayProducts() {
@@ -167,7 +157,7 @@ const InicioPage = {
     }
 };
 
-// Adicione este método ao api-client.js se não existir
+
 window.apiClient = window.apiClient || {
     async getProductsByDay(day) {
         try {

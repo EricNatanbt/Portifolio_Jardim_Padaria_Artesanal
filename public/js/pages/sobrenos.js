@@ -11,19 +11,19 @@ const SobreNosPage = {
     },
 
     initializeAboutCarousel() {
-        // Assume que Carousel é um objeto global ou importado em main.js
-        // Se Carousel não estiver definido, esta linha pode falhar.
-        // Vamos manter a estrutura original para não introduzir novos erros.
-        if (typeof Carousel !== 'undefined' && Carousel.destroy) {
-            Carousel.destroy('.about-section .carousel-container');
+        // O componente Carousel agora é carregado globalmente em main.js
+        if (window.Carousel && window.Carousel.destroy) {
+            window.Carousel.destroy('.about-section .carousel-container');
         }
 
         setTimeout(() => {
-            if (typeof Carousel !== 'undefined' && Carousel.initialize) {
-                Carousel.initialize('.about-section .carousel-container', {
+            if (window.Carousel && window.Carousel.initialize) {
+                window.Carousel.initialize('.about-section .carousel-container', {
                     delay: 3000,
                     autoPlay: true
                 });
+            } else {
+                console.error('❌ Componente Carousel não encontrado para inicializar em sobrenos.js');
             }
         }, 100);
     },
