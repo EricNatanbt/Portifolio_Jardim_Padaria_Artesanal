@@ -1,0 +1,82 @@
+body {
+margin: 40px auto;
+background: #fff;
+padding: 20px;
+border-radius: 14px;
+box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+
+h1 {
+text-align: center;
+margin-bottom: 20px;
+}
+
+
+.search-box {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+
+.search-box input {
+flex: 1;
+padding: 10px;
+border: 1px solid #aaa;
+border-radius: 8px;
+}
+
+
+.search-box button {
+padding: 10px 18px;
+border: none;
+background: #1C3D2D;
+color: white;
+border-radius: 8px;
+cursor: pointer;
+}
+
+
+.product-list {
+margin-bottom: 25px;
+}
+
+
+.product-item {
+padding: 12px;
+margin-bottom: 8px;
+border: 1px solid #ccc;
+border-radius: 10px;
+cursor: pointer;
+background: #fafafa;
+}
+
+
+.form-container input,
+.form-container select {
+width: 100%;
+padding: 10px;
+border-radius: 8px;
+border: 1px solid #aaa;
+margin-bottom: 12px;
+}
+
+
+.btn-row {
+display: flex;
+justify-content: space-between;
+}
+
+
+button {
+padding: 10px 14px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+}
+
+
+#btnSave { background: #2A5C42; color: white; }
+#btnNew { background: #A2B28E; }
+.danger { background: #c0392b; color: white; }

@@ -5,7 +5,7 @@ class AdminPanel {
         this.filteredOrders = [];
         this.currentSort = { column: 'created_at', direction: 'desc' };
         this.currentOrderId = null;
-        this.apiBase = window.location.origin + '/.netlify/functions';
+        this.apiBase = window.location.origin + '/api';
         this.isLoading = false;
         
         // Initialize
@@ -132,6 +132,53 @@ class AdminPanel {
         }
     }
     
+    // NOVO MÉTODO: Calcular estatísticas localmente a partir dos pedidos carregados
+    calculateLocalStats() {
+        const stats = this.getEmptyStats();
+        
+        stats.total = this.orders.length;
+        
+        this.orders.forEach(order => {
+            const status = order.status || 'pendente';
+            const value = parseFloat(order.total || order.total_amount || 0);
+            
+            // Conta por status
+            switch(status.toLowerCase()) {
+                case 'pendente':
+                    stats.pendente++;
+                    break;
+                case 'preparando':
+                    stats.preparando++;
+                    break;
+                case 'pronto':
+                    stats.pronto++;
+                    break;
+                case 'entregue':
+                    stats.entregue++;
+                    break;
+                case 'cancelado':
+                    stats.cancelado++;
+                    break;
+                default:
+                    stats.pendente++;
+            }
+            
+            // Soma valores
+            if (!isNaN(value)) {
+                stats.total_value += value;
+            }
+        });
+        
+        return stats;
+    }
+    
+    // NOVO MÉTODO: Atualizar estatísticas após mudanças
+    updateStats() {
+        const localStats = this.calculateLocalStats();
+        this.displayStats(localStats);
+        console.log('📊 Estatísticas atualizadas localmente:', localStats);
+    }
+    
     async getOrderDetails(orderId) {
         try {
             console.log(`🔍 Buscando detalhes do pedido: ${orderId}`);
@@ -174,7 +221,8 @@ class AdminPanel {
             const result = await response.json();
             
             if (result.success) {
-                return true;
+                console.log('✅ Status atualizado no banco de dados:', result);
+                return result;
             } else {
                 throw new Error(result.message || 'Erro ao atualizar status');
             }
@@ -268,8 +316,8 @@ class AdminPanel {
                     <strong>R$ ${total.toFixed(2)}</strong>
                 </td>
                 <td>
-                    <span class="status-badge status-${order.status}">
-                        ${this.getStatusText(order.status)}
+                    <span class="status-badge status-${order.status || 'pendente'}">
+                        ${this.getStatusText(order.status || 'pendente')}
                     </span>
                 </td>
                 <td>
@@ -278,9 +326,7 @@ class AdminPanel {
                         '<span title="Entrega em Domicílio">🚗 Entrega</span>'}
                 </td>
                 <td>
-                    ${paymentMethod === 'pix' ? 
-                        '<span title="Pagamento via Pix">💰 Pix</span>' : 
-                        '<span title="Pagamento com Cartão">💳 Cartão</span>'}
+                    ${this.getPaymentMethodText(paymentMethod)}
                 </td>
                 <td>
                     <span class="date-time" title="${date}">
@@ -299,19 +345,19 @@ class AdminPanel {
                                 title="Alterar status do pedido">
                             ✏️ Status
                         </button>
-                        ${order.status === 'pendente' ? 
+                        ${(order.status || 'pendente') === 'pendente' ? 
                             `<button class="action-btn btn-success" 
                                     onclick="AdminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'preparando')"
                                     title="Iniciar preparação do pedido">
                                 🍳 Preparar
                             </button>` : ''}
-                        ${order.status === 'preparando' ? 
+                        ${(order.status || 'pendente') === 'preparando' ? 
                             `<button class="action-btn btn-warning" 
                                     onclick="AdminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'pronto')"
                                     title="Marcar pedido como pronto">
                                 ✅ Pronto
                             </button>` : ''}
-                        ${order.status === 'pronto' ? 
+                        ${(order.status || 'pendente') === 'pronto' ? 
                             `<button class="action-btn btn-success" 
                                     onclick="AdminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'entregue')"
                                     title="Marcar pedido como entregue">
@@ -323,6 +369,22 @@ class AdminPanel {
             
             tbody.appendChild(row);
         });
+    }
+    
+    getPaymentMethodText(paymentMethod) {
+        const paymentMap = {
+            'pix': '<span title="Pagamento via Pix">💰 Pix</span>',
+            'cartao': '<span title="Pagamento com Cartão">💳 Cartão</span>',
+            'dinheiro': '<span title="Pagamento em Dinheiro">💵 Dinheiro</span>',
+            'card': '<span title="Pagamento com Cartão">💳 Cartão</span>',
+            'cash': '<span title="Pagamento em Dinheiro">💵 Dinheiro</span>',
+            'money': '<span title="Pagamento em Dinheiro">💵 Dinheiro</span>'
+        };
+        
+        // Normaliza o método de pagamento para minúsculas
+        const normalizedMethod = paymentMethod?.toLowerCase() || 'pix';
+        
+        return paymentMap[normalizedMethod] || `<span title="Pagamento via ${paymentMethod}">${paymentMethod}</span>`;
     }
     
     updateOrderCount() {
@@ -385,6 +447,10 @@ class AdminPanel {
             const total = parseFloat(order.total || order.total_amount || 0);
             const createdDate = new Date(order.created_at).toLocaleString('pt-BR');
             
+            // CORREÇÃO: Usar a função getPaymentMethodText para mostrar o método de pagamento corretamente
+            const paymentMethodText = this.getPaymentMethodText(order.payment_method || order.paymentMethod || 'pix');
+            const paymentHtml = paymentMethodText.replace('<span', '<span style="display: inline-flex; align-items: center; gap: 5px;"');
+            
             modalContent.innerHTML = `
                 <div class="modal-section">
                     <h4>📋 Informações do Pedido</h4>
@@ -394,7 +460,7 @@ class AdminPanel {
                     </div>
                     <div class="info-row">
                         <span class="info-label">Status:</span>
-                        <span><span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></span>
+                        <span><span class="status-badge status-${order.status || 'pendente'}">${this.getStatusText(order.status || 'pendente')}</span></span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Data e Hora:</span>
@@ -406,7 +472,7 @@ class AdminPanel {
                     </div>
                     <div class="info-row">
                         <span class="info-label">Pagamento:</span>
-                        <span>${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
+                        <span>${paymentHtml}</span>
                     </div>
                     ${order.observation ? `
                     <div class="info-row">
@@ -540,23 +606,31 @@ class AdminPanel {
         const newStatus = document.getElementById('newStatusSelect').value;
         
         try {
-            await this.updateOrderStatus(this.currentOrderId, newStatus);
+            // Atualiza no banco de dados
+            const result = await this.updateOrderStatus(this.currentOrderId, newStatus);
             
-            // Atualiza localmente
-            const orderIndex = this.orders.findIndex(o => 
-                o.order_id === this.currentOrderId || o.id === this.currentOrderId
-            );
-            
-            if (orderIndex > -1) {
-                this.orders[orderIndex].status = newStatus;
-                this.filteredOrders = [...this.orders];
-                this.applyFilters();
-                this.displayOrders();
-                this.updateOrderCount();
+            if (result.success) {
+                // Atualiza localmente
+                const orderIndex = this.orders.findIndex(o => 
+                    o.order_id === this.currentOrderId || o.id === this.currentOrderId
+                );
+                
+                if (orderIndex > -1) {
+                    this.orders[orderIndex].status = newStatus;
+                    this.filteredOrders = [...this.orders];
+                    this.applyFilters();
+                    this.displayOrders();
+                    this.updateOrderCount();
+                    
+                    // ATUALIZADO: Atualiza estatísticas
+                    this.updateStats();
+                }
+                
+                this.closeEditStatusModal();
+                this.showSuccess('✅ Status atualizado com sucesso!');
+            } else {
+                throw new Error(result.message || 'Erro ao atualizar status');
             }
-            
-            this.closeEditStatusModal();
-            this.showSuccess('✅ Status atualizado com sucesso!');
             
         } catch (error) {
             console.error('❌ Erro ao atualizar status:', error);
@@ -570,22 +644,30 @@ class AdminPanel {
         }
         
         try {
-            await this.updateOrderStatus(orderId, newStatus);
+            // Atualiza no banco de dados
+            const result = await this.updateOrderStatus(orderId, newStatus);
             
-            // Atualiza localmente
-            const orderIndex = this.orders.findIndex(o => 
-                o.order_id === orderId || o.id === orderId
-            );
-            
-            if (orderIndex > -1) {
-                this.orders[orderIndex].status = newStatus;
-                this.filteredOrders = [...this.orders];
-                this.applyFilters();
-                this.displayOrders();
-                this.updateOrderCount();
+            if (result.success) {
+                // Atualiza localmente
+                const orderIndex = this.orders.findIndex(o => 
+                    o.order_id === orderId || o.id === orderId
+                );
+                
+                if (orderIndex > -1) {
+                    this.orders[orderIndex].status = newStatus;
+                    this.filteredOrders = [...this.orders];
+                    this.applyFilters();
+                    this.displayOrders();
+                    this.updateOrderCount();
+                    
+                    // ATUALIZADO: Atualiza estatísticas
+                    this.updateStats();
+                }
+                
+                this.showSuccess(`✅ Status atualizado para: ${this.getStatusText(newStatus)}`);
+            } else {
+                throw new Error(result.message || 'Erro ao atualizar status');
             }
-            
-            this.showSuccess(`✅ Status atualizado para: ${this.getStatusText(newStatus)}`);
             
         } catch (error) {
             console.error('❌ Erro ao atualizar status:', error);
@@ -603,7 +685,8 @@ class AdminPanel {
         
         this.filteredOrders = this.orders.filter(order => {
             // Filtro por status
-            if (statusFilter && order.status !== statusFilter) return false;
+            const orderStatus = order.status || 'pendente';
+            if (statusFilter && orderStatus !== statusFilter) return false;
             
             // Filtro por tipo de entrega
             const deliveryOption = order.delivery_option || order.deliveryOption;
@@ -611,7 +694,21 @@ class AdminPanel {
             
             // Filtro por forma de pagamento
             const paymentMethod = order.payment_method || order.paymentMethod;
-            if (paymentFilter && paymentMethod !== paymentFilter) return false;
+            if (paymentFilter) {
+                // Normaliza ambos para comparação
+                const normalizedFilter = paymentFilter.toLowerCase();
+                const normalizedMethod = (paymentMethod || 'pix').toLowerCase();
+                
+                // Mapeia sinônimos para os valores do filtro
+                const paymentMapping = {
+                    'pix': ['pix'],
+                    'cartao': ['cartao', 'card', 'credit', 'debit'],
+                    'dinheiro': ['dinheiro', 'cash', 'money']
+                };
+                
+                const allowedMethods = paymentMapping[normalizedFilter] || [normalizedFilter];
+                if (!allowedMethods.includes(normalizedMethod)) return false;
+            }
             
             // Filtro por busca
             if (searchTerm) {
@@ -684,9 +781,9 @@ class AdminPanel {
             Cliente: order.client_name || order.client?.name || '',
             Telefone: order.client_phone || order.client?.phone || '',
             Total: `R$ ${parseFloat(order.total || order.total_amount || 0).toFixed(2)}`,
-            Status: this.getStatusText(order.status),
+            Status: this.getStatusText(order.status || 'pendente'),
             Entrega: order.delivery_option || order.deliveryOption || 'entrega',
-            Pagamento: order.payment_method || order.paymentMethod || 'pix',
+            Pagamento: this.getPaymentMethodText(order.payment_method || order.paymentMethod || 'pix').replace(/<[^>]*>/g, ''),
             Data: new Date(order.created_at).toLocaleString('pt-BR')
         }));
         
@@ -715,7 +812,7 @@ class AdminPanel {
     }
     
     setupEventListeners() {
-        // Botão de refresh
+        // Botão de refresh - ATUALIZADO para recarregar estatísticas também
         document.getElementById('refreshBtn')?.addEventListener('click', () => {
             this.loadAllData();
             this.showSuccess('🔄 Dados atualizados');
@@ -942,6 +1039,12 @@ style.textContent = `
     
     .date-time {
         white-space: nowrap;
+    }
+    
+    .payment-method {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
     }
 `;
 document.head.appendChild(style);

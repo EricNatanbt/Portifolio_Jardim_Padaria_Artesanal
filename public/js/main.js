@@ -112,10 +112,15 @@ async function loadComponents() {
         const cartModule = await import('./components/cart.js');
         Cart = cartModule.default || cartModule.Cart;
         window.Cart = Cart;
+
+        // Carrega Carousel
+        const carouselModule = await import('./components/carousel.js');
+        window.Carousel = carouselModule.default || carouselModule.Carousel;
         
         console.log('✅ Componentes carregados:', { 
             Modal: !!Modal, 
-            Cart: !!Cart 
+            Cart: !!Cart,
+            Carousel: !!window.Carousel
         });
         
     } catch (error) {
@@ -318,6 +323,31 @@ async function initializePageComponents(pageName) {
                     console.log('✅ Página Feedbacks inicializada');
                 }
                 break;
+                case 'pedidos':
+    // Carrega dinamicamente o script dos pedidos
+    try {
+        const pedidosModule = await import('./pages/pedidos.js');
+        window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
+        if (window.PedidosPage && window.PedidosPage.initialize) {
+            await window.PedidosPage.initialize();
+        }
+        console.log('✅ Página Pedidos inicializada');
+    } catch (error) {
+        console.error('❌ Erro ao carregar página de pedidos:', error);
+        // Tenta carregar novamente
+        setTimeout(async () => {
+            try {
+                const pedidosModule = await import('./pages/pedidos.js');
+                window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
+                if (window.PedidosPage && window.PedidosPage.initialize) {
+                    await window.PedidosPage.initialize();
+                }
+            } catch (retryError) {
+                console.error('❌ Falha na segunda tentativa de carregar pedidos:', retryError);
+            }
+        }, 1000);
+    }
+    break;
         }
     } catch (error) {
         console.error(`❌ Erro ao inicializar página ${pageName}:`, error);
