@@ -8,7 +8,6 @@ class PagesLoader {
             'inicio': this.getInicioContent(),
             'sobre': this.getSobreContent(),
             'cuidados': this.getCuidadosContent(),
-            'feedbacks': this.getFeedbacksReactContent(),
             'pedidos': this.getPedidosContent()  // NOVO: Página de pedidos
         };
         this.footerContent = this.getFooterContent();
@@ -370,15 +369,6 @@ class PagesLoader {
             </section>
         `;
     }
-
-    getFeedbacksReactContent() {
-    return `
-        <iframe 
-            src="feedback/dist/index.html" 
-            style="width:100%; height:100vh; border:none;">
-        </iframe>
-    `;
-}
 
     // NOVO: Método para carregar a página de pedidos
     getPedidosContent() {
