@@ -32,9 +32,13 @@ app.post('/api/saveOrder', (req, res) => {
 // 2. Serve arquivos estáticos
 app.use(express.static(staticPath));
 
-// 3. Rota de fallback para servir index.html (SPA)
+// 3. Rota de fallback para servir index.html (SPA) para rotas não encontradas
 app.get('*', (req, res) => {
-    res.sendFile(path.join(staticPath, 'index.html'));
+    if (!req.path.includes('.')) { // Evita tentar servir index.html para arquivos estáticos não encontrados
+        res.sendFile(path.join(staticPath, 'index.html'));
+    } else {
+        res.status(404).send('Not Found');
+    }
 });
 
 app.listen(port, () => {

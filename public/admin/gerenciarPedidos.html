@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Jardim Padaria</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../img/logos/Logo.png">
     <style>
         :root {
             --primary: #1C3D2D;
@@ -385,6 +386,7 @@
                 <option value="">Todos os Pagamentos</option>
                 <option value="pix">Pix</option>
                 <option value="cartao">Cartão</option>
+                <option value="dinheiro">Dinheiro</option>
             </select>
             
             <input type="text" id="searchInput" class="filter-select search-input" placeholder="Buscar por ID, nome ou telefone...">
@@ -475,7 +477,7 @@
     </div>
 
     <script>
-        // Admin Panel JavaScript - Versão Corrigida e Funcional
+        // Admin Panel JavaScript - Versão Corrigida
         class AdminPanel {
             constructor() {
                 this.orders = [];
@@ -506,7 +508,6 @@
                     this.showLoading(true);
                     console.log('📥 Carregando pedidos...');
                     
-                    // Tenta carregar do banco via API
                     const response = await fetch(`${this.apiBase}/get-all-orders`);
                     
                     if (!response.ok) {
@@ -529,7 +530,6 @@
                     
                 } catch (error) {
                     console.error('❌ Erro ao carregar pedidos:', error);
-                    // Fallback para dados de exemplo
                     this.orders = await this.getFallbackOrders();
                     this.filteredOrders = [...this.orders];
                     this.sortOrders();
@@ -562,7 +562,6 @@
                     
                 } catch (error) {
                     console.error('❌ Erro ao carregar estatísticas:', error);
-                    // Calcula stats localmente
                     const stats = this.calculateLocalStats();
                     this.displayStats(stats);
                 }
@@ -587,7 +586,6 @@
                     
                 } catch (error) {
                     console.error('❌ Erro ao buscar detalhes:', error);
-                    // Retorna dados de exemplo
                     return this.getFallbackOrderDetails(orderId);
                 }
             }
@@ -637,6 +635,19 @@
                 `;
             }
             
+            getPaymentMethodText(paymentMethod) {
+                const normalizedMethod = paymentMethod?.toLowerCase() || 'pix';
+                const paymentMap = {
+                    'pix': '💰 Pix',
+                    'cartao': '💳 Cartão',
+                    'dinheiro': '💵 Dinheiro',
+                    'card': '💳 Cartão',
+                    'cash': '💵 Dinheiro',
+                    'money': '💵 Dinheiro'
+                };
+                return paymentMap[normalizedMethod] || paymentMethod;
+            }
+            
             displayOrders() {
                 const tbody = document.getElementById('ordersBody');
                 if (!tbody) return;
@@ -665,7 +676,7 @@
                         <td>R$ ${total.toFixed(2)}</td>
                         <td><span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></td>
                         <td>${deliveryOption === 'retirada' ? '🛵 Retirada' : '🚗 Entrega'}</td>
-                        <td>${paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}</td>
+                        <td>${this.getPaymentMethodText(paymentMethod)}</td>
                         <td>${date}</td>
                         <td>
                             <button class="action-btn btn-primary" onclick="adminPanel.viewOrder('${order.order_id || order.id}')">Ver</button>
@@ -739,6 +750,7 @@
                     const deliveryFee = parseFloat(order.delivery_fee || order.deliveryFee || 0);
                     const total = parseFloat(order.total || order.total_amount || 0);
                     const createdDate = new Date(order.created_at).toLocaleString('pt-BR');
+                    const paymentMethod = order.payment_method || order.paymentMethod || 'pix';
                     
                     modalContent.innerHTML = `
                         <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
@@ -747,7 +759,7 @@
                             <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></p>
                             <p><strong>Data:</strong> ${createdDate}</p>
                             <p><strong>Entrega:</strong> ${order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</p>
-                            <p><strong>Pagamento:</strong> ${order.payment_method === 'pix' ? '💰 Pix' : '💳 Cartão'}</p>
+                            <p><strong>Pagamento:</strong> ${this.getPaymentMethodText(paymentMethod)}</p>
                             ${order.observation ? `<p><strong>Observação:</strong> ${order.observation}</p>` : ''}
                         </div>
                         
@@ -833,10 +845,9 @@
                 const newStatus = document.getElementById('newStatusSelect').value;
                 
                 try {
-                    // Simula atualização (em produção, chamaria API)
+                    // Simula atualização
                     console.log(`Atualizando pedido ${this.currentOrderId} para status ${newStatus}`);
                     
-                    // Atualiza localmente
                     const orderIndex = this.orders.findIndex(o => 
                         o.order_id === this.currentOrderId || o.id === this.currentOrderId
                     );
@@ -865,7 +876,6 @@
                 try {
                     console.log(`Atualizando rapidamente pedido ${orderId} para ${newStatus}`);
                     
-                    // Atualiza localmente
                     const orderIndex = this.orders.findIndex(o => 
                         o.order_id === orderId || o.id === orderId
                     );
@@ -894,18 +904,26 @@
                 const endDate = document.getElementById('endDate').value;
                 
                 this.filteredOrders = this.orders.filter(order => {
-                    // Filtro por status
                     if (statusFilter && order.status !== statusFilter) return false;
                     
-                    // Filtro por tipo de entrega
                     const deliveryOption = order.delivery_option || order.deliveryOption;
                     if (deliveryFilter && deliveryOption !== deliveryFilter) return false;
                     
-                    // Filtro por forma de pagamento
                     const paymentMethod = order.payment_method || order.paymentMethod;
-                    if (paymentFilter && paymentMethod !== paymentFilter) return false;
+                    if (paymentFilter) {
+                        const normalizedFilter = paymentFilter.toLowerCase();
+                        const normalizedMethod = (paymentMethod || 'pix').toLowerCase();
+                        
+                        const paymentMapping = {
+                            'pix': ['pix'],
+                            'cartao': ['cartao', 'card', 'credit', 'debit'],
+                            'dinheiro': ['dinheiro', 'cash', 'money']
+                        };
+                        
+                        const allowedMethods = paymentMapping[normalizedFilter] || [normalizedFilter];
+                        if (!allowedMethods.includes(normalizedMethod)) return false;
+                    }
                     
-                    // Filtro por busca
                     if (searchTerm) {
                         const searchableText = `
                             ${order.order_id || order.id}
@@ -916,7 +934,6 @@
                         if (!searchableText.includes(searchTerm)) return false;
                     }
                     
-                    // Filtro por data
                     if (startDate || endDate) {
                         const orderDate = new Date(order.created_at);
                         orderDate.setHours(0, 0, 0, 0);
@@ -966,12 +983,10 @@
             }
             
             setupEventListeners() {
-                // Botão de refresh
                 document.getElementById('refreshBtn').addEventListener('click', () => {
                     this.loadAllData();
                 });
                 
-                // Filtros
                 document.getElementById('statusFilter').addEventListener('change', () => {
                     this.applyFilters();
                 });
@@ -998,7 +1013,6 @@
                     this.applyFilters();
                 });
                 
-                // Ordenação
                 document.querySelectorAll('th.sortable').forEach(th => {
                     th.addEventListener('click', () => {
                         const column = th.dataset.sort;
@@ -1044,7 +1058,6 @@
             
             showError(message) {
                 console.error('❌ ' + message);
-                // Pode implementar um toast ou alert mais bonito
             }
             
             closeModal() {
@@ -1063,7 +1076,6 @@
                 }
             }
             
-            // Métodos de fallback para quando a API falha
             async getFallbackOrders() {
                 console.log('⚠️ Usando dados de exemplo (fallback)');
                 return [
@@ -1085,49 +1097,130 @@
                         client_phone: '5583888888888',
                         total: 32.00,
                         delivery_option: 'retirada',
-                        payment_method: 'cartao',
+                        payment_method: 'dinheiro',
                         status: 'preparando',
                         created_at: new Date(Date.now() - 86400000).toISOString()
+                    },
+                    {
+                        id: '3',
+                        order_id: 'JD' + (Date.now() - 172800000).toString().slice(-6),
+                        client_name: 'Ana Oliveira',
+                        client_phone: '5583777777777',
+                        total: 67.50,
+                        delivery_option: 'entrega',
+                        payment_method: 'cartao',
+                        status: 'entregue',
+                        created_at: new Date(Date.now() - 172800000).toISOString()
                     }
                 ];
             }
             
             getFallbackOrderDetails(orderId) {
-                return {
-                    customer: {
-                        name: 'Cliente Exemplo',
-                        phone: '5583999999999',
-                        address: 'Rua Exemplo, 123, Centro'
-                    },
-                    order: {
-                        id: orderId,
-                        order_id: orderId,
-                        total: 45.50,
-                        delivery_option: 'entrega',
-                        payment_method: 'pix',
-                        status: 'pendente',
-                        created_at: new Date().toISOString(),
-                        observation: 'Pedido de exemplo'
-                    },
-                    items: [
-                        {
-                            product_name: 'Pão Artesanal',
-                            quantity: 2,
-                            price: 8.00,
-                            total: 16.00
+                const orders = {
+                    '1': {
+                        customer: {
+                            name: 'Maria Silva',
+                            phone: '5583999999999',
+                            address: 'Rua Exemplo, 123, Centro',
+                            street: 'Rua Exemplo',
+                            number: '123',
+                            neighborhood: 'Centro',
+                            city: 'Campina Grande'
                         },
-                        {
-                            product_name: 'Bolo de Chocolate',
-                            quantity: 1,
-                            price: 29.50,
-                            total: 29.50
-                        }
-                    ]
+                        order: {
+                            id: orderId,
+                            order_id: orderId,
+                            total: 45.50,
+                            subtotal: 45.50,
+                            delivery_option: 'entrega',
+                            payment_method: 'pix',
+                            status: 'pendente',
+                            created_at: new Date().toISOString(),
+                            observation: 'Entregar após as 18h'
+                        },
+                        items: [
+                            {
+                                product_name: 'Pão Artesanal',
+                                quantity: 2,
+                                price: 8.00
+                            },
+                            {
+                                product_name: 'Bolo de Chocolate',
+                                quantity: 1,
+                                price: 29.50
+                            }
+                        ]
+                    },
+                    '2': {
+                        customer: {
+                            name: 'João Santos',
+                            phone: '5583888888888',
+                            address: 'Retirada na loja'
+                        },
+                        order: {
+                            id: orderId,
+                            order_id: orderId,
+                            total: 32.00,
+                            subtotal: 32.00,
+                            delivery_option: 'retirada',
+                            payment_method: 'dinheiro',
+                            status: 'preparando',
+                            created_at: new Date(Date.now() - 86400000).toISOString(),
+                            observation: 'Pão bem crocante'
+                        },
+                        items: [
+                            {
+                                product_name: 'Croissant',
+                                quantity: 4,
+                                price: 5.00
+                            },
+                            {
+                                product_name: 'Café Especial',
+                                quantity: 2,
+                                price: 6.00
+                            }
+                        ]
+                    },
+                    '3': {
+                        customer: {
+                            name: 'Ana Oliveira',
+                            phone: '5583777777777',
+                            address: 'Avenida Principal, 456, Bairro Novo',
+                            street: 'Avenida Principal',
+                            number: '456',
+                            neighborhood: 'Bairro Novo',
+                            city: 'Campina Grande'
+                        },
+                        order: {
+                            id: orderId,
+                            order_id: orderId,
+                            total: 67.50,
+                            subtotal: 60.00,
+                            delivery_fee: 7.50,
+                            delivery_option: 'entrega',
+                            payment_method: 'cartao',
+                            status: 'entregue',
+                            created_at: new Date(Date.now() - 172800000).toISOString()
+                        },
+                        items: [
+                            {
+                                product_name: 'Pizza Vegetariana',
+                                quantity: 1,
+                                price: 35.00
+                            },
+                            {
+                                product_name: 'Suco Natural',
+                                quantity: 2,
+                                price: 12.50
+                            }
+                        ]
+                    }
                 };
+                
+                return orders[orderId] || orders['1'];
             }
         }
         
-        // Funções globais
         function closeModal() {
             adminPanel.closeModal();
         }
@@ -1140,7 +1233,6 @@
             adminPanel.saveOrderStatus();
         }
         
-        // Inicializa quando o DOM carrega
         document.addEventListener('DOMContentLoaded', () => {
             console.log('📄 DOM carregado, inicializando AdminPanel...');
             window.adminPanel = new AdminPanel();

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Pedidos - Jardim Padaria</title>
+    
+    <!-- Mesmos estilos do admin -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css?v=2.0.0">
+    
+    <style>
+        :root {
+            --primary: #1C3D2D;
+            --primary-light: #2A5C42;
+            --secondary: #A2B28E;
+            --background: #FCF9F5;
+            --card: #FFFFFF;
+            --border: #D4E8DC;
+            --success: #27AE60;
+            --warning: #E67E22;
+            --error: #E74C3C;
+            --info: #3498DB;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-light: #888888;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            padding: 20px;
+        }
+        
+        .pedidos-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .pedidos-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(28, 61, 45, 0.2);
+        }
+        
+        .pedidos-header h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        
+        /* Controls */
+        .pedidos-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .refresh-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .refresh-btn:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+        
+        .date-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .date-filter input {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+        }
+        
+        /* Table */
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .order-count {
+            background: var(--primary-light);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .pedidos-table-container {
+            background: var(--card);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .pedidos-table {
+            overflow-x: auto;
+        }
+        
+        .pedidos-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        .pedidos-table th {
+            background: #f8f9fa;
+            color: var(--text-secondary);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .pedidos-table th.sortable {
+            cursor: pointer;
+        }
+        
+        .pedidos-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .pedidos-table tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        
+        .pedidos-table tr:hover {
+            background: #f0f7f2;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-pendente { background: #FFF3E0; color: #E67E22; }
+        .status-preparando { background: #E3F2FD; color: #1976D2; }
+        .status-pronto { background: #E8F5E9; color: #2E7D32; }
+        .status-entregue { background: #E8F5E9; color: #1B5E20; }
+        .status-cancelado { background: #FFEBEE; color: #C62828; }
+        
+        /* Action Buttons */
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            margin-right: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--secondary); color: var(--primary); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-info { background: var(--info); color: white; }
+        
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        .pedidos-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="pedidos-container">
+        <div class="pedidos-header">
+            <h1>🍞 Meus Pedidos</h1>
+            <p>Jardim Padaria - Acompanhe seus pedidos</p>
+        </div>
+        
+        <div class="pedidos-controls">
+            <button id="refreshBtn" class="refresh-btn">
+                🔄 Atualizar Pedidos
+            </button>
+            <div class="date-filter">
+                <input type="date" id="startDate">
+                <span>até</span>
+                <input type="date" id="endDate">
+                <button id="applyDateFilter" class="action-btn btn-primary">Filtrar</button>
+                <button id="clearDateFilter" class="action-btn btn-secondary">Limpar</button>
+            </div>
+        </div>
+        
+        <div class="filter-controls">
+            <select id="statusFilter" class="filter-select">
+                <option value="">Todos os Status</option>
+                <option value="pendente">Pendente</option>
+                <option value="preparando">Preparando</option>
+                <option value="pronto">Pronto</option>
+                <option value="entregue">Entregue</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+            
+            <select id="paymentFilter" class="filter-select">
+                <option value="">Todos os Pagamentos</option>
+                <option value="pix">Pix</option>
+                <option value="cartao">Cartão</option>
+                <option value="dinheiro">Dinheiro</option>
+            </select>
+            
+            <input type="text" id="searchInput" class="filter-select search-input" placeholder="Buscar por ID do pedido...">
+        </div>
+        
+        <div class="pedidos-table-container">
+            <div class="table-header">
+                <h3>Histórico de Pedidos</h3>
+                <span class="order-count" id="orderCount">0 pedidos</span>
+            </div>
+            <div class="pedidos-table">
+                <table id="pedidosTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="order_id" class="sortable">ID</th>
+                            <th data-sort="total" class="sortable">Total</th>
+                            <th data-sort="status" class="sortable">Status</th>
+                            <th data-sort="delivery_option" class="sortable">Entrega</th>
+                            <th data-sort="payment_method" class="sortable">Pagamento</th>
+                            <th data-sort="created_at" class="sortable">Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosBody">
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Carregando seus pedidos...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="noOrdersMessage" class="no-orders" style="display: none;">
+            <h3>Nenhum pedido encontrado</h3>
+            <p>Você ainda não fez nenhum pedido ou não há pedidos correspondentes aos filtros aplicados.</p>
+            <p>Que tal fazer seu primeiro pedido? <a href="#" data-page="menu" style="color: var(--primary); font-weight: bold;">Clique aqui para ver o cardápio!</a></p>
+        </div>
+        
+        <div class="pedidos-footer">
+            <p>🍞 Jardim Padaria | Seus pedidos estão seguros conosco</p>
+        </div>
+    </div>
+    
+    <!-- Modal de Detalhes do Pedido -->
+    <div class="modal" id="orderModal" style="display: none;">
+        <div class="modal-overlay" onclick="closeOrderModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalhes do Pedido</h3>
+                <button class="close-btn" onclick="closeOrderModal()">×</button>
+            </div>
+            <div id="orderModalContent">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Carregando detalhes do pedido...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ClientePedidos - Sistema de Pedidos para Clientes
+        class ClientePedidos {
+            constructor() {
+                this.orders = [];
+                this.filteredOrders = [];
+                this.currentSort = { column: 'created_at', direction: 'desc' };
+                this.apiBase = window.location.origin + '/.netlify/functions';
+                this.phone = this.getPhoneFromStorage();
+                this.init();
+            }
+            
+            init() {
+                console.log('🚀 Inicializando ClientePedidos...');
+                this.setupEventListeners();
+                
+                if (this.phone) {
+                    this.loadOrders();
+                } else {
+                    this.promptPhone();
+                }
+            }
+            
+            getPhoneFromStorage() {
+                return localStorage.getItem('clientePhone') || 
+                       sessionStorage.getItem('clientePhone') || 
+                       this.getPhoneFromURL();
+            }
+            
+            getPhoneFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('phone');
+            }
+            
+            promptPhone() {
+                const phone = prompt("Digite seu telefone para ver seus pedidos:", "(83) 99999-9999");
+                if (phone) {
+                    const cleanPhone = phone.replace(/\D/g, '');
+                    if (cleanPhone.length >= 10) {
+                        this.phone = cleanPhone;
+                        localStorage.setItem('clientePhone', cleanPhone);
+                        this.loadOrders();
+                    } else {
+                        alert("Por favor, digite um telefone válido.");
+                        this.promptPhone();
+                    }
+                }
+            }
+            
+            async loadOrders() {
+                try {
+                    this.showLoading(true);
+                    console.log(`📱 Buscando pedidos para telefone: ${this.phone}`);
+                    
+                    const response = await fetch(`${this.apiBase}/get-client-by-phone`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone: this.phone })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('👤 Resultado da busca do cliente:', result);
+                    
+                    if (result.success && result.client) {
+                        // Se o cliente existe, busca seus pedidos
+                        await this.loadClientOrders(result.client.id);
+                    } else {
+                        // Cliente não encontrado
+                        this.orders = [];
+                        this.filteredOrders = [];
+                        this.displayOrders();
+                        this.updateOrderCount();
+                        this.showNoClientMessage();
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao buscar cliente:', error);
+                    this.orders = await this.getFallbackOrders();
+                    this.filteredOrders = [...this.orders];
+                    this.sortOrders();
+                    this.displayOrders();
+                    this.updateOrderCount();
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+            
+            async loadClientOrders(clientId) {
+                try {
+                    console.log(`📦 Buscando pedidos do cliente ID: ${clientId}`);
+                    
+                    const response = await fetch(`${this.apiBase}/get-orders-by-client`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ clientId: clientId })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📦 Pedidos do cliente:', result);
+                    
+                    if (result.success) {
+                        this.orders = result.orders || [];
+                        this.filteredOrders = [...this.orders];
+                        this.sortOrders();
+                        this.displayOrders();
+                        this.updateOrderCount();
+                        this.updateNoOrdersMessage();
+                    } else {
+                        throw new Error(result.message || 'Erro ao carregar pedidos');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao carregar pedidos do cliente:', error);
+                    this.orders = await this.getFallbackOrders();
+                    this.filteredOrders = [...this.orders];
+                    this.sortOrders();
+                    this.displayOrders();
+                    this.updateOrderCount();
+                }
+            }
+            
+            getPaymentMethodText(paymentMethod) {
+                const normalizedMethod = paymentMethod?.toLowerCase() || 'pix';
+                const paymentMap = {
+                    'pix': '💰 Pix',
+                    'cartao': '💳 Cartão',
+                    'dinheiro': '💵 Dinheiro',
+                    'card': '💳 Cartão',
+                    'cash': '💵 Dinheiro',
+                    'money': '💵 Dinheiro'
+                };
+                return paymentMap[normalizedMethod] || paymentMethod;
+            }
+            
+            displayOrders() {
+                const tbody = document.getElementById('pedidosBody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                if (this.filteredOrders.length === 0) {
+                    this.updateNoOrdersMessage();
+                    return;
+                }
+                
+                this.filteredOrders.forEach(order => {
+                    const row = document.createElement('tr');
+                    
+                    const date = new Date(order.created_at).toLocaleString('pt-BR');
+                    const total = parseFloat(order.total || order.total_amount || 0);
+                    const deliveryOption = order.delivery_option || order.deliveryOption || 'entrega';
+                    const paymentMethod = order.payment_method || order.paymentMethod || 'pix';
+                    
+                    row.innerHTML = `
+                        <td>
+                            <strong>${order.order_id || order.id}</strong>
+                        </td>
+                        <td><strong>R$ ${total.toFixed(2)}</strong></td>
+                        <td><span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></td>
+                        <td>${deliveryOption === 'retirada' ? '🛵 Retirada' : '🚗 Entrega'}</td>
+                        <td>${this.getPaymentMethodText(paymentMethod)}</td>
+                        <td>${new Date(order.created_at).toLocaleDateString('pt-BR')}</td>
+                        <td>
+                            <button class="action-btn btn-primary" onclick="clientePedidos.viewOrder('${order.order_id || order.id}')">
+                                Ver Detalhes
+                            </button>
+                            <a href="/order.html?orderId=${order.order_id || order.id}" target="_blank" class="action-btn btn-info">
+                                Ver Página
+                            </a>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            updateOrderCount() {
+                const orderCount = document.getElementById('orderCount');
+                if (orderCount) {
+                    orderCount.textContent = `${this.filteredOrders.length} pedido${this.filteredOrders.length !== 1 ? 's' : ''}`;
+                }
+            }
+            
+            updateNoOrdersMessage() {
+                const noOrdersMessage = document.getElementById('noOrdersMessage');
+                const tbody = document.getElementById('pedidosBody');
+                
+                if (this.filteredOrders.length === 0) {
+                    noOrdersMessage.style.display = 'block';
+                    tbody.innerHTML = '';
+                } else {
+                    noOrdersMessage.style.display = 'none';
+                }
+            }
+            
+            showNoClientMessage() {
+                const tbody = document.getElementById('pedidosBody');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem;">
+                                <h3>Nenhum pedido encontrado para este telefone</h3>
+                                <p>Use o mesmo número que você usou para fazer pedidos.</p>
+                                <button onclick="clientePedidos.changePhone()" class="action-btn btn-primary" style="margin-top: 1rem;">
+                                    🔄 Alterar Telefone
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            getStatusText(status) {
+                const statusMap = {
+                    'pendente': '📋 Pendente',
+                    'preparando': '👨‍🍳 Preparando',
+                    'pronto': '✅ Pronto',
+                    'entregue': '🚗 Entregue',
+                    'cancelado': '❌ Cancelado'
+                };
+                return statusMap[status] || status;
+            }
+            
+            async viewOrder(orderId) {
+                try {
+                    this.showModalLoading(true);
+                    const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        const orderDetails = result.orderData;
+                        this.displayOrderDetails(orderDetails);
+                    } else {
+                        throw new Error(result.message || 'Pedido não encontrado');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao visualizar pedido:', error);
+                    alert('Erro ao carregar detalhes do pedido: ' + error.message);
+                } finally {
+                    this.showModalLoading(false);
+                }
+            }
+            
+            displayOrderDetails(orderDetails) {
+                const modalContent = document.getElementById('orderModalContent');
+                const customer = orderDetails.customer || {};
+                const order = orderDetails.order || {};
+                const items = orderDetails.items || [];
+                
+                const subtotal = parseFloat(order.subtotal || order.total || 0);
+                const deliveryFee = parseFloat(order.delivery_fee || order.deliveryFee || 0);
+                const total = parseFloat(order.total || order.total_amount || 0);
+                const createdDate = new Date(order.created_at).toLocaleString('pt-BR');
+                const paymentMethod = order.payment_method || order.paymentMethod || 'pix';
+                
+                modalContent.innerHTML = `
+                    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h4>📋 Informações do Pedido</h4>
+                        <p><strong>ID:</strong> ${order.order_id || order.id}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></p>
+                        <p><strong>Data:</strong> ${createdDate}</p>
+                        <p><strong>Entrega:</strong> ${order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</p>
+                        <p><strong>Pagamento:</strong> ${this.getPaymentMethodText(paymentMethod)}</p>
+                        ${order.observation ? `<p><strong>Observação:</strong> ${order.observation}</p>` : ''}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h4>👤 Informações</h4>
+                        <p><strong>Nome:</strong> ${customer.name || 'N/A'}</p>
+                        <p><strong>Telefone:</strong> ${this.formatPhone(customer.phone)}</p>
+                        ${order.delivery_option === 'entrega' ? `
+                            <p><strong>Endereço:</strong> ${customer.address || order.address || 'N/A'}</p>
+                            ${customer.street ? `<p><strong>Rua:</strong> ${customer.street}</p>` : ''}
+                            ${customer.number ? `<p><strong>Número:</strong> ${customer.number}</p>` : ''}
+                            ${customer.neighborhood ? `<p><strong>Bairro:</strong> ${customer.neighborhood}</p>` : ''}
+                            ${customer.city ? `<p><strong>Cidade:</strong> ${customer.city}</p>` : ''}
+                        ` : ''}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h4>🛒 Itens do Pedido</h4>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                            <thead>
+                                <tr style="background: #f8f9fa;">
+                                    <th style="padding: 8px; text-align: left;">Produto</th>
+                                    <th style="padding: 8px; text-align: left;">Quantidade</th>
+                                    <th style="padding: 8px; text-align: left;">Preço Unit.</th>
+                                    <th style="padding: 8px; text-align: left;">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${items.map(item => `
+                                    <tr>
+                                        <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.product_name || item.name}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.quantity}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #eee;">R$ ${parseFloat(item.price || item.unit_price || 0).toFixed(2)}</td>
+                                        <td style="padding: 8px; border-bottom: 1px solid #eee;">R$ ${(parseFloat(item.price || item.unit_price || 0) * parseInt(item.quantity)).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h4>💰 Resumo Financeiro</h4>
+                        <p><strong>Subtotal:</strong> R$ ${subtotal.toFixed(2)}</p>
+                        ${deliveryFee > 0 ? `<p><strong>Frete:</strong> R$ ${deliveryFee.toFixed(2)}</p>` : ''}
+                        <p style="font-weight: bold; border-top: 2px solid #1C3D2D; padding-top: 10px;">
+                            <strong>TOTAL:</strong> R$ ${total.toFixed(2)}
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        ${customer.phone ? `
+                            <button class="action-btn btn-success" onclick="window.open('https://api.whatsapp.com/send?phone=${customer.phone}&text=Olá ${customer.name || ''}, gostaria de falar sobre meu pedido ${order.order_id || order.id}', '_blank')">
+                                📱 Falar no WhatsApp
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('orderModal').style.display = 'flex';
+            }
+            
+            changePhone() {
+                localStorage.removeItem('clientePhone');
+                sessionStorage.removeItem('clientePhone');
+                this.phone = null;
+                this.promptPhone();
+            }
+            
+            applyFilters() {
+                const statusFilter = document.getElementById('statusFilter').value;
+                const paymentFilter = document.getElementById('paymentFilter').value;
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                this.filteredOrders = this.orders.filter(order => {
+                    if (statusFilter && order.status !== statusFilter) return false;
+                    
+                    const paymentMethod = order.payment_method || order.paymentMethod;
+                    if (paymentFilter) {
+                        const normalizedFilter = paymentFilter.toLowerCase();
+                        const normalizedMethod = (paymentMethod || 'pix').toLowerCase();
+                        
+                        const paymentMapping = {
+                            'pix': ['pix'],
+                            'cartao': ['cartao', 'card', 'credit', 'debit'],
+                            'dinheiro': ['dinheiro', 'cash', 'money']
+                        };
+                        
+                        const allowedMethods = paymentMapping[normalizedFilter] || [normalizedFilter];
+                        if (!allowedMethods.includes(normalizedMethod)) return false;
+                    }
+                    
+                    if (searchTerm) {
+                        const searchableText = `${order.order_id || order.id}`.toLowerCase();
+                        if (!searchableText.includes(searchTerm)) return false;
+                    }
+                    
+                    if (startDate || endDate) {
+                        const orderDate = new Date(order.created_at);
+                        orderDate.setHours(0, 0, 0, 0);
+                        
+                        if (startDate) {
+                            const start = new Date(startDate);
+                            if (orderDate < start) return false;
+                        }
+                        
+                        if (endDate) {
+                            const end = new Date(endDate);
+                            end.setHours(23, 59, 59, 999);
+                            if (orderDate > end) return false;
+                        }
+                    }
+                    
+                    return true;
+                });
+                
+                this.sortOrders();
+                this.displayOrders();
+                this.updateOrderCount();
+                this.updateNoOrdersMessage();
+            }
+            
+            sortOrders() {
+                this.filteredOrders.sort((a, b) => {
+                    const aVal = a[this.currentSort.column];
+                    const bVal = b[this.currentSort.column];
+                    
+                    if (this.currentSort.column === 'created_at') {
+                        return this.currentSort.direction === 'desc' 
+                            ? new Date(bVal) - new Date(aVal)
+                            : new Date(aVal) - new Date(bVal);
+                    }
+                    
+                    if (typeof aVal === 'string' && typeof bVal === 'string') {
+                        return this.currentSort.direction === 'desc'
+                            ? bVal.localeCompare(aVal)
+                            : aVal.localeCompare(bVal);
+                    }
+                    
+                    return this.currentSort.direction === 'desc'
+                        ? (bVal || 0) - (aVal || 0)
+                        : (aVal || 0) - (bVal || 0);
+                });
+            }
+            
+            setupEventListeners() {
+                document.getElementById('refreshBtn')?.addEventListener('click', () => {
+                    this.loadOrders();
+                });
+                
+                document.getElementById('statusFilter')?.addEventListener('change', () => {
+                    this.applyFilters();
+                });
+                
+                document.getElementById('paymentFilter')?.addEventListener('change', () => {
+                    this.applyFilters();
+                });
+                
+                document.getElementById('searchInput')?.addEventListener('input', () => {
+                    this.applyFilters();
+                });
+                
+                document.getElementById('applyDateFilter')?.addEventListener('click', () => {
+                    this.applyFilters();
+                });
+                
+                document.getElementById('clearDateFilter')?.addEventListener('click', () => {
+                    document.getElementById('startDate').value = '';
+                    document.getElementById('endDate').value = '';
+                    this.applyFilters();
+                });
+                
+                document.querySelectorAll('th.sortable').forEach(th => {
+                    th.addEventListener('click', () => {
+                        const column = th.dataset.sort;
+                        
+                        if (this.currentSort.column === column) {
+                            this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            this.currentSort.column = column;
+                            this.currentSort.direction = 'desc';
+                        }
+                        
+                        this.sortOrders();
+                        this.displayOrders();
+                    });
+                });
+            }
+            
+            showLoading(show) {
+                const tbody = document.getElementById('pedidosBody');
+                if (!tbody) return;
+                
+                if (show) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Carregando seus pedidos...</p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+            
+            showModalLoading(show) {
+                const modalContent = document.getElementById('orderModalContent');
+                if (show) {
+                    modalContent.innerHTML = `
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <p>Carregando detalhes do pedido...</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            formatPhone(phone) {
+                if (!phone) return 'N/A';
+                const cleanPhone = phone.toString().replace(/\D/g, '');
+                
+                if (cleanPhone.length === 13) {
+                    return `(${cleanPhone.substring(3, 5)}) ${cleanPhone.substring(5, 10)}-${cleanPhone.substring(10)}`;
+                } else if (cleanPhone.length === 11) {
+                    return `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+                }
+                return phone;
+            }
+            
+            async getFallbackOrders() {
+                console.log('⚠️ Usando dados de exemplo para pedidos');
+                return [
+                    {
+                        id: '1',
+                        order_id: 'JD' + Date.now().toString().slice(-6),
+                        total: 45.50,
+                        delivery_option: 'entrega',
+                        payment_method: 'pix',
+                        status: 'pendente',
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: '2',
+                        order_id: 'JD' + (Date.now() - 86400000).toString().slice(-6),
+                        total: 32.00,
+                        delivery_option: 'retirada',
+                        payment_method: 'dinheiro',
+                        status: 'entregue',
+                        created_at: new Date(Date.now() - 86400000).toISOString()
+                    }
+                ];
+            }
+        }
+        
+        function closeOrderModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM carregado, inicializando ClientePedidos...');
+            window.clientePedidos = new ClientePedidos();
+        });
+    </script>
+</body>
+</html>
