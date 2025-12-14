@@ -16,17 +16,17 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    border: 2px solid #1C3D2D;
+    border: 2px solid #303922;
     border-radius: 8px;
     background: white;
-    color: #1C3D2D;
+    color: #303922;
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .contact-option-btn:hover {
-    background: #1C3D2D;
+    background: #303922;
     color: white;
 }
 

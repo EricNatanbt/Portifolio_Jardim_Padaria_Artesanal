@@ -2,17 +2,17 @@
    VARIÁVEIS DE COR E ESPAÇAMENTO
    ============================================ */
 :root {
-    --primary: #1C3D2D;
-    --primary-dark: #0F2620;
-    --secondary: #A2B28E;
-    --accent: #F5C8B0;
-    --accent-light: #F9E4D4;
-    --background: #FCF9F5;
-    --foreground: #1C3D2D;
+    --primary: #303922; /* Verde Escuro */
+    --primary-dark: #212818; /* Derivado do Verde Escuro */
+    --secondary: #D8A65E; /* Laranja Terra */
+    --accent: #e8dcb2; /* Marrom Café */
+    --accent-light: #F5ECCF; /* Amarelo Creme */
+    --background: #fdf7e3; /* Amarelo Creme */
+    --foreground: #303922; /* Verde Escuro */
     --card: #FFFFFF;
-    --muted: #E8F0EB;
-    --muted-foreground: #5A7A6A;
-    --border: #D4E8DC;
+    --muted: #e8dcb2; /* Muted derivado do Amarelo Creme */
+    --muted-foreground: #603E1E; /* Marrom Café */
+    --border: #fdf7e3; /* Laranja Terra */
     --input: #FFFFFF;
     
     --spacing-xs: 0.25rem;
@@ -278,7 +278,7 @@ input {
 
 .form-group textarea:focus {
     outline: none;
-    border-color: #1C3D2D;
+    border-color: #303922;
 }
 
 .form-group small {
@@ -294,12 +294,12 @@ input {
     top: 20px;
     right: 20px;
     z-index: 10000;
-    background: linear-gradient(135deg, #1C3D2D 0%, #2A5C42 100%);
+    background: linear-gradient(135deg, #303922 0%, #212818 100%);
     color: white;
     padding: 16px 20px;
     border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(28, 61, 45, 0.3);
-    border-left: 4px solid #A2B28E;
+    box-shadow: 0 8px 25px rgba(48, 57, 34, 0.3);
+    border-left: 4px solid #D8A65E;
     transform: translateX(400px);
     opacity: 0;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -355,26 +355,26 @@ input {
 
 /* Versão alternativa em estilo pastel */
 .address-found-notification.pastel {
-    background: linear-gradient(135deg, #E8F0EB 0%, #FCF9F5 100%);
-    color: #1C3D2D;
-    border-left: 4px solid #A2B28E;
-    box-shadow: 0 8px 25px rgba(162, 178, 142, 0.3);
+    background: linear-gradient(135deg, #E8E2D4 0%, #F5ECCF 100%);
+    color: #303922;
+    border-left: 4px solid #D8A65E;
+    box-shadow: 0 8px 25px rgba(216, 166, 94, 0.3);
 }
 
 .address-found-notification.pastel .address-notification-title {
-    color: #1C3D2D;
+    color: #303922;
 }
 
 .address-found-notification.pastel .address-notification-message {
-    color: #5A7A6A;
+    color: #603E1E;
 }
 
 .address-found-notification.pastel .address-notification-icon {
-    background: rgba(28, 61, 45, 0.1);
+    background: rgba(48, 57, 34, 0.1);
 }
 
 .address-found-notification.pastel .address-notification-icon svg {
-    fill: #1C3D2D;
+    fill: #303922;
 }
 
 /* Animação de entrada suave */
