@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gerenciar Produtos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../img/logos/Logo.png">
+    <style>
+        :root {
+            --primary: #1C3D2D;
+            --primary-light: #2A5C42;
+            --secondary: #A2B28E;
+            --background: #FCF9F5;
+            --card: #FFFFFF;
+            --border: #D4E8DC;
+            --success: #27AE60;
+            --warning: #E67E22;
+            --error: #E74C3C;
+            --info: #3498DB;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-light: #888888;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            padding: 20px;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(28, 61, 45, 0.2);
+        }
+        
+        .admin-header h1 {
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        
+        /* Controls */
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--error); color: white; }
+        .btn-secondary { background: var(--secondary); color: var(--primary); }
+
+        /* Table */
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .product-count {
+            background: var(--primary-light);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .products-table-container {
+            background: var(--card);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .products-table {
+            overflow-x: auto;
+        }
+        
+        .products-table table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .products-table th {
+            background: #f8f9fa;
+            color: var(--text-secondary);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .products-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .products-table tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        
+        .products-table tr:hover {
+            background: #f0f7f2;
+        }
+        
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            text-align: right;
+            margin-top: 1.5rem;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        .admin-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        /* Estilos para o loading spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+}
+
+/* Estilos para notificações */
+.custom-notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { 
+        transform: translateX(100%); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🍞 Painel Administrativo</h1>
+            <p>Jardim Padaria - Gerenciamento de Produtos</p>
+        </div>
+        
+        <div class="admin-controls">
+            <a href="gerenciarPedidos.html" class="action-btn btn-secondary">
+                ← Gerenciar Pedidos
+            </a>
+            <button id="addProductBtn" class="action-btn btn-success">
+                ➕ Adicionar Novo Produto
+            </button>
+        </div>
+        
+        <div class="products-table-container">
+            <div class="table-header">
+                <h3>Lista de Produtos</h3>
+                <span class="product-count" id="productCount">0 produtos</span>
+            </div>
+            <div class="products-table">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Imagem</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Dias Disponíveis</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Carregando produtos...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="noProductsMessage" class="no-products" style="display: none;">
+            <h3>Nenhum produto encontrado</h3>
+            <p>Clique em "Adicionar Novo Produto" para começar.</p>
+        </div>
+        
+        <div class="admin-footer">
+            <p>🛠️ Painel Administrativo - Jardim Padaria</p>
+        </div>
+    </div>
+    
+    <!-- Modal de Adicionar/Editar Produto -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Adicionar Produto</h3>
+                <button class="modal-close" onclick="closeProductModal()">×</button>
+            </div>
+            <form id="productForm">
+                <input type="hidden" id="productId">
+                
+                <div class="form-group">
+                    <label for="productName">Nome do Produto</label>
+                    <input type="text" id="productName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productDescription">Descrição</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productPrice">Preço (R$)</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productCategory">Categoria</label>
+                    <select id="productCategory">
+                        <option value="Pães">Pães</option>
+                        <option value="Doces">Doces</option>
+                        <option value="Bolos">Bolos</option>
+                        <option value="Salgados">Salgados</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Geral">Geral</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="productImage">URL da Imagem</label>
+                    <input type="text" id="productImage" placeholder="/img/produtos/exemplo.png">
+                </div>
+
+                <div class="form-group">
+    <label>Dias Disponíveis:</label>
+    <div class="days-checkbox-group" id="daysCheckboxGroup">
+        <div class="day-checkbox-item">
+            <input type="checkbox" id="dia-quarta" name="dias_disponiveis" value="quarta">
+            <label for="dia-quarta">Quarta-feira</label>
+        </div>
+        <div class="day-checkbox-item">
+            <input type="checkbox" id="dia-quinta" name="dias_disponiveis" value="quinta">
+            <label for="dia-quinta">Quinta-feira</label>
+        </div>
+        <div class="day-checkbox-item">
+            <input type="checkbox" id="dia-sexta" name="dias_disponiveis" value="sexta">
+            <label for="dia-sexta">Sexta-feira</label>
+        </div>
+        <div class="day-checkbox-item">
+            <input type="checkbox" id="dia-sabado" name="dias_disponiveis" value="sabado">
+            <label for="dia-sabado">Sábado</label>
+        </div>
+    </div>
+    <small style="color: #666; font-size: 0.85em; display: block; margin-top: 5px;">
+        Selecione os dias em que este produto estará disponível para venda
+    </small>
+</div>
+                
+                <div class="form-actions">
+                    <button type="button" class="action-btn btn-secondary" onclick="closeProductModal()">Cancelar</button>
+                    <button type="submit" class="action-btn btn-primary" id="saveProductBtn">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+// VERSÃO SIMPLIFICADA E FUNCIONAL DO PRODUCT MANAGER
+
+class ProductManager {
+    constructor() {
+        this.products = [];
+        console.log('🚀 ProductManager inicializado');
+        this.init();
+    }
+
+    init() {
+        console.log('📄 Inicializando...');
+        this.loadProducts();
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Botão Adicionar Produto
+        const addBtn = document.getElementById('addProductBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => this.openProductModal());
+        }
+
+        // Fechar modal
+        const closeModal = document.querySelector('[onclick="closeProductModal()"]');
+        if (closeModal) {
+            closeModal.addEventListener('click', () => this.closeProductModal());
+        }
+
+        // Formulário
+        const form = document.getElementById('productForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleFormSubmit(e);
+            });
+        }
+    }
+
+    async loadProducts() {
+        const productsBody = document.getElementById('productsBody');
+        if (!productsBody) {
+            console.error('❌ productsBody não encontrado');
+            return;
+        }
+
+        // Mostra loading
+        productsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem;">
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #f3f3f3;
+                        border-top: 4px solid #1C3D2D;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto 1rem auto;
+                    "></div>
+                    <p>Carregando produtos...</p>
+                </td>
+            </tr>`;
+
+        try {
+            console.log('📥 Buscando produtos...');
+            
+            // URL CORRETA - absoluta
+            const functionUrl = '/.netlify/functions/get-products';
+            console.log('🔗 URL:', functionUrl);
+            
+            const response = await fetch(functionUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('📊 Status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Produtos recebidos:', result.products?.length || 0);
+            
+            if (result.success) {
+                this.products = result.products || [];
+                this.renderProducts();
+            } else {
+                throw new Error(result.message || 'Erro na resposta');
+            }
+
+        } catch (error) {
+            console.error('❌ Erro:', error);
+            productsBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 3rem; color: #E74C3C;">
+                        <h4>❌ Erro ao carregar produtos</h4>
+                        <p>${error.message}</p>
+                        <button onclick="window.productManager.loadProducts()" 
+                                style="
+                                    background: #1C3D2D;
+                                    color: white;
+                                    border: none;
+                                    padding: 0.75rem 1.5rem;
+                                    border-radius: 0.5rem;
+                                    cursor: pointer;
+                                    margin-top: 1rem;
+                                ">
+                            🔄 Tentar Novamente
+                        </button>
+                    </td>
+                </tr>`;
+        }
+    }
+
+    renderProducts() {
+        const productsBody = document.getElementById('productsBody');
+        const productCount = document.getElementById('productCount');
+        const noProductsMessage = document.getElementById('noProductsMessage');
+        
+        if (!productsBody) return;
+        
+        productsBody.innerHTML = '';
+        
+        if (productCount) {
+            productCount.textContent = `${this.products.length} produto${this.products.length !== 1 ? 's' : ''}`;
+        }
+        
+        if (this.products.length === 0) {
+            if (noProductsMessage) {
+                noProductsMessage.style.display = 'block';
+            }
+            return;
+        }
+        
+        if (noProductsMessage) {
+            noProductsMessage.style.display = 'none';
+        }
+
+        this.products.forEach(product => {
+            const row = productsBody.insertRow();
+            const price = parseFloat(product.preco) || 0;
+            
+            row.innerHTML = `
+                <td style="font-family: monospace; font-size: 0.85em;">
+                    ${product.id.substring(0, 8)}...
+                </td>
+                <td>
+                    <img src="${product.imagem || '/img/logos/Logo.png'}" 
+                         alt="${product.nome}"
+                         style="
+                             width: 50px;
+                             height: 50px;
+                             object-fit: cover;
+                             border-radius: 4px;
+                             background: #f5f5f5;
+                         "
+                         onerror="this.src='/img/logos/Logo.png'">
+                </td>
+                <td>
+                    <strong style="display: block; margin-bottom: 4px;">${product.nome}</strong>
+                    ${product.descricao ? `
+                        <small style="color: #666; font-size: 0.85em;">
+                            ${product.descricao.substring(0, 60)}${product.descricao.length > 60 ? '...' : ''}
+                        </small>
+                    ` : ''}
+                </td>
+                <td>
+                    <span style="
+                        background: #e8f5e9;
+                        color: #2e7d32;
+                        padding: 4px 12px;
+                        border-radius: 12px;
+                        font-size: 0.85em;
+                        font-weight: 500;
+                        display: inline-block;
+                    ">
+                        ${product.categoria}
+                    </span>
+                </td>
+                <td>
+                    <strong style="color: #1C3D2D; font-size: 1.1em;">
+                        R$ ${price.toFixed(2).replace('.', ',')}
+                    </strong>
+                </td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="window.productManager.openProductModal('${product.id}')"
+                                style="
+                                    background: #1C3D2D;
+                                    color: white;
+                                    border: none;
+                                    padding: 6px 12px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 0.9em;
+                                ">
+                            ✏️ Editar
+                        </button>
+                        <button onclick="window.productManager.deleteProduct('${product.id}')"
+                                style="
+                                    background: #E74C3C;
+                                    color: white;
+                                    border: none;
+                                    padding: 6px 12px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 0.9em;
+                                ">
+                            🗑️ Excluir
+                        </button>
+                    </div>
+                </td>
+            `;
+        });
+    }
+
+    openProductModal(productId = null) {
+        const modal = document.getElementById('productModal');
+        const modalTitle = document.getElementById('modalTitle');
+        
+        if (!modal || !modalTitle) return;
+        
+        if (productId) {
+            const product = this.products.find(p => p.id === productId);
+            if (product) {
+                modalTitle.textContent = 'Editar Produto';
+                document.getElementById('productId').value = product.id;
+                document.getElementById('productName').value = product.nome || '';
+                document.getElementById('productDescription').value = product.descricao || '';
+                document.getElementById('productPrice').value = product.preco || 0;
+                document.getElementById('productCategory').value = product.categoria || 'Geral';
+                document.getElementById('productImage').value = product.imagem || '';
+            }
+        } else {
+            modalTitle.textContent = 'Adicionar Produto';
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    closeProductModal() {
+        const modal = document.getElementById('productModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async handleFormSubmit(e) {
+        e.preventDefault();
+        
+        const productId = document.getElementById('productId').value;
+        const isEditing = !!productId;
+        
+        const productData = {
+            nome: document.getElementById('productName').value,
+            descricao: document.getElementById('productDescription').value,
+            preco: parseFloat(document.getElementById('productPrice').value),
+            categoria: document.getElementById('productCategory').value,
+            imagem: document.getElementById('productImage').value || '/img/logos/Logo.png'
+        };
+        
+        // Validação
+        if (!productData.nome.trim()) {
+            alert('❌ O nome do produto é obrigatório');
+            return;
+        }
+        
+        if (productData.preco <= 0 || isNaN(productData.preco)) {
+            alert('❌ O preço deve ser maior que zero');
+            return;
+        }
+        
+        try {
+            // Para teste, salva localmente
+            if (isEditing) {
+                const index = this.products.findIndex(p => p.id === productId);
+                if (index > -1) {
+                    this.products[index] = { ...this.products[index], ...productData };
+                }
+            } else {
+                const newId = Date.now().toString();
+                this.products.push({ id: newId, ...productData });
+            }
+            
+            this.closeProductModal();
+            this.renderProducts();
+            this.showNotification(`✅ Produto ${isEditing ? 'atualizado' : 'adicionado'} com sucesso!`);
+            
+        } catch (error) {
+            console.error('❌ Erro:', error);
+            alert('❌ Erro ao salvar produto: ' + error.message);
+        }
+    }
+
+    async deleteProduct(productId) {
+        if (!confirm('Tem certeza que deseja excluir este produto?')) {
+            return;
+        }
+        
+        try {
+            this.products = this.products.filter(p => p.id !== productId);
+            this.renderProducts();
+            this.showNotification('✅ Produto excluído com sucesso!');
+        } catch (error) {
+            console.error('❌ Erro:', error);
+            alert('❌ Erro ao excluir produto: ' + error.message);
+        }
+    }
+
+    showNotification(message) {
+        // Cria notificação temporária
+        const notification = document.createElement('div');
+        notification.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27AE60;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            ">
+                <span>✅</span>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+}
+
+// Inicializa quando o DOM carrega
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📄 DOM Content Loaded');
+    window.productManager = new ProductManager();
+});
+
+// Adiciona estilo para animação
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+`;
+document.head.appendChild(style);
+
+// Funções globais para os botões do HTML
+function closeProductModal() {
+    if (window.productManager) {
+        window.productManager.closeProductModal();
+    }
+}
+
+function deleteProduct(id) {
+    if (window.productManager) {
+        window.productManager.deleteProduct(id);
+    }
+}
+</script>
+</body>
+</html>

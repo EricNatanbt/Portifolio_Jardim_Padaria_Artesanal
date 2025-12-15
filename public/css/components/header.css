@@ -8,13 +8,15 @@
     top: 0;
     z-index: 50;
     border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 4.5rem;
 }
 
 .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 4rem;
+    height: 4.5rem;
     gap: 1rem;
 }
 
@@ -151,8 +153,8 @@
     width: 300px;
     height: 100vh;
     background: linear-gradient(135deg, 
-        rgba(28, 61, 45, 0.98) 0%, 
-        rgba(28, 61, 45, 0.95) 100%);
+        rgba(48, 57, 34, 0.98) 0%, 
+        rgba(48, 57, 34, 0.95) 100%);
     backdrop-filter: blur(20px);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 7rem 2rem 2rem;

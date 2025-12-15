@@ -3,15 +3,15 @@
 
 /* paleta do rodapé */
 :root {
-  --green: #34572b;
-  --cream: #fff8e1;
-  --brown: #8b5e3c;
+  --green: #303922;
+  --cream: #F5ECCF;
+  --brown: #603E1E;
 }
 
 /* rodapé */
 footer {
-  background: linear-gradient(180deg, #fff8e1 0%, #fff4d0 100%);
-  border-top: 6px solid #34572b;
+  background: linear-gradient(180deg, #F5ECCF 0%, #E8E2D4 100%);
+  border-top: 6px solid #303922;
   box-shadow: 0 -6px 18px rgba(0,0,0,0.10);
   color: var(--brown);
   font-family: "Inter", "Segoe UI", sans-serif;
