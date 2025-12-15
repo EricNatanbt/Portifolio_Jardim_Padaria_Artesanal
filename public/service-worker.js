@@ -115,15 +115,14 @@ function canCacheRequest(request) {
 // INTERCEPTAÇÃO DE REQUISIÇÕES (FETCH)
 // ============================================
 self.addEventListener('fetch', event => {
-    const request = event.request;
+        const request = event.request;
     const url = new URL(request.url);
-    
-    // 1. Para requisições não-GET (POST, PUT, DELETE), sempre buscar na rede
-    if (request.method !== 'GET') {
-        event.respondWith(fetch(request));
+
+    // 🚨 LIBERA TOTALMENTE O REACT (/feedback)
+    if (url.pathname === '/feedback' || url.pathname.startsWith('/feedback/')) {
         return;
     }
-    
+
     // 2. Verificar se é uma URL que NÃO deve ser cachead
     const shouldNotCache = NO_CACHE_URLS.some(noCacheUrl => 
         url.pathname.includes(noCacheUrl)

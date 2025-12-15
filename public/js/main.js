@@ -9,17 +9,17 @@ let Modal = null;
 // INICIALIZAÇÃO
 // ============================================
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         // Registra o service worker
         navigator.serviceWorker.register('/service-worker.js')
-            .then(function(registration) {
+            .then(function (registration) {
                 console.log('Service Worker registrado com sucesso:', registration.scope);
-                
+
                 // Verifica se há uma nova versão
                 registration.addEventListener('updatefound', () => {
                     const newWorker = registration.installing;
                     console.log('Nova versão do Service Worker encontrada!');
-                    
+
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed') {
                             // Nova versão instalada, recarrega a página
@@ -31,10 +31,10 @@ if ('serviceWorker' in navigator) {
                     });
                 });
             })
-            .catch(function(error) {
+            .catch(function (error) {
                 console.log('Falha no registro do Service Worker:', error);
             });
-        
+
         // Força verificação de atualizações a cada carregamento
         navigator.serviceWorker.ready.then(registration => {
             registration.update();
@@ -51,7 +51,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Força limpeza de cache ao carregar
-window.addEventListener('beforeunload', function() {
+window.addEventListener('beforeunload', function () {
     // Limpa cache do localStorage se necessário
     if (localStorage.getItem('forceRefresh')) {
         localStorage.removeItem('forceRefresh');
@@ -66,30 +66,30 @@ window.addEventListener('beforeunload', function() {
 async function initializeApp() {
     console.log('🚀 Inicializando aplicação Jardim Padaria...');
     console.log('📅 Simulação: Hoje é QUARTA-FEIRA');
-    
+
     // 1. Inicializa navegação primeiro (não depende de imports)
     initializeNavigation();
-    
+
     try {
         // 2. Carrega componentes dinamicamente
         await loadComponents();
-        
+
         // 3. Inicializa componentes se estiverem disponíveis
         if (Modal && typeof Modal.initialize === 'function') {
             Modal.initialize();
             console.log('✅ Modal inicializado');
         }
-        
+
         if (Cart && typeof Cart.initialize === 'function') {
             Cart.initialize();
             console.log('✅ Carrinho inicializado');
         }
-        
+
         // 4. Inicializa a página atual
         initializePageComponents(currentPage);
-        
+
         console.log('🎉 Aplicação inicializada com sucesso!');
-        
+
     } catch (error) {
         console.error('❌ Erro na inicialização:', error);
         showNotification('Erro ao carregar a aplicação. Recarregue a página.', 5000, 'error');
@@ -102,12 +102,12 @@ async function initializeApp() {
 async function loadComponents() {
     try {
         console.log('📦 Carregando componentes...');
-        
+
         // Carrega Modal
         const modalModule = await import('./components/modal.js');
         Modal = modalModule.default || modalModule.Modal;
         window.Modal = Modal;
-        
+
         // Carrega Cart
         const cartModule = await import('./components/cart.js');
         Cart = cartModule.default || cartModule.Cart;
@@ -116,13 +116,13 @@ async function loadComponents() {
         // Carrega Carousel
         const carouselModule = await import('./components/carousel.js');
         window.Carousel = carouselModule.default || carouselModule.Carousel;
-        
-        console.log('✅ Componentes carregados:', { 
-            Modal: !!Modal, 
+
+        console.log('✅ Componentes carregados:', {
+            Modal: !!Modal,
             Cart: !!Cart,
             Carousel: !!window.Carousel
         });
-        
+
     } catch (error) {
         console.error('❌ Erro ao carregar componentes:', error);
         // Tenta carregar novamente após 2 segundos
@@ -163,23 +163,31 @@ function initializeNavigation() {
 
     // Navegação entre páginas - PARA DESKTOP E MOBILE
     document.addEventListener('click', (e) => {
-        // Verifica tanto os links desktop quanto mobile
-        const link = e.target.closest('[data-page]');
-        if (link) {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        const page = link.dataset.page;
+
+        // Libera o React
+        if (href && href.startsWith('/feedback')) {
+            return;
+        }
+
+        // SPA interno
+        if (page) {
             e.preventDefault();
-            const page = link.dataset.page;
             navigateToPage(page);
-            
-            // Fecha o menu mobile se estiver aberto
             closeMobileMenu();
         }
     });
 }
 
+
 function openMobileMenu() {
     const mobileMenu = document.getElementById("mobileMenu");
     const mobileMenuOverlay = document.getElementById("mobileMenuOverlay");
-    
+
     if (mobileMenu && mobileMenuOverlay) {
         mobileMenu.classList.add("active");
         mobileMenuOverlay.classList.add("active");
@@ -190,7 +198,7 @@ function openMobileMenu() {
 function closeMobileMenu() {
     const mobileMenu = document.getElementById("mobileMenu");
     const mobileMenuOverlay = document.getElementById("mobileMenuOverlay");
-    
+
     if (mobileMenu && mobileMenuOverlay) {
         mobileMenu.classList.remove("active");
         mobileMenuOverlay.classList.remove("active");
@@ -205,7 +213,7 @@ function navigateToPage(page) {
         currentActivePage.style.opacity = '0';
         currentActivePage.style.transform = 'translateY(20px)';
     }
-    
+
     setTimeout(() => {
         // Esconde todas as páginas
         document.querySelectorAll('.page').forEach(p => {
@@ -213,28 +221,28 @@ function navigateToPage(page) {
             p.style.opacity = '0';
             p.style.transform = 'translateY(20px)';
         });
-        
+
         // Mostra a página selecionada
         const targetPage = document.getElementById(`page-${page}`);
         if (targetPage) {
             targetPage.classList.add('active');
             currentPage = page;
-            
+
             // Força o reflow para garantir a transição
             targetPage.offsetHeight;
-            
+
             // Aplica a transição de entrada
             setTimeout(() => {
                 targetPage.style.opacity = '1';
                 targetPage.style.transform = 'translateY(0)';
             }, 50);
-            
+
             // Atualiza navegação
             updateNavigation(page);
-            
+
             // Inicializa componentes da página
             initializePageComponents(page);
-            
+
             // Scroll para o topo
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -264,9 +272,9 @@ function updateNavigation(page) {
 // ============================================
 async function initializePageComponents(pageName) {
     console.log(`📄 Inicializando página: ${pageName}`);
-    
+
     try {
-        switch(pageName) {
+        switch (pageName) {
             case 'inicio':
                 if (typeof InicioPage !== 'undefined') {
                     await InicioPage.initialize();
@@ -280,7 +288,7 @@ async function initializePageComponents(pageName) {
                     }
                 }
                 break;
-                
+
             case 'menu':
                 if (typeof MenuPage !== 'undefined') {
                     MenuPage.initialize();
@@ -294,7 +302,7 @@ async function initializePageComponents(pageName) {
                     }
                 }
                 break;
-                
+
             case 'sobre':
                 if (typeof SobreNosPage !== 'undefined') {
                     SobreNosPage.initialize();
@@ -309,45 +317,45 @@ async function initializePageComponents(pageName) {
                     console.log('✅ Página Sobre Nós inicializada');
                 }
                 break;
-                
+
             case 'cuidados':
                 if (typeof CuidadosPage !== 'undefined') {
                     CuidadosPage.initialize();
                     console.log('✅ Página Cuidados inicializada');
                 }
                 break;
-                
+
             case 'feedbacks':
                 if (typeof FeedbacksPage !== 'undefined') {
                     FeedbacksPage.initialize();
                     console.log('✅ Página Feedbacks inicializada');
                 }
                 break;
-                case 'pedidos':
-    // Carrega dinamicamente o script dos pedidos
-    try {
-        const pedidosModule = await import('./pages/pedidos.js');
-        window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
-        if (window.PedidosPage && window.PedidosPage.initialize) {
-            await window.PedidosPage.initialize();
-        }
-        console.log('✅ Página Pedidos inicializada');
-    } catch (error) {
-        console.error('❌ Erro ao carregar página de pedidos:', error);
-        // Tenta carregar novamente
-        setTimeout(async () => {
-            try {
-                const pedidosModule = await import('./pages/pedidos.js');
-                window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
-                if (window.PedidosPage && window.PedidosPage.initialize) {
-                    await window.PedidosPage.initialize();
+            case 'pedidos':
+                // Carrega dinamicamente o script dos pedidos
+                try {
+                    const pedidosModule = await import('./pages/pedidos.js');
+                    window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
+                    if (window.PedidosPage && window.PedidosPage.initialize) {
+                        await window.PedidosPage.initialize();
+                    }
+                    console.log('✅ Página Pedidos inicializada');
+                } catch (error) {
+                    console.error('❌ Erro ao carregar página de pedidos:', error);
+                    // Tenta carregar novamente
+                    setTimeout(async () => {
+                        try {
+                            const pedidosModule = await import('./pages/pedidos.js');
+                            window.PedidosPage = pedidosModule.default || pedidosModule.PedidosPage;
+                            if (window.PedidosPage && window.PedidosPage.initialize) {
+                                await window.PedidosPage.initialize();
+                            }
+                        } catch (retryError) {
+                            console.error('❌ Falha na segunda tentativa de carregar pedidos:', retryError);
+                        }
+                    }, 1000);
                 }
-            } catch (retryError) {
-                console.error('❌ Falha na segunda tentativa de carregar pedidos:', retryError);
-            }
-        }, 1000);
-    }
-    break;
+                break;
         }
     } catch (error) {
         console.error(`❌ Erro ao inicializar página ${pageName}:`, error);
@@ -364,19 +372,19 @@ async function initializePageComponents(pageName) {
 function showNotification(message, duration = 3000, type = 'info', important = false) {
     // Verifica se já existe uma barra de notificação
     let notificationBar = document.getElementById('notificationBar');
-    
+
     // Se não existir, cria uma
     if (!notificationBar) {
         notificationBar = document.createElement('div');
         notificationBar.id = 'notificationBar';
         document.body.appendChild(notificationBar);
     }
-    
+
     // Limpa timer anterior se existir
     if (notificationBar._timeoutId) {
         clearTimeout(notificationBar._timeoutId);
     }
-    
+
     // Adiciona botão de fechar se não existir
     if (!notificationBar.querySelector('.notification-close')) {
         const closeBtn = document.createElement('button');
@@ -395,41 +403,41 @@ function showNotification(message, duration = 3000, type = 'info', important = f
         });
         notificationBar.appendChild(closeBtn);
     }
-    
+
     // Define o texto e tipo da notificação
     const textSpan = notificationBar.querySelector('span') || document.createElement('span');
     textSpan.textContent = message;
-    
+
     // Se não tiver span, adiciona
     if (!notificationBar.querySelector('span')) {
         notificationBar.insertBefore(textSpan, notificationBar.querySelector('.notification-close'));
     }
-    
+
     // Remove classes antigas
     notificationBar.classList.remove('info', 'success', 'error', 'warning', 'important', 'show');
-    
+
     // Adiciona novas classes
     notificationBar.classList.add(type);
     if (important) {
         notificationBar.classList.add('important');
     }
-    
+
     // Adiciona classe show com pequeno delay para animação
     setTimeout(() => {
         notificationBar.classList.add('show');
     }, 10);
-    
+
     // Configura timeout para remover
     notificationBar._timeoutId = setTimeout(() => {
         notificationBar.classList.remove('show');
-        
+
         // Remove completamente após a animação
         setTimeout(() => {
             notificationBar.textContent = '';
             notificationBar._timeoutId = null;
         }, 400);
     }, duration);
-    
+
     // Log no console para debug
     const typeEmoji = {
         'info': 'ℹ️',
@@ -437,20 +445,20 @@ function showNotification(message, duration = 3000, type = 'info', important = f
         'error': '❌',
         'warning': '⚠️'
     }[type] || '📢';
-    
+
     console.log(`${typeEmoji} ${message}`);
 }
 
 function getCurrentDayName() {
     // SIMULAÇÃO: Sempre retorna "quarta" para teste
     // Para voltar ao normal, descomente as linhas abaixo e apague o return "quarta";
-    
+
     // const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
     // const date = new Date();
     // const dayName = days[date.getDay()];
     // console.log(`📅 Dia atual: ${dayName}`);
     // return dayName;
-    
+
     console.log('📅 [SIMULAÇÃO] Hoje é QUARTA-FEIRA');
     return "quarta";
 }
@@ -458,7 +466,7 @@ function getCurrentDayName() {
 function getTodayIndex() {
     // SIMULAÇÃO: Sempre retorna índice da quarta (0)
     // Para voltar ao normal, descomente as linhas abaixo:
-    
+
     // const hoje = new Date();
     // const diaSemana = hoje.getDay();
     // const diaParaIndice = {
@@ -468,7 +476,7 @@ function getTodayIndex() {
     //     6: 3  // sábado
     // };
     // return diaParaIndice[diaSemana] !== undefined ? diaParaIndice[diaSemana] : -1;
-    
+
     return 0; // Índice da quarta-feira
 }
 
@@ -534,7 +542,7 @@ function getSimulationMode() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM carregado');
     console.log(`🎮 Modo simulação: ${getSimulationMode()}`);
-    
+
     // Adiciona botão de debug para alternar modo (apenas em desenvolvimento)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         const debugButton = document.createElement('button');
@@ -553,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         debugButton.addEventListener('click', toggleSimulationMode);
         document.body.appendChild(debugButton);
     }
-    
+
     // Pequeno delay para garantir que tudo está carregado
     setTimeout(() => {
         initializeApp();
