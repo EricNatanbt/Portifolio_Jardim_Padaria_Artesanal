@@ -26,6 +26,7 @@
 }
 
 .about-text h2 {
+    text-align: center;
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
     color: var(--primary);
@@ -238,17 +239,17 @@
 
 .text-slide-wrapper {
     width: 100%;
-    max-width: 480px; 
+    max-width: 600px; 
 }
 
 
 .text-slide {
     display: none;
     background: white;
-    padding: 2.2rem 2rem; /* <-- AUMENTADO */
+    padding: 2.5rem 2.2rem; /* <-- AUMENTADO */
     border-radius: var(--radius-lg);
     box-shadow: 0 6px 18px rgba(0,0,0,0.08); /* <-- MAIS ELEGANTE */
-    font-size: 1.05rem; /* <-- LEVEMENTE MAIOR */
+    font-size: 1.1rem; /* <-- LEVEMENTE MAIOR */
     line-height: 1.75; /* <-- MELHOR LEITURA */
     animation: fadeIn 0.8s ease;
 }
@@ -284,11 +285,11 @@
 
 @media (min-width: 768px) {
     .text-slide {
-        padding: 2.5rem 2.2rem;
-        font-size: 1.1rem;
+        padding: 3rem 2.5rem;
+        font-size: 1.2rem;
     }
 
     .text-slide-wrapper {
-        max-width: 520px;
+        max-width: 700px;
     }
 }

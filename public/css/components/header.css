@@ -47,42 +47,39 @@
 
 /* Main Navigation Desktop */
 .nav-main-desktop {
-    display: none; /* Oculto por padrão em mobile */
+    display: none;
+    flex: 1;
+    justify-content: center;
+    gap: 2rem;
+    margin: 0 2rem;
 }
 
 @media (min-width: 768px) {
     .nav-main-desktop {
         display: flex;
-        flex: 1;
-        margin: 0 auto;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
     }
 }
-.nav-main-desktop a {
+
+.nav-link {
     font-weight: 500;
     color: white;
     transition: all 0.2s;
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
     position: relative;
-    text-decoration: none;
-    white-space: nowrap;
-    display: inline-block;
 }
 
-.nav-main-desktop a:hover {
+.nav-link:hover {
     color: var(--accent-light);
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-main-desktop a.active {
+.nav-link.active {
     color: var(--accent-light);
     font-weight: 700;
 }
 
-.nav-main-desktop a.active::after {
+.nav-link.active::after {
     content: '';
     position: absolute;
     bottom: -8px;
@@ -91,22 +88,6 @@
     height: 2px;
     background-color: var(--accent-light);
     border-radius: 1px;
-}
-
-/* Garantir que o link de feedbacks seja visível e com estilo consistente */
-.nav-main-desktop a[href*="feedback"],
-.nav-main-desktop a[data-page="feedback"] {
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    font-weight: 500;
-    color: white;
-}
-
-.nav-main-desktop a[href*="feedback"]:hover,
-.nav-main-desktop a[data-page="feedback"]:hover {
-    color: var(--accent-light);
-    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Header Icons */

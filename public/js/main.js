@@ -326,11 +326,19 @@ async function initializePageComponents(pageName) {
                 break;
 
             case 'feedbacks':
-                if (typeof FeedbacksPage !== 'undefined') {
-                    FeedbacksPage.initialize();
+                try {
+                    const feedbacksModule = await import('./pages/feedbacks.js');
+                    window.FeedbacksPage = feedbacksModule.default || feedbacksModule.FeedbacksPage;
+                    if (window.FeedbacksPage && window.FeedbacksPage.initialize) {
+                        await window.FeedbacksPage.initialize();
+                    }
                     console.log('✅ Página Feedbacks inicializada');
+                } catch (error) {
+                    console.error('❌ Erro ao carregar página de feedbacks:', error);
                 }
                 break;
+
+
             case 'pedidos':
                 // Carrega dinamicamente o script dos pedidos
                 try {

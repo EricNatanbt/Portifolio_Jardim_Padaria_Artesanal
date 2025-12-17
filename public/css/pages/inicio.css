@@ -181,7 +181,7 @@
    ============================================ */
 .benefits-section {
     padding: 4rem 0;
-    background: #fdf7e3;
+    background: var(--background);
 }
 
 .benefits-section h3 {
