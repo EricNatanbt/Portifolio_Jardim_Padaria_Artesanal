@@ -1,18 +1,38 @@
 /* ============================================
    CART SIDEBAR
    ============================================ */
+/* Efeito de transição suave */
 .cart-sidebar {
     position: fixed;
     inset: 0;
     z-index: 50;
     display: flex;
+    animation: slideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .cart-overlay {
     flex: 1;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
+
+.cart-overlay:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
 
 .cart-content {
     width: 100%;
@@ -68,15 +88,20 @@
     padding: 2rem 0;
 }
 
+/* Item do carrinho - Design aperfeiçoado */
 .cart-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem;
-    background-color: var(--muted);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
+
 
 .remove-item-btn {
     padding: 0.5rem;
@@ -141,11 +166,13 @@
 
 /* Imagem do produto no carrinho */
 .cart-item-img {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
     border-radius: var(--radius);
     border: 1px solid var(--border);
+    background: var(--muted);
+    transition: transform 0.3s ease;
 }
 
 /* Informações do item */
@@ -217,8 +244,6 @@
 .delete-item-btn:hover {
     opacity: 0.7;
 }
-
-/* Adicione ao seu arquivo CSS existente */
 
 /* Estilo para campos preenchidos automaticamente */
 input.auto-filled {
@@ -302,4 +327,432 @@ input.cep-loading {
 
 .cep-status.loading {
     color: #ff9800;
+}
+
+/* ============================================
+   PEDIDOS ANTERIORES - ESTILO MELHORADO
+   ============================================ */
+
+.previous-orders-container {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--muted);
+    background-color: var(--card);
+    border-bottom: 1px solid var(--muted);
+}
+
+.previous-orders-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: var(--accent-light);
+    color: var(--primary);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: var(--spacing-md);
+}
+
+.previous-orders-btn:hover {
+    background-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(28, 61, 45, 0.1);
+}
+
+.previous-orders-btn.active svg {
+    transform: rotate(180deg);
+}
+
+.previous-orders-list {
+    margin-top: var(--spacing-sm);
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 5px;
+    display: none;
+    overflow-x: hidden;
+}
+
+.previous-orders-list.show {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+.previous-order-item {
+    background-color: var(--background);
+    border: 1px solid var(--muted);
+    border-radius: var(--radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all 0.3s ease;
+}
+
+.previous-order-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--muted);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.order-id {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+.order-date {
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.order-total {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.order-details {
+    margin-bottom: var(--spacing-md);
+}
+
+.order-details h5 {
+    margin-bottom: 8px;
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+.order-items {
+    font-size: 0.9rem;
+    color: var(--foreground);
+    line-height: 1.5;
+    padding: 8px;
+    background-color: rgba(240, 230, 197, 0.3);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent);
+    margin-top: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.order-item-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--border);
+}
+
+.order-item-detail:last-child {
+    border-bottom: none;
+}
+
+.order-item-detail.more-items {
+    color: #666;
+    font-style: italic;
+    font-size: 0.85rem;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+    margin-top: 4px;
+}
+
+.order-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.order-details-btn,
+.repeat-order-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 140px;
+    border: none;
+}
+
+.order-details-btn {
+    background-color: var(--card);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+}
+
+.order-details-btn:hover {
+    background-color: var(--primary);
+    color: var(--card);
+    transform: translateY(-2px);
+}
+
+.repeat-order-btn {
+    background-color: var(--primary);
+    color: var(--card);
+    border: 2px solid var(--primary);
+}
+
+.repeat-order-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.empty-orders {
+    text-align: center;
+    color: var(--muted-foreground);
+    font-style: italic;
+    padding: var(--spacing-xl) var(--spacing-md);
+    background-color: var(--background);
+    border-radius: var(--radius);
+    border: 1px dashed var(--muted);
+}
+
+/* ============================================
+   RESPONSIVIDADE MELHORADA - PEDIDOS ANTERIORES
+   ============================================ */
+
+@media (max-width: 768px) {
+    .previous-orders-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .previous-order-item {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .order-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+        flex-wrap: nowrap;
+    }
+    
+    .order-id {
+        width: 100%;
+        word-break: break-word;
+    }
+    
+    .order-date {
+        width: 100%;
+        word-break: break-word;
+    }
+    
+    .order-total {
+        width: 100%;
+        text-align: left;
+    }
+    
+    .order-items {
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+        padding: 6px;
+    }
+    
+    .order-item-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 4px 0;
+    }
+    
+    .order-item-detail span:last-child {
+        text-align: left;
+    }
+    
+    .order-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .order-details-btn,
+    .repeat-order-btn {
+        flex: 1;
+        width: 100%;
+        min-width: auto;
+        padding: 10px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .order-details-btn svg,
+    .repeat-order-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .previous-order-item {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .order-header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+    
+    .order-id,
+    .order-date,
+    .order-total {
+        font-size: 0.9rem;
+        width: 100%;
+    }
+    
+    .order-details h5 {
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+    
+    .order-items {
+        max-height: 120px;
+        font-size: 0.8rem;
+        padding: 4px;
+    }
+    
+    .order-item-detail {
+        padding: 3px 0;
+        font-size: 0.8rem;
+    }
+    
+    .order-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .order-details-btn,
+    .repeat-order-btn {
+        padding: 8px 10px;
+        font-size: 0.8rem;
+    }
+    
+    .order-details-btn svg,
+    .repeat-order-btn svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+/* Scrollbar personalizada para a lista de pedidos */
+.previous-orders-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.previous-orders-list::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+.previous-orders-list::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 2px;
+}
+
+.previous-orders-list::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Responsividade */
+/* Responsividade melhorada */
+@media (max-width: 768px) {
+    .cart-content {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .cart-header {
+        padding: 1rem;
+    }
+    
+    .cart-items {
+        padding: 1rem;
+    }
+    
+    .cart-item {
+        grid-template-columns: 60px 1fr auto;
+        gap: 0.75rem;
+        padding: 0.75rem;
+    }
+    
+    .cart-item-img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .cart-item-name {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 1;
+    }
+    
+    .cart-qty-controls {
+        gap: 0.5rem;
+        padding: 0.25rem;
+    }
+    
+    .qty-btn {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+
+/* Animações */
+@keyframes itemAdded {
+    0% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.cart-item {
+    animation: itemAdded 0.3s ease-out;
+}
+
+/* Scrollbar personalizada */
+.cart-items::-webkit-scrollbar {
+    width: 6px;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: var(--muted);
+    border-radius: 3px;
+}
+
+.cart-items::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
 }

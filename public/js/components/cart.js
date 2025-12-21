@@ -10,6 +10,7 @@ const Cart = {
     _submitting: false,
     _listenersSetup: false,
     _currentUserId: null,
+    _previousOrders: [],
 
     // ============================================
     // INICIALIZAÇÃO
@@ -29,6 +30,7 @@ const Cart = {
         // Pequeno delay para garantir DOM pronto
         setTimeout(() => {
             this._setupAllEventListeners();
+            this._loadPreviousOrders(); // Carrega pedidos anteriores
         }, 500);
     },
 
@@ -51,6 +53,9 @@ const Cart = {
         
         // 3. Listeners do formulário
         this._setupFormListeners();
+
+        // 4. Listeners de pedidos anteriores
+        this._setupPreviousOrdersListeners();
         
         this._listenersSetup = true;
     },
@@ -89,6 +94,397 @@ const Cart = {
                 this.openCheckoutModal();
             });
         }
+    },
+
+    _setupPreviousOrdersListeners() {
+        const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+        const previousOrdersList = document.getElementById('previousOrdersList');
+
+        if (previousOrdersBtn && previousOrdersList) {
+            previousOrdersBtn.addEventListener('click', () => {
+                const isVisible = previousOrdersList.style.display === 'block';
+                previousOrdersList.style.display = isVisible ? 'none' : 'block';
+                previousOrdersBtn.innerHTML = isVisible 
+                    ? '📋 Pedidos anteriores' 
+                    : '📋 Esconder pedidos';
+                previousOrdersBtn.classList.toggle('active');
+            });
+        }
+
+        // Delegation para os botões de repetição e detalhes
+        document.addEventListener('click', (e) => {
+            // Botão de repetir pedido
+            const repeatBtn = e.target.closest('.repeat-order-btn');
+            if (repeatBtn) {
+                const orderId = repeatBtn.dataset.orderId;
+                if (orderId) {
+                    this.repeatOrder(orderId);
+                }
+            }
+        });
+    },
+
+    // ============================================
+    // FUNÇÕES DE PEDIDOS ANTERIORES
+    // ============================================
+    async _loadPreviousOrders() {
+        try {
+            console.log('⏳ Buscando pedidos anteriores...');
+            const orders = await apiClient.getRecentOrders();
+            this._previousOrders = orders;
+            this._renderPreviousOrders();
+        } catch (error) {
+            console.error('❌ Erro ao carregar pedidos anteriores da API:', error);
+            // Tenta carregar do localStorage como fallback
+            this._loadFromLocalStorage();
+        }
+    },
+
+    _loadFromLocalStorage() {
+        console.log('📂 Buscando pedidos anteriores do localStorage...');
+        this._previousOrders = [];
+        const keys = Object.keys(localStorage);
+        const orderKeys = keys.filter(key => key.startsWith('order_'));
+        
+        // Carrega os pedidos mais recentes
+        const allOrders = orderKeys.map(key => {
+            try {
+                const orderData = JSON.parse(localStorage.getItem(key));
+                return orderData;
+            } catch (e) {
+                console.error(`❌ Erro ao carregar pedido ${key}:`, e);
+                return null;
+            }
+        }).filter(order => order !== null);
+        
+        // Ordena por data (mais recente primeiro)
+        allOrders.sort((a, b) => {
+            const dateA = new Date(a.order?.created_at || a.order?.timestamp || 0);
+            const dateB = new Date(b.order?.created_at || b.order?.timestamp || 0);
+            return dateB - dateA;
+        });
+        
+        // Limita aos 2 últimos pedidos
+        this._previousOrders = allOrders.slice(0, 2);
+        console.log(`📜 ${this._previousOrders.length} pedidos anteriores carregados do localStorage.`);
+        
+        this._renderPreviousOrders();
+    },
+
+    _renderPreviousOrders() {
+        const listContainer = document.getElementById('previousOrdersList');
+        const container = document.getElementById('previousOrdersContainer');
+        
+        if (!listContainer || !container) {
+            console.warn('⚠️ Elementos de pedidos anteriores não encontrados');
+            return;
+        }
+
+        if (this._previousOrders.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+        listContainer.innerHTML = '';
+
+        this._previousOrders.forEach(order => {
+            listContainer.innerHTML += this._createOrderHtml(order);
+        });
+    },
+
+    _createOrderHtml(order) {
+    // IMPORTANTE: Usa o ID curto (shortId) que está na chave do localStorage
+    // Primeiro tenta extrair do localStorage
+    let orderKey = null;
+    let shortId = null;
+    
+    // Se o pedido veio do localStorage, já tem o shortId
+    if (order._shortId) {
+        shortId = order._shortId;
+    } else {
+        // Tenta encontrar o pedido no localStorage para obter o shortId correto
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+            if (key.startsWith('order_')) {
+                try {
+                    const storedOrder = JSON.parse(localStorage.getItem(key));
+                    // Compara os dados para encontrar o pedido correspondente
+                    const storedId = storedOrder.order?.order_id || storedOrder.order?.id;
+                    const currentId = order.order?.order_id || order.order?.id || order.id;
+                    
+                    if (storedId === currentId) {
+                        shortId = key.replace('order_', '');
+                        orderKey = key;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+    }
+    
+    // Se não encontrou shortId, gera um fallback
+    if (!shortId) {
+        // Tenta usar o ID da API ou um hash do timestamp
+        const apiId = order.order?.id || order.id || order.order?.order_id;
+        shortId = apiId ? apiId.replace(/\D/g, '').slice(-6) : 'temp_' + Date.now().toString(36);
+    }
+    
+    // Formata a data
+    const orderDate = order.order?.created_at || order.order?.timestamp || order.date;
+    const formattedDate = this._formatOrderDate(orderDate);
+    
+    // Calcula o total
+    const total = order.order?.total || order.total || 0;
+    
+    const formattedTotal = total.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+    
+    // Lista os produtos com detalhes
+    const orderItems = order.items || order.cart || [];
+    const productsList = orderItems.map(item => {
+        const itemTotal = (item.price * item.quantity).toLocaleString('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        });
+        return `
+            <div class="order-item-detail">
+                <span>${item.quantity}x ${item.name || item.product_name}</span>
+                <span>${itemTotal}</span>
+            </div>
+        `;
+    }).join('');
+    
+    // Gera o link de detalhes COM O ID CORRETO
+    const detailsLink = `/order.html?i=${shortId}`;
+    
+    // ID para exibição (pode ser diferente do link)
+    const displayId = order.order?.order_id || order.order?.id || shortId;
+    
+    return `
+        <div class="previous-order-item">
+            <div class="order-header">
+                <span class="order-id">Pedido #${displayId}</span>
+                <span class="order-date">${formattedDate}</span>
+                <span class="order-total">${formattedTotal}</span>
+            </div>
+            
+            <div class="order-details">
+                <h5>Produtos:</h5>
+                <div class="order-items">${productsList}</div>
+            </div>
+            
+            <div class="order-actions">
+                <a href="${detailsLink}" target="_blank" class="order-details-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Detalhes do Pedido
+                </a>
+                <button class="repeat-order-btn" data-order-id="${shortId}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 4v6h6"></path>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    Repetir Pedido
+                </button>
+            </div>
+        </div>
+    `;
+},
+
+// Atualize a função _loadFromLocalStorage para incluir o shortId:
+_loadFromLocalStorage() {
+    console.log('📂 Buscando pedidos anteriores do localStorage...');
+    this._previousOrders = [];
+    const keys = Object.keys(localStorage);
+    const orderKeys = keys.filter(key => key.startsWith('order_'));
+    
+    // Carrega os pedidos mais recentes
+    const allOrders = orderKeys.map(key => {
+        try {
+            const orderData = JSON.parse(localStorage.getItem(key));
+            // Adiciona o shortId aos dados do pedido
+            orderData._shortId = key.replace('order_', '');
+            return orderData;
+        } catch (e) {
+            console.error(`❌ Erro ao carregar pedido ${key}:`, e);
+            return null;
+        }
+    }).filter(order => order !== null);
+    
+    // Ordena por data (mais recente primeiro)
+    allOrders.sort((a, b) => {
+        const dateA = new Date(a.order?.created_at || a.order?.timestamp || 0);
+        const dateB = new Date(b.order?.created_at || b.order?.timestamp || 0);
+        return dateB - dateA;
+    });
+    
+    // Limita aos 2 últimos pedidos
+    this._previousOrders = allOrders.slice(0, 2);
+    console.log(`📜 ${this._previousOrders.length} pedidos anteriores carregados do localStorage.`);
+    
+    this._renderPreviousOrders();
+},
+
+// Atualize a função repeatOrder para usar o shortId correto:
+async repeatOrder(shortId) {
+    if (!shortId) return;
+
+    try {
+        console.log(`⏳ Buscando detalhes do pedido shortId: ${shortId} para repetição...`);
+        
+        // Tenta buscar do localStorage primeiro
+        const orderKey = `order_${shortId}`;
+        const orderData = localStorage.getItem(orderKey);
+        
+        if (!orderData) {
+            console.warn(`⚠️ Pedido ${orderKey} não encontrado no localStorage.`);
+            window.showNotification('Pedido não encontrado no histórico local', 3000, 'error');
+            return;
+        }
+
+        const orderDetails = JSON.parse(orderData);
+        
+        if (!orderDetails || (!orderDetails.items && !orderDetails.cart)) {
+            console.warn(`⚠️ Pedido ${shortId} vazio ou sem itens.`);
+            window.showNotification('Pedido vazio ou sem itens', 3000, 'error');
+            return;
+        }
+
+        // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
+        this.clearCart();
+        
+        // Adiciona cada item do pedido anterior ao carrinho
+        const items = orderDetails.items || orderDetails.cart || [];
+        items.forEach(item => {
+            // Verifica se o item tem todos os dados necessários
+            if (item.name && item.price) {
+                this.addItem({
+                    id: item.id || item.product_id,
+                    name: item.name || item.product_name,
+                    price: item.price,
+                    quantity: item.quantity,
+                    image: item.image || '/img/produtos/default.png'
+                }, item.quantity);
+            }
+        });
+
+        this.updateCartUI();
+        this.openCart();
+        window.showNotification(`Pedido #${shortId} adicionado ao carrinho!`, 3000, 'success');
+
+    } catch (error) {
+        console.error(`❌ Erro ao repetir pedido ${shortId}:`, error);
+        window.showNotification('Erro ao repetir pedido. Tente novamente.', 'error');
+    }
+},
+
+    _formatOrderDate(dateString) {
+        if (!dateString) return 'Data não disponível';
+        
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    },
+
+    async repeatOrder(orderId) {
+        if (!orderId) return;
+
+        try {
+            console.log(`⏳ Buscando detalhes do pedido ${orderId} para repetição...`);
+            
+            // Tenta buscar da API primeiro
+            let orderDetails;
+            try {
+                orderDetails = await apiClient.getOrderDetails(orderId);
+            } catch (apiError) {
+                console.log('⚠️ Não conseguiu buscar da API, tentando localStorage...');
+                // Busca do localStorage
+                orderDetails = this._findOrderInLocalStorage(orderId);
+            }
+            
+            if (!orderDetails || !orderDetails.items) {
+                console.warn(`⚠️ Pedido ${orderId} não encontrado ou vazio.`);
+                window.showNotification('Pedido não encontrado', 3000, 'error');
+                return;
+            }
+
+            // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
+            this.clearCart();
+            
+            // Adiciona cada item do pedido anterior ao carrinho
+            const items = orderDetails.items || orderDetails.cart || [];
+            items.forEach(item => {
+                // Verifica se o item tem todos os dados necessários
+                if (item.name && item.price) {
+                    this.addItem({
+                        id: item.id || item.product_id,
+                        name: item.name || item.product_name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image || '/img/produtos/default.png'
+                    }, item.quantity);
+                }
+            });
+
+            this.updateCartUI();
+            this.openCart();
+            window.showNotification(`Pedido #${orderId} adicionado ao carrinho!`, 3000, 'success');
+
+        } catch (error) {
+            console.error(`❌ Erro ao repetir pedido ${orderId}:`, error);
+            window.showNotification('Erro ao repetir pedido. Tente novamente.', 'error');
+        }
+    },
+
+    _findOrderInLocalStorage(orderId) {
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+            if (key.startsWith('order_')) {
+                try {
+                    const order = JSON.parse(localStorage.getItem(key));
+                    if (order.order?.id === orderId || order.order?.order_id === orderId || order.id === orderId) {
+                        return order;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+        return null;
+    },
+
+    addItem(product, quantity = 1) {
+        // Implementação do método addItem
+        const existingItem = this.cartItems.find(item => item.id === product.id);
+        
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            this.cartItems.push({
+                ...product,
+                quantity: quantity
+            });
+        }
+        
+        this.saveCartToStorage();
+        this.updateCartUI();
     },
 
     _setupCheckoutListeners() {
@@ -530,6 +926,7 @@ const Cart = {
     openCart() {
         const cartSidebar = document.getElementById("cartSidebar");
         if (cartSidebar) {
+            this._loadPreviousOrders(); // Garante que a lista esteja atualizada
             cartSidebar.style.display = "flex";
             document.body.style.overflow = "hidden";
         }
@@ -579,6 +976,9 @@ const Cart = {
             
             // Limpa estilos dos campos de endereço
             this._clearAddressStyles();
+
+            // Atualiza a lista de pedidos anteriores após a finalização
+            this._loadPreviousOrders();
         }
     },
 

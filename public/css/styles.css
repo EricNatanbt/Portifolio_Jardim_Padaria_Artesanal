@@ -497,3 +497,178 @@ input {
     color: #1C3D2D;
     border-left: 4px solid #4CAF50;
 }
+
+/* ============================================
+   ESTILOS PARA PEDIDOS ANTERIORES NO CARRINHO
+   ============================================ */
+
+.previous-orders-container {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--muted);
+    border-bottom: 1px solid var(--muted);
+    margin-bottom: var(--spacing-md);
+}
+
+.previous-orders-btn {
+    width: 100%;
+    padding: 10px 15px;
+    background-color: var(--accent-light);
+    color: var(--primary);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.previous-orders-btn:hover {
+    background-color: var(--accent);
+}
+
+.previous-orders-btn:active {
+    transform: scale(0.99);
+}
+
+.previous-orders-list {
+    margin-top: var(--spacing-md);
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px; /* Espaço para a scrollbar */
+}
+
+.previous-order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--muted);
+}
+
+.previous-order-item:last-child {
+    border-bottom: none;
+}
+
+.order-info {
+    flex-grow: 1;
+    margin-right: var(--spacing-sm);
+}
+
+.order-date {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+    font-weight: 500;
+}
+
+.order-total {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.repeat-order-btn {
+    background-color: var(--primary);
+    color: var(--card);
+    padding: 6px 12px;
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+}
+
+.repeat-order-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+/* ============================================
+   ESTILOS PARA PEDIDOS ANTERIORES NO CARRINHO
+   ============================================ */
+
+.previous-orders-container {
+    padding: var(--spacing-md);
+    border-top: 1px solid var(--muted);
+    background-color: var(--card);
+}
+
+.previous-orders-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--accent-light);
+    color: var(--foreground);
+    border: 1px solid var(--muted);
+    border-radius: var(--radius);
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.previous-orders-btn:hover {
+    background-color: var(--muted);
+}
+
+.previous-orders-list {
+    margin-top: var(--spacing-sm);
+    max-height: 300px; /* Limita a altura para scroll */
+    overflow-y: auto;
+    padding-right: 5px; /* Espaço para a scrollbar */
+}
+
+.previous-order-item {
+    background-color: var(--background);
+    border: 1px solid var(--muted);
+    border-radius: var(--radius);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-info {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.order-id {
+    color: var(--primary-dark);
+}
+
+.order-total {
+    color: var(--secondary);
+}
+
+.order-items-summary {
+    font-size: 0.8em;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.repeat-order-btn {
+    padding: 6px 10px;
+    background-color: var(--primary);
+    color: var(--card);
+    border-radius: var(--radius);
+    font-size: 0.8em;
+    font-weight: 500;
+    margin-top: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.repeat-order-btn:hover {
+    background-color: var(--primary-dark);
+}
+
+.empty-orders {
+    text-align: center;
+    color: var(--muted-foreground);
+    font-style: italic;
+    padding: var(--spacing-md);
+}

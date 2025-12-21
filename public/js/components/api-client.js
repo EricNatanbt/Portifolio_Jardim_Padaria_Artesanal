@@ -1,6 +1,6 @@
 class ApiClient {
     constructor() {
-        this.baseUrl = window.location.origin + '/.netlify/functions/supabase-proxy';
+        this.baseUrl = window.location.origin + '/api';
         console.log('🌐 API Client inicializado para:', this.baseUrl);
     }
 
@@ -61,7 +61,7 @@ class ApiClient {
 
             console.log('📤 Dados formatados para envio:', dataToSend);
             
-            return await this._makeRequest('/save-order', 'POST', dataToSend);
+            return await this._makeRequest('/saveOrder', 'POST', dataToSend);
         } catch (error) {
             console.error('❌ Erro ao preparar pedido:', error);
             throw error;
@@ -80,12 +80,12 @@ class ApiClient {
 
     async getProducts() {
         console.log('📦 Buscando produtos via API...');
-        return await this._makeRequest('/get-products', 'GET');
+        return await this._makeRequest('/produtos', 'GET');
     }
 
     async getOrder(orderId) {
         console.log(`📋 Buscando pedido ${orderId}...`);
-        return await this._makeRequest(`/get-order/${orderId}`, 'GET');
+        return await this._makeRequest(`/orders/${orderId}`, 'GET');
     }
 
     async healthCheck() {
@@ -108,10 +108,22 @@ class ApiClient {
         return await this._makeRequest('/get-client-by-phone', 'POST', { phone: phone });
     }
 
-    // NOVA FUNÇÃO: Buscar pedidos do cliente
-    async getClientOrders(clientId) {
-        console.log(`📋 Buscando pedidos do cliente ID: ${clientId}`);
-        return await this._makeRequest('/get-client-orders', 'POST', { clientId: clientId });
+    // NOVA FUNÇÃO: Buscar os últimos 3 pedidos (Geral)
+    async getRecentOrders() {
+        console.log(`📋 Buscando os últimos 3 pedidos...`);
+        return await this._makeRequest('/orders', 'GET');
+    }
+
+    // NOVA FUNÇÃO: Buscar os últimos 3 pedidos por telefone
+    async getRecentOrdersByPhone(phone) {
+        console.log(`📋 Buscando os últimos 3 pedidos para o telefone ${phone}...`);
+        return await this._makeRequest(`/orders/by-phone?phone=${encodeURIComponent(phone)}`, 'GET');
+    }
+
+    // Função para buscar detalhes de um pedido específico (já existe, mas ajustando o endpoint)
+    async getOrderDetails(orderId) {
+        console.log(`📋 Buscando detalhes do pedido ID: ${orderId}...`);
+        return await this._makeRequest(`/orders/${orderId}`, 'GET');
     }
 }
 

@@ -340,7 +340,10 @@ const PedidosPage = {
             return new Date(b.created_at) - new Date(a.created_at);
         });
         
-        this.filteredOrders.forEach(order => {
+        // NOVO: Limita aos 3 pedidos mais recentes
+        const ordersToDisplay = this.filteredOrders.slice(0, 3);
+        
+        ordersToDisplay.forEach(order => {
             const row = document.createElement('tr');
             
             const date = new Date(order.created_at);
@@ -360,11 +363,11 @@ const PedidosPage = {
                     <small style="color: #666;">${date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</small>
                 </td>
                 <td style="white-space: nowrap;">
-                    <button class="action-btn btn-primary" onclick="window.PedidosPage.viewOrder('${order.order_id || order.id}')">
+                    <a href="/order.html?i=${order.order_id || order.id}" class="action-btn btn-primary" target="_blank">
                         Ver Detalhes
-                    </button>
+                    </a>
                     ${order.order_id ? `
-                        <a href="/order.html?orderId=${order.order_id}" target="_blank" class="action-btn btn-info">
+                        <a href="/order.html?i=${order.order_id || order.id}" target="_blank" class="action-btn btn-info">
                             Ver Página
                         </a>
                     ` : ''}
