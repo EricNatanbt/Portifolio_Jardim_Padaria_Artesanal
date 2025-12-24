@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Gerenciar Produtos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/gerenciarProduto.css">
+</head>
+
+<body>
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Painel Administrativo</h1>
+        <p>Jardim Padaria - Gerenciamento de Produtos</p>
+    </div>
+
+    <div class="products-table-container">
+        <!-- Botão separado para criar produto -->
+        <button class="btn-add" id="addProductBtn">Adicionar Produto</button>
+
+        <div class="products-table">
+            <table id="productsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagem</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Preço</th>
+                        <th>Dias Disponíveis</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="productsBody">
+                    <tr>
+                        <td colspan="7" style="text-align:center;padding:2rem;">Carregando produtos...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-footer">
+        <p>Painel Administrativo - Jardim Padaria</p>
+    </div>
+</div>
+
+<!-- Modal Criar Produto -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeCreateModal">&times;</span>
+        <h2>Criar Produto</h2>
+        <form id="createForm">
+            <label for="createNome">Nome do Produto:</label>
+            <input type="text" id="createNome" required class="half">
+            
+            <label for="createPreco">Preço:</label>
+            <input type="number" id="createPreco" step="0.01" required class="half">
+            
+            <label for="createDescricao">Descrição:</label>
+            <textarea id="createDescricao" rows="3" required></textarea>
+            
+            <label>Dias Disponíveis (Quarta a Sábado):</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="createDias" value="quarta">Quarta</label>
+                <label><input type="checkbox" name="createDias" value="quinta">Quinta</label>
+                <label><input type="checkbox" name="createDias" value="sexta">Sexta</label>
+                <label><input type="checkbox" name="createDias" value="sabado">Sábado</label>
+            </div>
+            
+            <label for="createCategoria">Categoria:</label>
+            <select id="createCategoria" required class="half">
+                <option value="">Selecione</option>
+                <option value="paes">Pães</option>
+                <option value="doce">Doce</option>
+                <option value="salgados">Salgados</option>
+                <option value="outros">Outros</option>
+            </select>
+
+            <div class="buttons">
+                <button type="submit" class="btn-add">Criar</button>
+                <button type="button" class="btn-cancel" id="cancelCreateBtn">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Produto -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeEditModal">&times;</span>
+        <h2>Editar Produto</h2>
+        <form id="editForm">
+            <input type="hidden" id="editId">
+            
+            <label for="editNome">Nome do Produto:</label>
+            <input type="text" id="editNome" required class="half">
+            
+            <label for="editPreco">Preço:</label>
+            <input type="number" id="editPreco" step="0.01" required class="half">
+            
+            <label for="editDescricao">Descrição:</label>
+            <textarea id="editDescricao" rows="3" required></textarea>
+            
+            <label>Dias Disponíveis (Quarta a Sábado):</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="editDias" value="quarta">Quarta</label>
+                <label><input type="checkbox" name="editDias" value="quinta">Quinta</label>
+                <label><input type="checkbox" name="editDias" value="sexta">Sexta</label>
+                <label><input type="checkbox" name="editDias" value="sabado">Sábado</label>
+            </div>
+            
+            <label for="editCategoria">Categoria:</label>
+            <select id="editCategoria" required class="half">
+                <option value="">Selecione</option>
+                <option value="paes">Pães</option>
+                <option value="doce">Doce</option>
+                <option value="salgados">Salgados</option>
+                <option value="outros">Outros</option>
+            </select>
+
+            <div class="buttons">
+                <button type="submit" class="btn-add">Salvar</button>
+                <button type="button" class="btn-cancel" id="cancelEditBtn">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="js/gerenciarProdutos.js"></script>
+</body>
+</html>
