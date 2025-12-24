@@ -1,18 +1,17 @@
-/* ============================================
-   FOOTER - CORRIGIDO
+/* FOOTER - CORRIGIDO
    ============================================ */
 
 /* paleta do rodapé */
 :root {
-  --green: #34572b;
-  --cream: #fff8e1;
-  --brown: #8b5e3c;
+  --green: #303922;
+  --cream: #F5ECCF;
+  --brown: #603E1E;
 }
 
 /* rodapé */
 footer {
-  background: linear-gradient(180deg, #fff8e1 0%, #fff4d0 100%);
-  border-top: 6px solid #34572b;
+  background: linear-gradient(180deg, #F5ECCF 0%, #E8E2D4 100%);
+  border-top: 6px solid #303922;
   box-shadow: 0 -6px 18px rgba(0,0,0,0.10);
   color: var(--brown);
   font-family: "Inter", "Segoe UI", sans-serif;
@@ -54,24 +53,16 @@ footer {
 }
 
 /* --- BLOCO SIGA-NOS --- */
-.footer-social {
-  text-align: left;
+.footer-social-icons {
+  text-align: left; /* Mantido para compatibilidade, mas o pai é footer-section */
 }
 
-.footer-social h3 {
-  font-size: 1rem;
-  color: var(--green);
-  margin-bottom: 6px;
-  font-family: 'Playfair Display', serif;
-}
-
-/* ÍCONES */
-.footer-social a {
+.footer-social-icons a {
   display: inline-block;
   margin-right: 6px;
 }
 
-.footer-social img {
+.footer-social-icons img {
   width: 24px;
   height: 24px;
   border-radius: 6px;
@@ -81,9 +72,23 @@ footer {
   vertical-align: middle;
 }
 
-.footer-social img:hover {
+.footer-social-icons img:hover {
   transform: translateY(-4px) scale(1.09);
   filter: drop-shadow(0 4px 10px rgba(0,0,0,.25));
+}
+
+/* --- BLOCO PAGAMENTO --- */
+.footer-payment-icons img {
+  width: 30px; /* Ajuste para ícones de pagamento */
+  height: auto;
+  margin-right: 6px;
+  transition: .25s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  vertical-align: middle;
+}
+
+.footer-payment-icons img:hover {
+  transform: translateY(-2px) scale(1.05);
 }
 
 /* subtexto */
@@ -112,7 +117,7 @@ body {
     text-align: center;
   }
 
-  .footer-social {
+  .footer-social-icons {
     text-align: center;
   }
 }

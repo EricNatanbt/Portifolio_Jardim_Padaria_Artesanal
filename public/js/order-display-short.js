@@ -1,22 +1,155 @@
-class OrderDisplay {
+// ============================================
+// ORDEM DISPLAY PARA LINKS CURTOS
+// ============================================
+
+class OrderDisplayShort {
     constructor() {
         this.orderData = null;
+        this.apiBase = window.location.origin + '/.netlify/functions/supabase-proxy';
         this.init();
     }
 
     init() {
-        this.getOrderFromShortURL();
+        this.getOrderData();
         this.displayOrder();
         this.setupAutoCleanup();
     }
 
-    // Função de fallback para carregar dados diretamente da URL
-    getOrderFromFullURL() {
+    // Normaliza dados do pedido
+    normalizeOrderData(orderData) {
+        if (!orderData) return null;
+        
+        // Se já estiver normalizado, retorna como está
+        if (orderData.normalized === true) return orderData;
+        
+        // Extrai dados do cliente
+        const clientData = orderData.customer || orderData.client || {};
+        const orderInfo = orderData.order || orderData;
+        const items = orderData.items || orderInfo.items || [];
+        
+        return {
+            normalized: true,
+            
+            // Dados do cliente
+            customer: {
+                name: clientData.name || '',
+                phone: clientData.phone || '',
+                address: clientData.address || orderInfo.address || '',
+                observation: clientData.observation || orderInfo.observation || '',
+                delivery_option: clientData.delivery_option || clientData.deliveryOption || orderInfo.delivery_option || orderInfo.deliveryOption || 'entrega',
+                payment_method: clientData.payment_method || clientData.paymentMethod || orderInfo.payment_method || orderInfo.paymentMethod || 'pix'
+            },
+            
+            // Dados do pedido
+            order: {
+                order_id: orderInfo.order_id || orderInfo.id || 'JD' + Date.now().toString().slice(-8),
+                id: orderInfo.id || orderInfo.order_id || '',
+                total: parseFloat(orderInfo.total || orderInfo.total_amount || 0),
+                subtotal: parseFloat(orderInfo.subtotal || orderInfo.total_amount || 0),
+                delivery_fee: parseFloat(orderInfo.delivery_fee || orderInfo.deliveryFee || 0),
+                delivery_option: orderInfo.delivery_option || orderInfo.deliveryOption || 'entrega',
+                payment_method: orderInfo.payment_method || orderInfo.paymentMethod || 'pix',
+                observation: orderInfo.observation || '',
+                created_at: orderInfo.created_at || orderInfo.createdAt || orderInfo.timestamp || new Date().toISOString()
+            },
+            
+            // Itens do pedido
+            items: items.map(item => ({
+                product_id: item.product_id || item.id || '',
+                product_name: item.product_name || item.name || '',
+                name: item.name || item.product_name || '',
+                price: parseFloat(item.price || 0),
+                quantity: parseInt(item.quantity || 1)
+            }))
+        };
+    }
+
+    // Recupera dados do pedido
+    async getOrderData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shortId = urlParams.get('i');
+        const orderId = urlParams.get('orderId');
+        
+        console.log('🔍 Buscando dados do pedido:', { shortId, orderId });
+
+        if (orderId) {
+            // Busca pelo ID do banco de dados
+            await this.fetchOrderFromDatabase(orderId);
+        } else if (shortId) {
+            // Busca pelo shortId (localStorage)
+            await this.fetchOrderFromLocalStorage(shortId);
+        } else {
+            // Tenta carregar dados da URL como fallback
+            await this.getOrderFromFullURL();
+        }
+    }
+
+    // Busca pedido do banco de dados
+    async fetchOrderFromDatabase(orderId) {
+        try {
+            console.log(`📋 Buscando pedido ${orderId} do banco...`);
+            const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.success && result.orderData) {
+                this.orderData = this.normalizeOrderData(result.orderData);
+                console.log('✅ Pedido carregado do banco:', this.orderData);
+            } else {
+                this.showError(result.message || 'Pedido não encontrado.');
+            }
+        } catch (error) {
+            console.error('❌ Erro ao buscar do banco:', error);
+            this.showError('Erro ao carregar pedido do banco de dados.');
+        }
+    }
+
+    // Busca pedido do localStorage
+    async fetchOrderFromLocalStorage(shortId) {
+        try {
+            // Verifica expiração
+            const expirationKey = `exp_${shortId}`;
+            const expiration = localStorage.getItem(expirationKey);
+            const now = Date.now();
+            
+            if (expiration && now > parseInt(expiration)) {
+                this.showError('Este pedido expirou. Faça um novo pedido.');
+                localStorage.removeItem(expirationKey);
+                localStorage.removeItem(`order_${shortId}`);
+                return;
+            }
+
+            // Carrega dados do pedido
+            const orderKey = `order_${shortId}`;
+            const savedOrder = localStorage.getItem(orderKey);
+            
+            if (!savedOrder) {
+                this.showError('Pedido não encontrado ou já foi processado.');
+                return;
+            }
+            
+            const parsedOrder = JSON.parse(savedOrder);
+            this.orderData = this.normalizeOrderData(parsedOrder);
+            console.log('✅ Pedido carregado do localStorage:', this.orderData);
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar do localStorage:', error);
+            this.showError('Erro ao carregar pedido do armazenamento local.');
+        }
+    }
+
+    // Fallback para carregar dados diretamente da URL
+    async getOrderFromFullURL() {
         const urlParams = new URLSearchParams(window.location.search);
         
         // Verifica se há parâmetros básicos
         if (!urlParams.has('name') && !urlParams.has('items')) {
-            return null;
+            this.showError('Nenhum dado de pedido encontrado na URL.');
+            return;
         }
 
         try {
@@ -36,8 +169,8 @@ class OrderDisplay {
             // Processa os itens do pedido
             const items = this.parseItems(itemsParam);
 
-            // Estrutura os dados para exibição
-            return {
+            // Cria objeto normalizado
+            this.orderData = this.normalizeOrderData({
                 customer: {
                     name: name,
                     phone: phone,
@@ -54,15 +187,15 @@ class OrderDisplay {
                     orderId: orderId,
                     timestamp: new Date(timestamp).toLocaleString('pt-BR')
                 }
-            };
+            });
             
         } catch (error) {
-            console.error('Erro ao processar pedido da URL completa:', error);
-            return null;
+            console.error('❌ Erro ao processar pedido da URL completa:', error);
+            this.showError('Erro ao processar dados do pedido da URL.');
         }
     }
 
-    // Função para processar itens do parâmetro URL
+    // Processa itens do parâmetro URL
     parseItems(itemsParam) {
         if (!itemsParam) return [];
         
@@ -79,6 +212,7 @@ class OrderDisplay {
                 
                 items.push({
                     name: name,
+                    product_name: name,
                     price: price,
                     quantity: quantity
                 });
@@ -106,82 +240,43 @@ class OrderDisplay {
             }
         }
         
-        return 10.00; // Preço padrão
-    }
-
-    getOrderFromShortURL() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const shortId = urlParams.get('i');
-        
-        if (!shortId) {
-            this.showError('Pedido não encontrado.');
-            return;
-        }
-
-        try {
-            // Verifica expiração
-            const expirationKey = `exp_${shortId}`;
-            const expiration = localStorage.getItem(expirationKey);
-            const now = Date.now();
-            
-            if (expiration && now > parseInt(expiration)) {
-                this.showError('Este pedido expirou. Faça um novo pedido.');
-                // Remove dados expirados
-                localStorage.removeItem(expirationKey);
-                localStorage.removeItem(`order_${shortId}`);
-                return;
-            }
-
-            // Carrega dados do pedido
-            const orderKey = `order_${shortId}`;
-            const savedOrder = localStorage.getItem(orderKey);
-            
-            if (!savedOrder) {
-                // Tenta carregar os dados diretamente da URL como fallback
-                const fullOrderData = this.getOrderFromFullURL();
-                    if (!fullOrderData) {
-                        this.showError('Pedido não encontrado ou já foi processado.');
-                        return;
-                    }
-                    this.orderData = fullOrderData;
-            } else {
-                this.orderData = JSON.parse(savedOrder);
-            }
-            
-            if (!this.orderData.customer || !this.orderData.order) {
-                throw new Error('Dados do pedido incompletos');
-            }
-            
-        } catch (error) {
-            console.error('Erro ao carregar pedido:', error);
-            this.showError('Erro ao carregar pedido.');
-        }
+        return 10.00;
     }
 
     displayOrder() {
         if (!this.orderData) return;
 
         try {
+            const { customer, order, items } = this.orderData;
+            
             // Atualiza o ID do pedido
             const orderIdElement = document.getElementById('orderId');
+            const orderId = order.order_id || order.id || 'Indefinido';
             if (orderIdElement) {
-                orderIdElement.textContent = `Pedido: ${this.orderData.order.orderId}`;
+                orderIdElement.textContent = `Pedido: ${orderId}`;
+            }
+
+            // Atualiza status
+            const statusElement = document.getElementById('orderStatus');
+            if (statusElement) {
+                statusElement.textContent = '✅ Pedido Confirmado';
+                statusElement.style.background = '#4CAF50';
             }
 
             // Exibe informações do cliente
-            this.displayCustomerInfo();
+            this.displayCustomerInfo(customer, order);
 
             // Exibe itens do pedido
-            this.displayOrderItems();
+            this.displayOrderItems(items);
 
             // Exibe resumo do pedido
-            this.displayOrderSummary();
+            this.displayOrderSummary(order);
 
             // Exibe timestamp
-            const timestampElement = document.getElementById('orderTimestamp');
-            if (timestampElement) {
-                timestampElement.textContent = `Pedido realizado em: ${this.orderData.order.timestamp}`;
-            }
+            this.displayTimestamp(order);
+
+            // Configura botões de ação
+            this.setupActionButtons(customer, order);
             
         } catch (error) {
             console.error('Erro ao exibir pedido:', error);
@@ -189,11 +284,15 @@ class OrderDisplay {
         }
     }
 
-    displayCustomerInfo() {
-        const customer = this.orderData.customer;
+    displayCustomerInfo(customer, order) {
         const customerInfoDiv = document.getElementById('customerInfo');
         
         if (!customerInfoDiv) return;
+        
+        // Formata os dados
+        const formattedPhone = this.formatPhone(customer.phone);
+        const paymentMethod = this.formatPaymentMethod(customer.payment_method || order.payment_method);
+        const deliveryOption = (customer.delivery_option || order.delivery_option) === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega (Delivery)';
         
         let customerHTML = `
             <div class="info-item">
@@ -202,50 +301,47 @@ class OrderDisplay {
             </div>
             <div class="info-item">
                 <strong>Telefone:</strong>
-                <span>${this.formatPhone(customer.phone)}</span>
+                <span>${formattedPhone}</span>
             </div>
             <div class="info-item">
                 <strong>Entrega:</strong>
-                <span>${customer.deliveryOption === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</span>
+                <span>${deliveryOption}</span>
             </div>
             <div class="info-item">
                 <strong>Pagamento:</strong>
-                <span>${customer.paymentMethod === 'pix' ? '💰 Pix' : '💳 Cartão'}</span>
+                <span>${paymentMethod}</span>
             </div>
         `;
         
         // Adiciona observação se existir
-        if (customer.observation && customer.observation.trim() !== '') {
+        if (order.observation && order.observation.trim() !== '') {
             customerHTML += `
             <div class="info-item">
                 <strong>Observação:</strong>
-                <span style="color: #e67e22; font-style: italic;">${this.escapeHtml(customer.observation)}</span>
+                <span style="color: #e67e22; font-style: italic;">${this.escapeHtml(order.observation)}</span>
             </div>
             `;
         }
         
-        if (customer.deliveryOption === 'entrega' && customer.address) {
-            // Remove "Retirada na Loja" se for entrega
-            const deliveryAddress = customer.address.replace('Retirada na Loja', '').trim();
-            
+        if ((customer.delivery_option || order.delivery_option) === 'entrega' && customer.address) {
             // Cria links para Google Maps e Uber
-            const mapsUrl = this.createGoogleMapsUrl(deliveryAddress);
-            const uberUrl = this.createUberUrl(deliveryAddress);
+            const mapsUrl = this.createGoogleMapsUrl(customer.address);
+            const uberUrl = this.createUberUrl(customer.address);
             
             customerHTML += `
-            <div class="info-item">
+            <div class="info-item address-item">
                 <strong>Endereço:</strong>
-                <span>
-                    ${this.escapeHtml(deliveryAddress)}
-                    <div class="address-links">
-                        <a href="${mapsUrl}" class="address-link maps" target="_blank" title="Abrir no Google Maps">
-                            🗺️ Google Maps
-                        </a>
-                        <a href="${uberUrl}" class="address-link uber" target="_blank" title="Pedir Uber para este endereço">
-                            🚗 Uber Flash
-                        </a>
-                    </div>
-                </span>
+                <div class="address-text">${this.escapeHtml(customer.address)}</div>
+                <div class="address-actions">
+                    <a href="${mapsUrl}" target="_blank" class="action-btn google-maps">
+                        <span class="action-btn-icon">🗺️</span>
+                        <span>Abrir no Google Maps</span>
+                    </a>
+                    <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                        <span class="action-btn-icon">🚗</span>
+                        <span>Solicitar Uber Flash</span>
+                    </a>
+                </div>
             </div>
             `;
         }
@@ -255,58 +351,55 @@ class OrderDisplay {
 
     // Cria URL para Google Maps
     createGoogleMapsUrl(address) {
+        if (!address || address === 'Retirada na Loja') return '#';
         const encodedAddress = encodeURIComponent(address);
         return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
     }
 
     // Cria URL para Uber
-    createUberUrl(address ) {
+    createUberUrl(address) {
+        if (!address || address === 'Retirada na Loja') return '#';
         const encodedAddress = encodeURIComponent(address);
         return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodedAddress}`;
     }
 
-    displayOrderItems( ) {
-                const items = this.orderData.order.items;
-        const itemsTable = document.getElementById('orderItems');
+    displayOrderItems(items) {
+        const itemsContainer = document.getElementById('orderItems');
         
-        if (!itemsTable || !items) return;
+        if (!itemsContainer) return;
         
-        let tableHTML = `
-            <thead>
-                <tr>
-                    <th>Produto</th>
-                    <th>Qtd</th>
-                    <th>Preço Unit.</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
+        let itemsHTML = '';
         
-        items.forEach(item => {
-            tableHTML += `
-                <tr>
-                    <td>${this.escapeHtml(item.name)}</td>
-                    <td>${item.quantity}x</td>
-                    <td>R$ ${typeof item.price === 'number' ? item.price.toFixed(2) : '0.00'}</td>
-                    <td>R$ ${(item.price * item.quantity).toFixed(2)}</td>
-                </tr>
+        if (items && items.length > 0) {
+            items.forEach(item => {
+                const itemTotal = (item.price * item.quantity).toFixed(2);
+                itemsHTML += `
+                    <div class="info-item">
+                        <span>${item.quantity}x ${this.escapeHtml(item.product_name || item.name)}</span>
+                        <span>R$ ${itemTotal}</span>
+                    </div>
+                `;
+            });
+        } else {
+            itemsHTML = `
+                <div class="info-item">
+                    <span>Nenhum item encontrado</span>
+                    <span></span>
+                </div>
             `;
-        });
+        }
         
-        tableHTML += '</tbody>';
-        itemsTable.innerHTML = tableHTML;
+        itemsContainer.innerHTML = itemsHTML;
     }
 
-    displayOrderSummary() {
-        const order = this.orderData.order;
+    displayOrderSummary(order) {
         const summaryDiv = document.getElementById('orderSummary');
         
         if (!summaryDiv) return;
         
-        const subtotal = typeof order.subtotal === 'number' ? order.subtotal : 0;
-        const deliveryFee = typeof order.deliveryFee === 'number' ? order.deliveryFee : 0;
-        const total = typeof order.total === 'number' ? order.total : subtotal + deliveryFee;
+        const subtotal = order.subtotal || 0;
+        const deliveryFee = order.delivery_fee || 0;
+        const total = order.total || (subtotal + deliveryFee);
         
         let summaryHTML = `
             <div class="summary-item">
@@ -334,16 +427,117 @@ class OrderDisplay {
         summaryDiv.innerHTML = summaryHTML;
     }
 
+    displayTimestamp(order) {
+        const timestampElement = document.getElementById('orderTimestamp');
+        if (timestampElement) {
+            const rawDate = order.created_at;
+            let formattedDate = 'Data Inválida';
+            
+            if (rawDate) {
+                try {
+                    const date = new Date(rawDate);
+                    if (!isNaN(date)) {
+                        formattedDate = date.toLocaleString('pt-BR');
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Erro ao formatar data:', rawDate, error);
+                }
+            }
+            
+            timestampElement.textContent = `Pedido realizado em: ${formattedDate}`;
+        }
+    }
+
+    setupActionButtons(customer, order) {
+        const actionsFooter = document.getElementById('actionsFooter');
+        if (!actionsFooter) return;
+        
+        const isDelivery = (customer.delivery_option || order.delivery_option) === 'entrega' && customer.address && customer.address !== 'Retirada na Loja';
+        const mapsUrl = isDelivery ? this.createGoogleMapsUrl(customer.address) : null;
+        const uberUrl = isDelivery ? this.createUberUrl(customer.address) : null;
+        const whatsappUrl = this.createWhatsAppUrl(customer.phone);
+        
+        let actionsHTML = '';
+        
+        if (whatsappUrl !== '#') {
+            actionsHTML += `
+                <a href="${whatsappUrl}" target="_blank" class="action-btn whatsapp">
+                    <span class="action-btn-icon">💬</span>
+                    <span>Falar no WhatsApp</span>
+                </a>
+            `;
+        }
+        
+        if (isDelivery) {
+            actionsHTML += `
+                <div class="address-actions" style="width: 100%;">
+                    ${mapsUrl !== '#' ? `
+                    <a href="${mapsUrl}" target="_blank" class="action-btn google-maps">
+                        <span class="action-btn-icon">🗺️</span>
+                        <span>Google Maps</span>
+                    </a>
+                    ` : ''}
+                    
+                    ${uberUrl !== '#' ? `
+                    <a href="${uberUrl}" target="_blank" class="action-btn uber">
+                        <span class="action-btn-icon">🚗</span>
+                        <span>Uber Flash</span>
+                    </a>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        actionsHTML += `
+            <button onclick="window.print()" class="action-btn secondary">
+                <span class="action-btn-icon">🖨️</span>
+                <span>Imprimir Comprovante</span>
+            </button>
+            
+            <button onclick="window.location.href='index.html'" class="action-btn primary">
+                <span class="action-btn-icon">🏠</span>
+                <span>Voltar para a Loja</span>
+            </button>
+        `;
+        
+        actionsFooter.innerHTML = actionsHTML;
+    }
+
+    createWhatsAppUrl(phone) {
+        if (!phone) return '#';
+        const cleanPhone = phone.replace(/\D/g, '');
+        const message = encodeURIComponent('Olá, gostaria de falar sobre meu pedido!');
+        return `https://wa.me/${cleanPhone}?text=${message}`;
+    }
+
     formatPhone(phone) {
         if (!phone) return 'Não informado';
         
         const cleanPhone = phone.replace(/\D/g, '');
-        if (cleanPhone.length === 12) { // +55 format
-            return `(${cleanPhone.substring(2, 4)}) ${cleanPhone.substring(4, 9)}-${cleanPhone.substring(9)}`;
-        } else if (cleanPhone.length === 11) {
-            return `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
+        
+        // Remove código do país se tiver
+        if (cleanPhone.startsWith('55') && cleanPhone.length === 13) {
+            const cleanLocal = cleanPhone.substring(2);
+            return `(${cleanLocal.substring(0,2)}) ${cleanLocal.substring(2,7)}-${cleanLocal.substring(7)}`;
         }
+        
+        if (cleanPhone.length === 11) {
+            return `(${cleanPhone.substring(0,2)}) ${cleanPhone.substring(2,7)}-${cleanPhone.substring(7)}`;
+        }
+        
         return phone;
+    }
+
+    formatPaymentMethod(method) {
+        if (!method) return 'Método Desconhecido';
+        const lowerMethod = method.toLowerCase();
+        
+        if (lowerMethod.includes('pix')) return '💰 Pix';
+        if (lowerMethod.includes('dinheiro')) return '💵 Dinheiro';
+        if (lowerMethod.includes('cartao') || lowerMethod.includes('cartão')) return '💳 Cartão';
+        if (lowerMethod.includes('card')) return '💳 Cartão';
+        
+        return method;
     }
 
     escapeHtml(text) {
@@ -354,7 +548,6 @@ class OrderDisplay {
     }
 
     setupAutoCleanup() {
-        // Marca este pedido como visualizado (pode ser limpo mais tarde)
         const urlParams = new URLSearchParams(window.location.search);
         const shortId = urlParams.get('i');
         if (shortId) {
@@ -369,12 +562,13 @@ class OrderDisplay {
         const orderContent = document.querySelector('.order-content') || document.body;
         
         const errorHTML = `
-            <div style="text-align: center; padding: 40px; color: #666;">
-                <h2 style="color: #e74c3c; margin-bottom: 20px;">❌ ${message}</h2>
-                <p style="margin-bottom: 30px;">Volte para a loja e tente novamente.</p>
-                <a href="index.html" class="btn btn-primary">
-                    🏠 Voltar para a Loja
-                </a>
+            <div class="error">
+                <h2>❌ ${message}</h2>
+                <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
+                <button onclick="window.location.href='index.html'" class="action-btn primary">
+                    <span class="action-btn-icon">🏠</span>
+                    <span>Voltar para a Loja</span>
+                </button>
             </div>
         `;
         
@@ -391,17 +585,24 @@ class OrderDisplay {
                 </div>
             `;
         }
+        
+        // Atualiza status no header
+        const statusElement = document.getElementById('orderStatus');
+        if (statusElement) {
+            statusElement.textContent = '❌ Erro';
+            statusElement.style.background = '#E74C3C';
+        }
     }
 }
 
 // ============================================
-// SISTEMA DE DOWNLOAD AUTOMÁTICO DIRETO
+// DOWNLOAD AUTOMÁTICO DIRETO
 // ============================================
 
-// Função principal de download - DOWNLOAD AUTOMÁTICO DIRETO
+// Função principal de download
 async function downloadImage() {
     const btn = document.querySelector('.btn-primary');
-    const originalText = btn.innerHTML;
+    const originalText = btn ? btn.innerHTML : 'Baixar Comprovante';
     
     try {
         // Verifica dados do pedido
@@ -412,8 +613,10 @@ async function downloadImage() {
         console.log('Iniciando download automático...');
         
         // Feedback visual imediato
-        btn.innerHTML = '⏳ Gerando...';
-        btn.disabled = true;
+        if (btn) {
+            btn.innerHTML = '⏳ Gerando...';
+            btn.disabled = true;
+        }
         
         // Garante que o ImageGenerator está carregado
         if (typeof ImageGenerator === 'undefined') {
@@ -435,15 +638,15 @@ async function downloadImage() {
 
         console.log('Imagem gerada, iniciando download automático...');
         
-        // DOWNLOAD AUTOMÁTICO DIRETO - Método universal
-        await downloadDirect(imageBlob, window.orderDisplay.orderData.order.orderId);
+        // DOWNLOAD AUTOMÁTICO DIRETO
+        await downloadDirect(imageBlob, window.orderDisplay.orderData.order.order_id);
         
         // Sucesso
-        showDownloadSuccess(btn);
+        if (btn) showDownloadSuccess(btn);
         
     } catch (error) {
         console.error('Erro no download:', error);
-        showDownloadError(btn, originalText);
+        if (btn) showDownloadError(btn, originalText);
         
         // Mensagem de erro amigável
         setTimeout(() => {
@@ -452,7 +655,7 @@ async function downloadImage() {
     }
 }
 
-// Download direto e automático - método universal
+// Download direto e automático
 async function downloadDirect(blob, orderId) {
     return new Promise((resolve, reject) => {
         try {
@@ -552,9 +755,125 @@ function cleanupExpiredOrders() {
     }
 }
 
-// Inicializa quando a página carregar
+// ============================================
+// INICIALIZAÇÃO
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
-    window.orderDisplay = new OrderDisplay();
+    // Adiciona CSS se necessário
+    if (!document.getElementById('order-display-styles')) {
+        const style = document.createElement('style');
+        style.id = 'order-display-styles';
+        style.textContent = `
+            .address-item {
+                display: block !important;
+                padding: 10px 0;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .address-text {
+                margin-bottom: 15px;
+                line-height: 1.5;
+                font-size: 0.95em;
+                color: #333;
+            }
+            
+            .address-actions {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-top: 15px;
+            }
+            
+            .action-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 20px;
+                border: none;
+                border-radius: 10px;
+                font-size: 1em;
+                font-weight: 600;
+                cursor: pointer;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                flex: 1;
+                min-width: 160px;
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+            
+            .action-btn.google-maps {
+                background: #4285F4;
+                color: white;
+            }
+            
+            .action-btn.uber {
+                background: #000000;
+                color: white;
+            }
+            
+            .action-btn.whatsapp {
+                background: #25D366;
+                color: white;
+            }
+            
+            .action-btn.primary {
+                background: #1C3D2D;
+                color: white;
+            }
+            
+            .action-btn.secondary {
+                background: #A2B28E;
+                color: white;
+            }
+            
+            .action-btn-icon {
+                font-size: 1.3em;
+            }
+            
+            .actions-footer {
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 30px;
+                flex-wrap: wrap;
+            }
+            
+            .error {
+                text-align: center;
+                padding: 40px;
+                color: #E74C3C;
+            }
+            
+            .error h2 {
+                margin-bottom: 20px;
+            }
+            
+            @media (max-width: 768px) {
+                .address-actions {
+                    flex-direction: column;
+                }
+                
+                .action-btn {
+                    width: 100%;
+                    min-width: unset;
+                }
+                
+                .actions-footer {
+                    flex-direction: column;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    window.orderDisplay = new OrderDisplayShort();
     
     // Executa limpeza de pedidos expirados
     cleanupExpiredOrders();
@@ -568,8 +887,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
     
+    // Configura botão de download se existir
+    const downloadBtn = document.querySelector('.btn-download');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', downloadImage);
+    }
+    
     // DOWNLOAD AUTOMÁTICO AO CARREGAR A PÁGINA (OPCIONAL)
-    // Se quiser que baixe automaticamente quando a página abrir, descomente a linha abaixo:
+    // Descomente a linha abaixo para baixar automaticamente:
     // setTimeout(downloadImage, 1500);
 });
 

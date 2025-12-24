@@ -320,7 +320,7 @@ const supabasePromise = initializeSupabase();
 // Torna o cliente Supabase disponível globalmente
 supabasePromise.then(client => {
     window.supabase = client;
-    console.log('✅ Supabase disponível globalmente como window.supabase');
+    console.log('Supabase disponível globalmente como window.supabase');
     
     // Dispara evento para que outros scripts saibam que o Supabase está pronto
     window.dispatchEvent(new CustomEvent('supabase-ready', { detail: client }));

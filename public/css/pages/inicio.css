@@ -181,7 +181,7 @@
    ============================================ */
 .benefits-section {
     padding: 4rem 0;
-    background: white;
+    background: var(--background);
 }
 
 .benefits-section h3 {
@@ -263,7 +263,7 @@
 }
 
 /* ============================================
-   CTA SECTION
+   CTA SECTION - CORRIGIDO
    ============================================ */
 .cta-section {
     padding: 4rem 0; /* REMOVIDO padding-bottom */
@@ -297,27 +297,27 @@
 }
 
 .cta-button.primary {
-    background: #fff8e1;
+    background: var(--accent);
     color: var(--primary);
     padding: 1rem 2rem;
     border-radius: var(--radius);
     font-weight: 600;
     transition: all 0.3s ease;
-    border: 2px solid #fff8e1;
+    border: 2px solid var(--accent);
 }
 
 .cta-button.primary:hover {
     background: transparent;
-    color: #fff8e1;
+    color: var(--accent);
     transform: translateY(-2px);
 }
 
 .cta-button.secondary {
     background: transparent;
     color: white;
-    padding: 1rem 1rem;
+    padding: 1rem 2rem;
     border-radius: var(--radius);
-    font-weight: 300;
+    font-weight: 600;
     transition: all 0.3s ease;
     border: 2px solid white;
     display: flex;

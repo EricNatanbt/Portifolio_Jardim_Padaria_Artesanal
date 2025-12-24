@@ -8,24 +8,24 @@
     <title>Jardim Padaria Artesanal</title>
 
     <!-- CSS Principal -->
-    <link rel="stylesheet" href="css/styles.css?v=2.0.0">
+    <link rel="stylesheet" href="css/styles.css?v=2.0.2">
 
     <!-- CSS Components -->
-    <link rel="stylesheet" href="css/components/header.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/footer.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/carousel.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/modal.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/cart.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/contact-modal.css?v=2.0.0">
-    <link rel="stylesheet" href="css/components/checkout-modal.css?v=2.0.0">
+    <link rel="stylesheet" href="css/components/header.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/footer.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/carousel.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/modal.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/cart.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/contact-modal.css?v=2.0.2">
+    <link rel="stylesheet" href="css/components/checkout-modal.css?v=2.0.2">
 
     <!-- CSS Pages -->
-    <link rel="stylesheet" href="css/pages/inicio.css?v=2.0.0">
-    <link rel="stylesheet" href="css/pages/sobrenos.css?v=2.0.0">
-    <link rel="stylesheet" href="css/pages/menu.css?v=2.0.0">
-    <link rel="stylesheet" href="css/pages/cuidados.css?v=2.0.0">
-    <link rel="stylesheet" href="css/pages/feedbacks.css?v=2.0.0">
-
+    <link rel="stylesheet" href="css/pages/inicio.css?v=2.0.2">
+    <link rel="stylesheet" href="css/pages/sobrenos.css?v=2.0.2">
+    <link rel="stylesheet" href="css/pages/menu.css?v=2.0.2">
+    <link rel="stylesheet" href="css/pages/cuidados.css?v=2.0.2">
+    <link rel="stylesheet" href="css/pages/pedidos.css?v=2.0.2">
+    <link rel="stylesheet" href="css/pages/feedbacks.css?v=2.0.2">
     <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
@@ -52,6 +52,8 @@
                     <a href="#" class="nav-link" data-page="menu">Menu</a>
                     <a href="#" class="nav-link" data-page="cuidados">Conservação</a>
                     <a href="#" class="nav-link" data-page="feedbacks">Feedbacks</a>
+                    <!-- <a href="#" class="nav-link" data-page="pedidos">Pedidos</a> -->
+
                 </nav>
 
                 <!-- Right Icons -->
@@ -90,6 +92,7 @@
                 <a href="#" class="mobile-nav-link" data-page="menu">Menu</a>
                 <a href="#" class="mobile-nav-link" data-page="cuidados">Conservação</a>
                 <a href="#" class="mobile-nav-link" data-page="feedbacks">Feedbacks</a>
+                <!-- <a href="#" class="mobile-nav-link" data-page="pedidos">Pedidos</a> -->
             </nav>
         </div>
     </header>
@@ -146,13 +149,24 @@
             </section>
         </div>
 
+
         <div id="page-cuidados" class="page">
             <!-- Conteúdo da página guia de cuidados será carregado aqui -->
         </div>
 
-        <div id="page-feedbacks" class="page">
-            <!-- Conteúdo da página feedbacks será carregado aqui -->
+        <div id="page-pedidos" class="page">
+            <!-- O conteúdo será carregado pelo pages-loader.js -->
         </div>
+
+        <div id="page-feedbacks" class="page">
+            <div class="section-header">
+                <h2>O que Nossos Clientes Dizem</h2>
+                <p>Leia os depoimentos de quem já experimentou a magia da Padaria Jardim</p>
+            </div>
+            <div id="root"></div>
+        </div>
+
+
     </main>
 
     <!-- Cart Sidebar -->
@@ -171,6 +185,14 @@
             <div id="cartItems" class="cart-items">
                 <p class="empty-cart">Seu carrinho está vazio</p>
             </div>
+
+            <div id="previousOrdersContainer" class="previous-orders-container">
+                <button id="previousOrdersBtn" class="previous-orders-btn">Pedidos anteriores</button>
+                <div id="previousOrdersList" style="display: none;">
+                    <!-- Pedidos anteriores serão injetados aqui -->
+                </div>
+            </div>
+
             <div id="cartFooter" class="cart-footer" style="display: none;">
                 <div class="cart-total">
                     <span>Total:</span>
@@ -471,42 +493,9 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Padaria Jardim</h3>
-                <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Contato</h3>
-
-                <p>📞 (83)99920-4618</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Horário</h3>
-                <p>Quarta a Sexta</p>
-                <p>14h – 18h</p>
-                <p>Sábado</p>
-                <p>10h – 15h</p>
-            </div>
-
-            <div class="footer-social">
-                <h3>Siga-nos</h3>
-                <a href="https://www.instagram.com/jardimpadariacg/" target="_blank" rel="noopener noreferrer">
-                    <img src="img/logos/instagram.png" alt="Instagram">
-                </a>
-                <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0"
-                    target="_blank" rel="noopener noreferrer">
-                    <img src="img/logos/whatsapp.png" alt="WhatsApp">
-                </a>
-            </div>
-            <div class="footer-bottom">
-                <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
-            </div>
-        </div>
-    </footer>
+    <div id="footer-placeholder">
+        <!-- O footer correto será carregado aqui pelo JS -->
+    </div>
 
     <!-- Scripts -->
     <script type="module" src="js/supabaseClient.js?v=2.0.0"></script>

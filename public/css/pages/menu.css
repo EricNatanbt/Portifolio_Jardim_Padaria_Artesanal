@@ -15,14 +15,14 @@
     font-family: 'Playfair Display', serif;
     font-size: 3rem;
     margin-bottom: 0.5rem;
-    color: #556B2F; /* Cor verde escura para FORNADA */
+    color: #303922; /* Cor verde escura para FORNADA */
     text-align: center;
     letter-spacing: 0.5rem;
 }
 
 .menu-intro {
     text-align: center;
-    color: #556B2F; /* Cor verde escura para Cardápio de Quinta */
+    color: #303922; /* Cor verde escura para Cardápio de Quinta */
     margin-bottom: 2rem;
     font-size: 1.5rem;
     font-weight: 500;
@@ -30,7 +30,7 @@
 
 .menu-footer-text {
     text-align: center;
-    color: #556B2F;
+    color: #303922;
     margin-top: 2rem;
     font-size: 0.9rem;
 }
@@ -41,7 +41,7 @@
 .cardapio-container {
     max-width: 600px; /* Limitar a largura para simular o card */
     margin: 0 auto;
-    background: #F0F8E6; /* Cor de fundo creme/verde claro */
+    background: #eaffd1; /* Cor de fundo verde claro */
     border-radius: 15px; /* Borda arredondada */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     padding: 2rem;
@@ -68,7 +68,7 @@
 }
 
 .nav-btn {
-    background: #556B2F; /* Cor verde escura */
+    background: #303922; /* Cor verde escura */
     color: white;
     border: none;
     border-radius: 50%; /* Botões redondos */
@@ -84,13 +84,13 @@
 }
 
 .nav-btn:hover {
-    background: #6B8E23; /* Tom de verde um pouco mais claro */
+    background: #212818; /* Tom de verde um pouco mais claro */
     transform: scale(1.1);
 }
 
 .dia-nome {
     font-weight: 600;
-    color: #556B2F;
+    color: #303922;
     min-width: 120px;
     text-align: center;
     font-size: 1.2rem;
@@ -111,10 +111,10 @@
 
 .categoria-produtos h4 {
     font-family: 'Playfair Display', serif;
-    color: #556B2F; /* Cor verde escura */
+    color: #303922; /* Cor verde escura */
     margin-bottom: 0.5rem;
     font-size: 1.5rem;
-    border-bottom: 1px solid #556B2F; /* Linha fina abaixo do título */
+    border-bottom: 1px solid #303922; /* Linha fina abaixo do título */
     padding-bottom: 0.2rem;
     text-align: center;
     font-weight: 600;
@@ -153,21 +153,21 @@
 
 .produto-nome {
     font-weight: 400; /* Fonte mais leve */
-    color: #556B2F;
+    color: #303922;
     margin-bottom: 0;
     font-size: 1.1rem;
 }
 
 .produto-preco {
-    color: #556B2F;
+    color: #303922;
     font-weight: 400;
     font-size: 1.1rem;
 }
 
 .btn-adicionar-rapido {
     background: transparent; /* Fundo transparente */
-    color: #556B2F; /* Cor verde escura */
-    border: 1px solid #556B2F; /* Borda verde */
+    color: #303922; /* Cor verde escura */
+    border: 1px solid #303922; /* Borda verde */
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -184,7 +184,7 @@
 }
 
 .btn-adicionar-rapido:hover {
-    background: #556B2F;
+    background: #303922;
     color: white;
     transform: scale(1.1);
 }
@@ -192,19 +192,19 @@
 .sem-fornadas {
     text-align: center;
     padding: 3rem 2rem;
-    background: #F0F8E6;
+    background: #ddf7be;
     border-radius: 15px;
-    border: 2px dashed #556B2F;
+    border: 2px dashed #303922;
 }
 
 .sem-fornadas h3 {
-    color: #556B2F;
+    color: #303922;
     margin-bottom: 1rem;
     font-size: 1.5rem;
 }
 
 .sem-fornadas p {
-    color: #556B2F;
+    color: #303922;
     font-size: 1.1rem;
 }
 

@@ -23,7 +23,7 @@ const SobreNosPage = {
                     autoPlay: true
                 });
             } else {
-                console.error('❌ Componente Carousel não encontrado para inicializar em sobrenos.js');
+                console.error('Componente Carousel não encontrado para inicializar em sobrenos.js');
             }
         }, 100);
     },

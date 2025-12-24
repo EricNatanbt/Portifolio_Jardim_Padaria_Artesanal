@@ -438,20 +438,27 @@ async function handleSaveOrder(event, headers) {
         const orderId = 'JD' + Date.now().toString().slice(-6) + 
                        Math.random().toString(36).substr(2, 3).toUpperCase();
         
-        const orderData = {
-            client_id: clientId,
-            order_id: orderId,
-            total: parseFloat(order.total || 0),
-            subtotal: parseFloat(order.subtotal || order.total || 0),
-            delivery_fee: parseFloat(order.deliveryFee || 0),
-            payment_method: order.paymentMethod || 'pix',
-            delivery_option: order.deliveryOption || 'entrega',
-            address: client.address || 'Retirada na Loja',
-            observation: client.observation || '',
-            status: 'pendente'
-        };
-        
-        console.log('📄 Dados do pedido:', orderData);
+const orderData = {
+    client_id: clientId,
+    order_id: orderId,
+    total: parseFloat(order.total || 0),
+    subtotal: parseFloat(order.subtotal || order.total || 0),
+    delivery_fee: parseFloat(order.deliveryFee || 0),
+    // CORREÇÃO: Garantir que o método de pagamento seja salvo corretamente
+    payment_method: order.payment_method || order.paymentMethod || 'pix',
+    delivery_option: order.delivery_option || order.deliveryOption || 'entrega',
+    address: client.address || 'Retirada na Loja',
+    observation: order.observation || client.observation || '',
+    status: 'pendente'
+};
+
+console.log('📄 Dados do pedido salvos:', {
+    total: orderData.total,
+    payment_method: orderData.payment_method,
+    delivery_option: orderData.delivery_option,
+    address: orderData.address,
+    observation: orderData.observation
+});
         
         const { data: newOrder, error: orderError } = await supabase
             .from('orders')
@@ -478,7 +485,7 @@ async function handleSaveOrder(event, headers) {
             const orderItems = itemsToSave.map(item => ({
                 order_id: newOrder.id,
                 product_id: item.id || null,
-                product_name: item.name || 'Produto',
+                product_name: item.product_name || 'Produto',
                 quantity: parseInt(item.quantity || 1),
                 price: parseFloat(item.price || 0),
                 total: parseFloat((item.price || 0) * (item.quantity || 1))
@@ -724,42 +731,32 @@ async function handleGetOrder(event, headers) {
         }
         
         // Formata resposta
-        const orderData = {
-            customer: {
-                id: client.id,
-                name: client.name,
-                phone: client.phone,
-                address: client.address,
-                cep: client.cep,
-                street: client.street,
-                number: client.address_number,
-                neighborhood: client.neighborhood,
-                city: client.city,
-                complement: client.complement,
-                observation: client.observation
-            },
-            order: {
-                id: order.id,
-                order_id: order.order_id,
-                total: order.total,
-                subtotal: order.subtotal,
-                delivery_fee: order.delivery_fee,
-                payment_method: order.payment_method,
-                delivery_option: order.delivery_option,
-                address: order.address,
-                observation: order.observation,
-                status: order.status,
-                created_at: order.created_at
-            },
-            items: (items || []).map(item => ({
-                id: item.id,
-                product_id: item.product_id,
-                product_name: item.product_name,
-                quantity: item.quantity,
-                price: item.price,
-                total: item.total
-            }))
-        };
+const orderData = {
+    client: {
+        name: client.name || client.full_name || order.client_name || '',
+        phone: client.phone || order.client_phone || '',
+        address: order.address || '',
+        cep: client.cep || '',
+        street: client.street || '',
+        number: client.address_number || '',
+        neighborhood: client.neighborhood || '',
+        city: client.city || client.city_state || '',
+        complement: client.complement || '', observation: client.observation || order.observation || ''
+    },
+    order: {
+        total: order.total_amount || order.total || 0,
+        subtotal: order.subtotal || 0,
+        deliveryFee: order.delivery_fee || 0,
+        paymentMethod: order.payment_method || 'pix',
+        deliveryOption: order.delivery_option || 'entrega', observation: order.observation || ''
+    },
+    items: items.map(item => ({
+        id: item.id,
+        name: item.product_name || 'Produto',
+        price: item.price || item.unit_price || 0,
+        quantity: item.quantity || 1
+    }))
+};
         
         console.log(`✅ Pedido encontrado: ${order.order_id} com ${items?.length || 0} itens`);
         

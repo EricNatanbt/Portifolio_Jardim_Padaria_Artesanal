@@ -8,8 +8,9 @@ class PagesLoader {
             'inicio': this.getInicioContent(),
             'sobre': this.getSobreContent(),
             'cuidados': this.getCuidadosContent(),
-            'feedbacks': this.getFeedbacksContent()
+            'pedidos': this.getPedidosContent()  // NOVO: Página de pedidos
         };
+        this.footerContent = this.getFooterContent();
         this.init();
     }
 
@@ -33,7 +34,15 @@ class PagesLoader {
             if (typeof initializeApp === 'function') {
                 initializeApp();
             }
+            this.loadFooter();
         }, 100);
+    }
+
+    loadFooter() {
+        const footerPlaceholder = document.getElementById('footer-placeholder');
+        if (footerPlaceholder) {
+            footerPlaceholder.innerHTML = this.getFooterContent();
+        }
     }
 
     getInicioContent() {
@@ -190,7 +199,7 @@ class PagesLoader {
 
                                 <div class="text-slide">
                                     <p>Ainda somos uma micro padaria artesanal, funcionando exclusivamente por delivery, 
-                                    mas com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
+                                    mais com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
                                     seguimos alimentando também o sonho de abrir um espaço físico para acolher nossos clientes 
                                     como gostaríamos. </p>
                                 </div>
@@ -312,7 +321,7 @@ class PagesLoader {
                     <h2>Dicas dos Padeiros</h2>
 
                     <p class="guia-intro">Nossos pães chegam a vocês fresquinhos, todos os dias, alguns ainda quentes! 
-                    E esse sabor saindo do forno é incomparável. Então, talvez você se pergunte: “como posso preservar esse sabor especial da melhor maneira possível?”.</p>
+                    E esse sabor saindo do forno é incomparável. Então, talvez você se pergunte: "como posso preservar esse sabor especial da melhor maneira possível?".</p>
                     <div class="guia-cards">
 
 
@@ -361,88 +370,68 @@ class PagesLoader {
         `;
     }
 
-    getFeedbacksContent() {
+    // NOVO: Método para carregar a página de pedidos
+    getPedidosContent() {
+   return `
+    <div id="react-feedback-root"></div>
+`;
+
+}
+
+    getFooterContent() {
         return `
-            <section class="feedbacks-section">
-                <div class="container">
-                    <h2>O que Nossos Clientes Dizem</h2>
-                    <p class="feedbacks-intro">Leia os depoimentos de quem já experimentou a magia da Padaria Jardim</p>
+            <footer>
+                <div class="footer-content">
+                    <!-- Sobre -->
+                    <section class="footer-section">
+                        <h3>Padaria Jardim</h3>
+                        <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
+                    </section>
 
-                    <div class="feedbacks-grid">
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👩</div>
-                                <div class="feedback-info">
-                                    <h4>Maria Silva</h4>
-                                    <p class="feedback-date">Há 2 meses</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Os pães de fermentação natural são simplesmente incríveis! Nunca comi algo tão saboroso e saudável. A qualidade é excepcional e entrega rápida!</p>
-                        </div>
+                    <!-- Contato -->
+                    <section class="footer-section">
+                        <h3>Contato</h3>
+                        <p>📍 Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
+                        <p>📞 (83) 99920-4618</p>
+                    </section>
 
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👨</div>
-                                <div class="feedback-info">
-                                    <h4>João Santos</h4>
-                                    <p class="feedback-date">Há 1 mês</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Recomendo muito! Os bolos são frescos, deliciosos e feitos com muito cuidado. Já fiz vários pedidos e nunca decepcionou. Parabéns à Júlia e Washington!</p>
-                        </div>
+                    <!-- Horário -->
+                    <section class="footer-section">
+                        <h3>Horário</h3>
+                        <p>Terça a domingo</p>
+                        <p>07h - 19h</p>
+                    </section>
 
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👩‍🦱</div>
-                                <div class="feedback-info">
-                                    <h4>Ana Costa</h4>
-                                    <p class="feedback-date">Há 3 semanas</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Que experiência maravilhosa! Cada produto é uma obra de arte. O sabor, a textura, tudo perfeito. Definitivamente minha padaria favorita agora!</p>
+                    <!-- Formas de Pagamento -->
+                    <section class="footer-section">
+                        <h3>Formas de Pagamento</h3>
+                        <div class="footer-payment-icons">
+                            <img src="img/payment/cardVisa.png" alt="Visa">
+                            <img src="img/payment/cardMastercard.png" alt="MasterCard">
+                            <img src="img/payment/cardElo.png" alt="Elo">
+                            <img src="img/payment/pix.png" alt="Pix">
+                            <img src="img/payment/cash.png" alt="Dinheiro">
                         </div>
+                    </section>
 
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👨‍💼</div>
-                                <div class="feedback-info">
-                                    <h4>Carlos Oliveira</h4>
-                                    <p class="feedback-date">Há 1 semana</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Excelente qualidade! Sou cliente há alguns meses e sempre recebo produtos frescos e deliciosos. O atendimento é impecável. Muito obrigado!</p>
+                    <!-- Siga-nos -->
+                    <section class="footer-section">
+                        <h3>Siga-nos</h3>
+                        <div class="footer-social-icons">
+                            <a href="https://www.instagram.com/jardimpadariacg/">
+                                <img src="img/logos/instagram.png" alt="Instagram">
+                            </a>
+                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0">
+                                <img src="img/logos/whatsapp.png" alt="WhatsApp">
+                            </a>
                         </div>
-
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👩‍🍳</div>
-                                <div class="feedback-info">
-                                    <h4>Fernanda Lima</h4>
-                                    <p class="feedback-date">Há 2 semanas</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Como chef, aprecio muito a qualidade dos ingredientes e o cuidado artesanal. Recomendo para todos que buscam produtos de excelência!</p>
-                        </div>
-
-                        <div class="feedback-card">
-                            <div class="feedback-header">
-                                <div class="feedback-avatar">👴</div>
-                                <div class="feedback-info">
-                                    <h4>Roberto Dias</h4>
-                                    <p class="feedback-date">Há 1 mês</p>
-                                </div>
-                            </div>
-                            <div class="feedback-rating">⭐⭐⭐⭐⭐</div>
-                            <p class="feedback-text">Lembra o pão que minha avó fazia! Autêntico, saudável e delicioso. Vocês estão revivendo a tradição da boa padaria. Parabéns!</p>
-                        </div>
-                    </div>
+                    </section>
                 </div>
-            </section>
+
+                <div class="footer-bottom">
+                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
+                </div>
+            </footer>
         `;
     }
 }

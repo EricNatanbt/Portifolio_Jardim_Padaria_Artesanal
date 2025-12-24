@@ -1,6 +1,6 @@
 class ApiClient {
     constructor() {
-        this.baseUrl = window.location.origin + '/.netlify/functions/supabase-proxy';
+        this.baseUrl = window.location.origin + '/api';
         console.log('🌐 API Client inicializado para:', this.baseUrl);
     }
 
@@ -39,16 +39,29 @@ class ApiClient {
 
     async saveOrder(orderData) {
         console.log('📤 Salvando pedido via API...');
-        console.log('🔍 Dados do cliente recebidos:', orderData.client);
+        console.log('🔍 Dados completos recebidos:', orderData);
         
         try {
+            // Garante que os dados estejam no formato correto
             const dataToSend = {
-                client: orderData.client,
-                order: orderData.order,
-                items: orderData.items
+                client: orderData.client || {},
+                order: {
+                    total: orderData.order?.total || orderData.total || 0,
+                    subtotal: orderData.order?.subtotal || orderData.subtotal || 0,
+                    deliveryFee: orderData.order?.deliveryFee || orderData.deliveryFee || 0,
+                    // IMPORTANTE: Usar os nomes corretos que o supabase-proxy.js espera
+                    payment_method: orderData.order?.paymentMethod || orderData.paymentMethod || 'pix',
+                    paymentMethod: orderData.order?.paymentMethod || orderData.paymentMethod || 'pix', // Mantém compatibilidade
+                    delivery_option: orderData.order?.deliveryOption || orderData.deliveryOption || 'entrega',
+                    deliveryOption: orderData.order?.deliveryOption || orderData.deliveryOption || 'entrega', // Mantém compatibilidade
+                    observation: orderData.order?.observation || orderData.observation || ''
+                },
+                items: orderData.items || []
             };
 
-            return await this._makeRequest('/save-order', 'POST', dataToSend);
+            console.log('📤 Dados formatados para envio:', dataToSend);
+            
+            return await this._makeRequest('/saveOrder', 'POST', dataToSend);
         } catch (error) {
             console.error('❌ Erro ao preparar pedido:', error);
             throw error;
@@ -67,35 +80,50 @@ class ApiClient {
 
     async getProducts() {
         console.log('📦 Buscando produtos via API...');
-        return await this._makeRequest('/get-products', 'GET');
+        return await this._makeRequest('/produtos', 'GET');
     }
 
-   async getOrder(orderId) {
-    try {
+    async getOrder(orderId) {
         console.log(`📋 Buscando pedido ${orderId}...`);
-        const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('📦 Resposta da API (getOrder):', result.success ? '✅ Sucesso' : '❌ Erro');
-        
-        return result;
-    } catch (error) {
-        console.error('❌ Erro ao buscar pedido:', error);
-        return {
-            success: false,
-            error: error.message,
-            message: 'Erro ao buscar pedido'
-        };
+        return await this._makeRequest(`/orders/${orderId}`, 'GET');
     }
-}
 
     async healthCheck() {
         console.log('🏥 Verificando saúde da API...');
         return await this._makeRequest('/health', 'GET');
+    }
+
+    // NOVA FUNÇÃO: Para corrigir método de pagamento
+    async fixPaymentMethod(orderId, correctMethod) {
+        console.log(`🛠️ Corrigindo método de pagamento do pedido ${orderId} para ${correctMethod}`);
+        return await this._makeRequest('/fix-payment-methods', 'POST', {
+            orderId: orderId,
+            correctPaymentMethod: correctMethod
+        });
+    }
+
+    // NOVA FUNÇÃO: Buscar cliente por telefone (nova API)
+    async getClientByPhone(phone) {
+        console.log(`🔍 Buscando cliente por telefone: ${phone}`);
+        return await this._makeRequest('/get-client-by-phone', 'POST', { phone: phone });
+    }
+
+    // NOVA FUNÇÃO: Buscar os últimos 3 pedidos (Geral)
+    async getRecentOrders() {
+        console.log(`📋 Buscando os últimos 3 pedidos...`);
+        return await this._makeRequest('/orders', 'GET');
+    }
+
+    // NOVA FUNÇÃO: Buscar os últimos 3 pedidos por telefone
+    async getRecentOrdersByPhone(phone) {
+        console.log(`📋 Buscando os últimos 3 pedidos para o telefone ${phone}...`);
+        return await this._makeRequest(`/orders/by-phone?phone=${encodeURIComponent(phone)}`, 'GET');
+    }
+
+    // Função para buscar detalhes de um pedido específico (já existe, mas ajustando o endpoint)
+    async getOrderDetails(orderId) {
+        console.log(`📋 Buscando detalhes do pedido ID: ${orderId}...`);
+        return await this._makeRequest(`/orders/${orderId}`, 'GET');
     }
 }
 
