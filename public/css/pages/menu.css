@@ -211,16 +211,29 @@
 /* Responsividade */
 @media (max-width: 768px) {
     .cardapio-header {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row; /* Mantém horizontal no mobile */
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
     }
     
-    .navegacao-dias {
-        justify-content: center;
+    .dia-nome {
+        min-width: auto;
+        flex: 1;
+        font-size: 1.1rem;
+    }
+    
+    .nav-btn {
+        width: 35px; /* Aumenta um pouco para facilitar o toque */
+        height: 35px;
+        flex-shrink: 0;
     }
     
     .cardapio-container {
-        padding: 1.5rem;
+        padding: 1.2rem;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 }
 

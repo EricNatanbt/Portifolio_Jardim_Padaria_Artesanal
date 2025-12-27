@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -375,13 +376,47 @@
             static normalizeOrderData(orderData) {
                 if (!orderData) return null;
                 
+                console.log('📊 Normalizando dados do pedido:', orderData);
+                
                 // Se já estiver normalizado, retorna como está
                 if (orderData.normalized === true) return orderData;
                 
-                // Extrai dados do cliente
-                const clientData = orderData.client || orderData.customer || {};
-                const orderInfo = orderData.order || orderData;
-                const items = orderData.items || orderInfo.items || [];
+                // Extrai dados de diferentes estruturas possíveis
+                let clientData = {};
+                let orderInfo = {};
+                let items = [];
+                
+                // Caso 1: Estrutura nova (API)
+                if (orderData.client || orderData.order || orderData.items) {
+                    clientData = orderData.client || {};
+                    orderInfo = orderData.order || {};
+                    items = orderData.items || [];
+                }
+                // Caso 2: Estrutura antiga (localStorage)
+                else if (orderData.customer || orderData.cart) {
+                    clientData = orderData.customer || {};
+                    orderInfo = orderData.order || orderData;
+                    items = orderData.items || orderData.cart || [];
+                }
+                // Caso 3: Objeto direto
+                else {
+                    orderInfo = orderData;
+                    items = orderData.items || [];
+                }
+                
+                // Normaliza os itens - IMPORTANTE: garantir que temos a estrutura correta
+                const normalizedItems = items.map(item => {
+                    // Verifica diferentes estruturas de itens
+                    return {
+                        id: item.id || item.product_id || '',
+                        product_id: item.product_id || item.id || '',
+                        product_name: item.product_name || item.name || 'Produto',
+                        name: item.name || item.product_name || 'Produto',
+                        price: parseFloat(item.price || item.unit_price || 0),
+                        quantity: parseInt(item.quantity || 1),
+                        total: parseFloat(item.total || (item.price * item.quantity) || 0)
+                    };
+                });
                 
                 // Normaliza os dados
                 return {
@@ -393,13 +428,13 @@
                         phone: clientData.phone || '',
                         address: clientData.address || orderInfo.address || '',
                         observation: clientData.observation || orderInfo.observation || '',
-                        delivery_option: clientData.delivery_option || clientData.deliveryOption || 'entrega',
-                        payment_method: clientData.payment_method || clientData.paymentMethod || 'pix'
+                        delivery_option: clientData.delivery_option || clientData.deliveryOption || orderInfo.delivery_option || orderInfo.deliveryOption || 'entrega',
+                        payment_method: clientData.payment_method || clientData.paymentMethod || orderInfo.payment_method || orderInfo.paymentMethod || 'pix'
                     },
                     
                     // Dados do pedido
                     order: {
-                        order_id: orderInfo.order_id || orderInfo.id || 'JD' + Date.now().toString().slice(-8),
+                        order_id: orderInfo.order_id || orderInfo.id || orderInfo.apiOrderId || 'JD' + Date.now().toString().slice(-8),
                         id: orderInfo.id || orderInfo.order_id || '',
                         total: parseFloat(orderInfo.total || orderInfo.total_amount || 0),
                         subtotal: parseFloat(orderInfo.subtotal || orderInfo.total_amount || 0),
@@ -408,17 +443,12 @@
                         payment_method: orderInfo.payment_method || orderInfo.paymentMethod || 'pix',
                         observation: orderInfo.observation || '',
                         created_at: orderInfo.created_at || orderInfo.createdAt || orderInfo.timestamp || new Date().toISOString(),
-                        status: orderInfo.status || 'pendente'
+                        status: orderInfo.status || 'pendente',
+                        items: normalizedItems // Inclui os itens no objeto order também
                     },
                     
                     // Itens do pedido
-                    items: items.map(item => ({
-                        product_id: item.product_id || item.id || '',
-                        product_name: item.product_name || item.name || '',
-                        name: item.name || item.product_name || '',
-                        price: parseFloat(item.price || 0),
-                        quantity: parseInt(item.quantity || 1)
-                    }))
+                    items: normalizedItems
                 };
             }
             
@@ -598,6 +628,14 @@
                 try {
                     const { customer, order, items } = this.orderData;
                     
+                    console.log('📄 Dados para exibição:', { 
+                        customer, 
+                        order, 
+                        items,
+                        hasItems: items && items.length > 0,
+                        itemCount: items ? items.length : 0
+                    });
+                    
                     // Verifica se é entrega para mostrar botões de endereço
                     const isDelivery = order.delivery_option === 'entrega' && customer.address && customer.address !== 'Retirada na Loja';
                     const googleMapsUrl = isDelivery ? OrderDataUtils.createGoogleMapsUrl(customer.address) : null;
@@ -663,12 +701,19 @@
                         <div class="section">
                             <h2>📋 Itens do Pedido</h2>
                             <div class="info-grid">
-                                ${items && items.length > 0 ? items.map(item => `
-                                <div class="info-item">
-                                    <span>${item.quantity}x ${OrderDataUtils.escapeHtml(item.product_name || item.name)}</span>
-                                    <span>R$ ${(parseFloat(item.price) * parseInt(item.quantity)).toFixed(2)}</span>
-                                </div>
-                                `).join('') : '<p>Nenhum item encontrado</p>'}
+                                ${items && items.length > 0 ? items.map(item => {
+                                    const itemName = item.product_name || item.name || 'Produto';
+                                    const itemPrice = parseFloat(item.price || 0);
+                                    const itemQuantity = parseInt(item.quantity || 1);
+                                    const itemTotal = (itemPrice * itemQuantity).toFixed(2);
+                                    
+                                    return `
+                                    <div class="info-item">
+                                        <span>${itemQuantity}x ${OrderDataUtils.escapeHtml(itemName)}</span>
+                                        <span>R$ ${itemTotal}</span>
+                                    </div>
+                                    `;
+                                }).join('') : '<div class="info-item"><span>Nenhum item encontrado</span><span></span></div>'}
                             </div>
                         </div>
 
@@ -750,7 +795,7 @@
                     }
 
                 } catch (error) {
-                    console.error('Erro ao exibir pedido:', error);
+                    console.error('❌ Erro ao exibir pedido:', error);
                     this.showError('Erro ao exibir os dados do pedido.');
                 }
             }

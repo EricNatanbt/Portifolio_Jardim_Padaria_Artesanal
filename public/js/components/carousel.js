@@ -59,15 +59,17 @@ const Carousel = {
     showImage(images, index) {
         // Remove a classe active de todas as imagens
         images.forEach(img => {
-            img.style.opacity = '0';
             img.classList.remove('active');
+            // Se não houver transição CSS, garantimos via JS
+            img.style.opacity = '0';
+            img.style.zIndex = '0';
         });
 
         // Adiciona a classe active na imagem atual
-        setTimeout(() => {
-            images[index].style.opacity = '1';
-            images[index].classList.add('active');
-        }, 50);
+        const activeImage = images[index];
+        activeImage.classList.add('active');
+        activeImage.style.opacity = '1';
+        activeImage.style.zIndex = '1';
     },
 
     // Método para destruir um carrossel

@@ -1,175 +1,223 @@
 /* ============================================
-   ESTILOS DO MODAL DE FINALIZAÇÃO DE PEDIDO (CHECKOUT) - LAYOUT OTIMIZADO
+   ESTILOS DO MODAL DE FINALIZAÇÃO DE PEDIDO (CHECKOUT) - LAYOUT HORIZONTAL COMPACTO
    ============================================ */
 
-/* Modal principal */
+/* CRÍTICO: Garantir que o modal comece fechado */
+#checkoutModal {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: -1 !important; /* Começa atrás de tudo */
+    display: none !important; /* Garantir que começa oculto */
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Quando o modal estiver ativo (aberto) */
+#checkoutModal.active {
+    z-index: 1000 !important; /* Acima de tudo */
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: all !important;
+    animation: modalFadeIn 0.3s ease-out !important;
+}
+
+/* Overlay com efeito de lente transparente cinza borrada */
+#checkoutModalOverlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(40, 40, 40, 0.65) !important; /* Cinza semi-transparente */
+    backdrop-filter: blur(8px) !important; /* Efeito de desfoque */
+    -webkit-backdrop-filter: blur(8px) !important; /* Para Safari */
+    cursor: pointer !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+/* Quando o modal estiver ativo, mostrar o overlay */
+#checkoutModal.active #checkoutModalOverlay {
+    opacity: 1 !important;
+}
+
+/* Animação suave para entrada do modal */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Modal principal - CORRIGIDO: Aumentar largura máxima */
 .checkout-modal-content {
-    max-width: 3000px;
-    width: 95%;
+    max-width: 1600px !important; /* Aumentado de 2350px para 1400px */
+    width: 100% !important; /* Alterado para porcentagem */
     background: white;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(48, 57, 34, 0.15);
-    height: auto; /* Altura automática baseada no conteúdo */
-    max-height: none; /* Remove limite de altura */
-    overflow: visible; /* Permite que o conteúdo exceda sem scroll */
+    height: 1100px !important;
+    max-height: 100% !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 20px auto !important; /* Centraliza melhor */
+    transform: scale(0.95) !important; /* Começa um pouco menor */
+    opacity: 0 !important; /* Começa transparente */
+    transition: transform 0.3s ease, opacity 0.3s ease !important;
+}
+
+/* Quando o modal estiver ativo, mostra o conteúdo */
+#checkoutModal.active .checkout-modal-content {
+    transform: scale(1) !important;
+    opacity: 1 !important;
 }
 
 /* Fix para o scroll do modal */
 .modal-content.checkout-modal-content {
     display: flex;
     flex-direction: column;
-    max-height: 90vh; /* Limita a altura do modal no desktop */
+    position: relative !important;
+    z-index: 1001 !important; /* Acima do overlay */
 }
 
 .modal-content.checkout-modal-content .modal-body {
     flex-grow: 1;
-    overflow-y: auto; /* Permite scroll no corpo do modal */
-}
-
-.checkout-form-section {
-    /* ... */
-    overflow-y: visible; /* Remove scroll interno do formulário */
-    padding-right: 1rem;
-}
-
-.checkout-summary-section {
-    /* ... */
-    max-height: none; /* Remove limite de altura */
-    overflow-y: visible; /* Remove scroll interno do resumo */
-}
-
-/* Corpo do modal - NOVO LAYOUT */
-.modal-body {
-    padding: 1.5rem;
+    overflow-y: auto;
+    padding: 1.5rem 2rem !important; /* Aumentado padding */
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    grid-template-rows: auto 1fr;
-    gap: 1.5rem;
-    min-height: auto;
-    overflow: visible; /* Remove scroll interno */
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 2rem !important; /* Aumentado gap */
+    align-items: start;
 }
 
 /* Coluna da esquerda: Formulário principal */
 .checkout-form-section {
     grid-column: 1;
-    grid-row: 1 / span 2;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    overflow-y: visible; /* Alterado para visible */
-    padding-right: 1rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem !important; /* Aumentado gap */
 }
 
-/* Coluna da direita: Container superior (Observações + Botão Frete) */
-.checkout-extra-section {
+/* Coluna da direita: Container para extras e resumo */
+.checkout-right-column {
     grid-column: 2;
-    grid-row: 1;
-    background: var(--background);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--muted);
-    margin-bottom: 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem !important; /* Aumentado gap */
 }
 
-/* Coluna da direita: Container inferior (Resumo) */
+/* Seções compactas */
+.checkout-extra-section,
 .checkout-summary-section {
-    grid-column: 2;
-    grid-row: 2;
-    background: var(--background);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--muted);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: none; /* Removido limite de altura */
-    overflow-y: visible; /* Removido scroll interno */
+    background: rgba(255, 255, 255, 0.95); /* Branco semi-transparente */
+    padding: 1.25rem !important; /* Aumentado padding */
+    border-radius: 10px; /* Aumentado radius */
+    border: 1px solid rgba(240, 230, 197, 0.5); /* Borda mais suave */
+    width: 100%;
+    backdrop-filter: blur(4px); /* Efeito sutil de glass */
+    -webkit-backdrop-filter: blur(4px);
 }
 
-/* Layout para mobile */
-@media (max-width: 768px) {
+/* Layout para mobile - Design Vertical em Lista */
+@media (max-width: 992px) {
     .checkout-modal-content {
-        max-width: 100%;
-        width: 100%;
-        max-height: 100vh; /* Ocupa a tela inteira */
-        margin: 0;
-        border-radius: 0; /* Remove bordas arredondadas para tela cheia */
+        max-width: 95% !important;
+        width: 95% !important;
+        margin: 10px auto !important;
     }
     
-    .modal-content.checkout-modal-content {
-        max-height: 100vh;
-    }
-    
-    .modal-body {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        gap: 1rem;
+    .modal-content.checkout-modal-content .modal-body {
+        grid-template-columns: 1fr; /* Força uma única coluna */
+        gap: 1.5rem;
         padding: 1rem;
     }
     
-    .checkout-form-section {
-        grid-column: 1;
-        grid-row: 1;
-        padding-right: 0;
+    #checkoutModal.active #checkoutModalOverlay {
+        background: rgba(40, 40, 40, 0.75) !important; /* Mais escuro no mobile */
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
     }
     
-    .checkout-extra-section {
+    .checkout-right-column {
         grid-column: 1;
-        grid-row: 2;
-        margin-bottom: 0;
     }
-    
-    .checkout-summary-section {
-        grid-column: 1;
-        grid-row: 3;
-        max-height: none;
+
+    /* Força todos os campos em linha (form-row) a ficarem um embaixo do outro */
+    .form-row {
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    /* Ajusta grupos específicos que tinham largura fixa */
+    .address-number-group {
+        flex: 1 0 auto !important;
+    }
+
+    /* Melhora a visualização da lista de itens no mobile */
+    #checkoutSummaryList {
+        max-height: none; /* Permite que a lista cresça no mobile para ver tudo */
+    }
+
+    .checkout-modal-content {
+        max-height: 100vh;
+        margin: 0;
+        border-radius: 0;
     }
 }
 
-/* Cabeçalhos das seções */
+/* Cabeçalhos das seções compactos */
 .section-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 0.5rem 0 0.75rem 0;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--muted);
+    gap: 10px; /* Aumentado gap */
+    margin-bottom: 1rem !important; /* Aumentado margin */
+    padding-bottom: 0.5rem; /* Aumentado padding */
+    border-bottom: 2px solid rgba(240, 230, 197, 0.5); /* Borda mais suave */
 }
 
-.section-header h3,
-.section-header h4 {
+.header-icon {
+    font-size: 1.2rem !important; /* Aumentado tamanho do ícone */
+}
+
+.section-header h3 {
     color: var(--primary);
     font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
+    font-size: 1.2rem !important; /* Aumentado tamanho da fonte */
     margin: 0;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* Estilos de Formulário */
+/* Estilos de Formulário Compactos */
 .form-group {
-    margin-bottom: 0.75rem;
-    position: relative;
+    margin-bottom: 1rem !important; /* Aumentado margin */
+    width: 100%;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem !important; /* Aumentado margin */
     font-weight: 600;
     color: var(--primary);
-    font-size: 0.9rem;
+    font-size: 0.95rem !important; /* Aumentado tamanho da fonte */
 }
 
-.form-group input[type="text"],
-.form-group input[type="tel"],
+.form-group input,
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.95rem;
+    padding: 0.75rem 1rem !important; /* Aumentado padding */
+    border: 2px solid rgba(221, 221, 221, 0.7); /* Borda mais suave */
+    border-radius: 8px; /* Radius aumentado */
+    font-size: 1rem !important; /* Aumentado tamanho da fonte */
     color: #333;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.9); /* Fundo semi-transparente */
     transition: all 0.2s ease;
     box-sizing: border-box;
 }
@@ -177,514 +225,372 @@
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(48, 57, 34, 0.1);
     outline: none;
+    border-color: var(--primary);
+    background-color: white; /* Fundo sólido no foco */
+    box-shadow: 0 0 0 3px rgba(28, 61, 45, 0.1); /* Sombra de foco suave */
 }
 
-/* Layout em linha dos campos */
+/* Layout em linha dos campos mais agressivo */
 .form-row {
     display: flex;
-    gap: 0.6rem;
-    align-items: flex-start;
+    gap: 1.5rem !important; /* Aumentado gap */
+    margin-bottom: 1rem !important; /* Aumentado margin */
 }
 
 .form-row > .form-group {
     flex: 1;
-    min-width: 0;
 }
 
-/* Campos específicos */
-#customerCep {
-    max-width: 130px;
-}
-
+/* Ajustes específicos - CORRIGIDO: Removido flex fixo que limitava largura */
 .address-number-group {
-    flex: 0 0 100px;
+    min-width: 120px !important; /* Em vez de flex fixo */
 }
 
 #customerObservation {
-    min-height: 80px;
-    max-height: 100px;
+    min-height: 80px !important; /* Aumentado altura mínima */
     resize: vertical;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    display: block;
+    font-size: 1rem !important; /* Aumentado tamanho da fonte */
+    background-color: rgba(255, 255, 255, 0.9);
 }
 
-/* Estilos para select */
-.form-group select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231C3D2D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E" );
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 2.5rem;
-}
-
-/* Campos desabilitados */
-.form-group input:disabled,
-.form-group select:disabled {
-    background-color: #f5f5f5;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Seção do Resumo */
-.checkout-summary-section {
-    background: var(--background);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid var(--muted);
-}
-
-.order-summary {
-    margin-bottom: 0.5rem;
-}
-
-.order-summary h4 {
-    font-size: 1rem;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
-    text-align: center;
-    font-family: 'Playfair Display', serif;
-}
-
-/* Lista de itens */
+/* Seção do Resumo Compacta */
 #checkoutSummaryList {
     list-style: none;
     padding: 0;
-    margin-bottom: 0.5rem;
-    max-height: 150px;
+    margin-bottom: 1rem !important; /* Aumentado margin */
+    max-height: 200px !important; /* Aumentado altura máxima */
     overflow-y: auto;
-    border: 1px solid var(--muted);
-    border-radius: 6px;
-    padding: 0.5rem;
-    background: white;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px; /* Radius aumentado */
+    border: 2px solid rgba(240, 230, 197, 0.5); /* Borda mais suave */
 }
 
 #checkoutSummaryList li {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 0.4rem 0.3rem;
-    border-bottom: 1px solid #f0f0f0;
-    font-size: 0.85rem;
-    line-height: 1.2;
+    padding: 0.75rem 1rem !important; /* Aumentado padding */
+    border-bottom: 2px solid rgba(240, 240, 240, 0.7); /* Borda mais suave */
+    font-size: 1rem !important; /* Aumentado tamanho da fonte */
+    background: rgba(255, 255, 255, 0.5); /* Fundo semi-transparente */
 }
 
-#checkoutSummaryList li:last-child {
-    border-bottom: none;
-}
-
-/* Totais */
-.summary-totals {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid var(--muted);
+#checkoutSummaryList li:nth-child(even) {
+    background: rgba(245, 236, 207, 0.3); /* Alternância sutil */
 }
 
 .total-summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0.5rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 1rem 1.5rem !important; /* Aumentado padding */
+    background: var(--primary);
     color: white;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-}
-
-.total-summary span:first-child {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.total-summary span:last-child {
+    border-radius: 10px; /* Radius aumentado */
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.2rem !important; /* Aumentado tamanho da fonte */
+    margin-top: 1rem !important; /* Adicionado margin */
+    backdrop-filter: blur(4px); /* Efeito glass */
+    -webkit-backdrop-filter: blur(4px);
 }
 
-/* Seção de detalhes */
-.delivery-payment-section {
-    background: white;
-    padding: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid var(--muted);
-    margin-bottom: 1rem;
-}
-
-.delivery-payment-section h5 {
-    color: var(--primary);
-    font-size: 0.95rem;
-    margin-bottom: 0.8rem;
-    font-weight: 600;
-}
-
-#deliveryDetails p,
-#paymentDetails p {
-    margin: 0.4rem 0;
-    font-size: 0.9rem;
-    color: #555;
-}
-
-/* Botões */
+/* Botão de Finalizar Compacto */
 .checkout-submit-btn {
     width: 100%;
-    padding: 0.8rem;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
+    min-height: 50px !important; /* Aumentado altura mínima */
+    padding: 0.9rem !important; /* Aumentado padding */
+    background: var(--secondary);
+    color: var(--primary-dark);
     border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.95rem;
+    border-radius: 10px; /* Radius aumentado */
+    font-weight: 700;
+    font-size: 1.1rem !important; /* Aumentado tamanho da fonte */
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-top: 0.5rem;
+    gap: 10px; /* Aumentado gap */
+    margin-top: 0.5rem !important; /* Aumentado margin */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Sombra mais suave */
+    backdrop-filter: blur(4px); /* Efeito glass */
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .checkout-submit-btn:hover {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(48, 57, 34, 0.2);
+    box-shadow: 0 6px 16px rgba(216, 166, 94, 0.25);
 }
 
-.checkout-submit-btn:disabled {
-    background: #cccccc;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-/* Card Expansível de Informações do Frete */
+/* Delivery Info Card Compacto */
 .delivery-info-card {
-    margin: 0.5rem 0;
-    border: 1px solid var(--muted);
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    overflow: hidden; /* Adicionado */
+    border: 2px solid rgba(240, 230, 197, 0.5); /* Borda mais suave */
+    border-radius: 10px; /* Radius aumentado */
+    background: rgba(255, 255, 255, 0.95); /* Fundo semi-transparente */
+    margin-top: 1rem !important; /* Adicionado margin */
+    backdrop-filter: blur(4px); /* Efeito glass */
+    -webkit-backdrop-filter: blur(4px);
+    overflow: visible !important; /* MUDADO: Permite que o conteúdo seja visível */
 }
 
 .delivery-info-toggle {
     width: 100%;
-    padding: 0.8rem 1rem;
-    background: var(--background);
-    border: none;
+    padding: 0.75rem 1rem !important; /* Aumentado padding */
+    font-size: 1rem !important; /* Aumentado tamanho da fonte */
+    background: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    transition: all 0.2s ease;
+    cursor: pointer; /* Adicionado cursor pointer */
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    color: var(--primary);
+    align-items: center;
+    border: none;
+    text-align: left;
 }
 
 .delivery-info-toggle:hover {
-    background: var(--muted);
+    background: rgba(255, 255, 255, 0.95);
 }
 
-.delivery-info-toggle .toggle-header {
-    display: flex;
-    align-items: center;
-}
-
-/* CORREÇÃO: Esconder o conteúdo inicialmente */
 .delivery-info-content {
-    max-height: 0;
-    padding: 0 1rem;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+    /* REMOVIDO: max-height: 0; */
+    /* REMOVIDO: overflow: hidden; */
+    display: none; /* Começa escondido */
+    transition: all 0.3s ease-out;
+    padding: 0 1rem; /* Aumentado padding */
 }
 
-/* Classe que será adicionada via JS quando expandir */
 .delivery-info-content.expanded {
-    max-height: 500px; /* Altura máxima para expandir */
-    padding-top: 1rem;
-    padding-bottom: 1rem;
+    display: block; /* Mostra quando expandido */
+    max-height: none !important; /* Remove qualquer limite de altura */
+    padding: 1rem !important; /* Aumentado padding */
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 0 0 8px 8px;
+    overflow: visible !important; /* Garante que todo o conteúdo seja visível */
 }
 
-.delivery-info-content p {
-    font-size: 0.9rem;
-    line-height: 1.4;
+/* Ajuste para o conteúdo interno */
+.delivery-info-content p, 
+.delivery-info-content .simple-list li, 
+.delivery-info-content .simple-option h5, 
+.delivery-info-content .simple-option p {
+    font-size: 0.95rem !important; /* Aumentado tamanho da fonte */
+    line-height: 1.5;
     margin-bottom: 0.75rem;
-    color: #555;
 }
-
-.delivery-info-content .info-section {
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #f0f0f0;
-}
-
-.delivery-info-content .info-section h4 {
-    font-size: 1rem;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
-}
-
+/* Lista simples no conteúdo */
 .delivery-info-content .simple-list {
-    list-style: disc;
-    padding-left: 1.2rem;
-    margin-bottom: 0.75rem;
+    list-style-type: none;
+    padding-left: 0;
+    margin: 1rem 0;
 }
 
 .delivery-info-content .simple-list li {
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: #555;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(240, 230, 197, 0.3);
 }
 
-.delivery-info-content .inline-options {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 0.75rem;
+.delivery-info-content .simple-list li:last-child {
+    border-bottom: none;
 }
 
-.delivery-info-content .inline-option {
-    background: var(--muted);
-    color: var(--primary);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
+/* Grid simples */
 .delivery-info-content .simple-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-    margin-bottom: 0.75rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem !important; /* Aumentado gap */
+    margin: 1rem 0;
 }
 
-.delivery-info-content .simple-option {
-    padding: 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--background);
+@media (max-width: 600px) {
+    .delivery-info-content .simple-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-.delivery-info-content .simple-option h5 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--primary);
-    margin-bottom: 4px;
-}
-
-.delivery-info-content .simple-option p {
-    margin: 0;
-    font-size: 0.75rem;
-    color: #777;
-}
-
-.delivery-info-content .final-note {
-    display: flex;
-    align-items: center;
-    padding: 8px;
-    background: var(--border);
-    border-radius: 6px;
-    margin-top: 1rem;
-}
-
-.delivery-info-content .final-note p {
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--primary);
-}
-
-/* Ícone de toggle que rotaciona */
-.toggle-icon {
+/* Ícone do toggle */
+.delivery-info-toggle .toggle-icon {
     transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
 }
 
-/* Rotacionar ícone quando expandido */
 .delivery-info-toggle.active .toggle-icon {
     transform: rotate(180deg);
 }
 
-/* Ajuste para mobile */
-@media (max-width: 768px) {
-    .delivery-info-toggle {
-        padding: 0.7rem 0.8rem;
-        font-size: 0.9rem;
+/* Adicione estas regras para melhorar a visualização */
+.delivery-info-content .simple-option {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(240, 230, 197, 0.5);
+}
+
+.delivery-info-content .simple-option h5 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem !important;
+}
+
+.delivery-info-content .simple-option p {
+    color: var(--muted-foreground);
+    margin: 0;
+}
+
+/* Scrollbar customizada */
+.modal-body::-webkit-scrollbar {
+    width: 8px !important; /* Aumentado largura */
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(28, 61, 45, 0.7); /* Cor semi-transparente */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: rgba(240, 240, 240, 0.5); /* Trilho semi-transparente */
+}
+
+/* Ajuste para PC: Melhor espaçamento para telas largas */
+@media (min-width: 1200px) {
+    .modal-content.checkout-modal-content .modal-body {
+        grid-template-columns: 1.1fr 0.9fr;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 2.5rem !important; /* Aumentado padding */
+        gap: 2.5rem !important; /* Aumentado gap */
     }
     
-    .delivery-info-content {
-        padding: 0 0.8rem;
+    .checkout-modal-content {
+        max-width: 1400px !important;
+        width: 85% !important;
     }
     
-    .delivery-info-content p {
-        font-size: 0.85rem;
+    #checkoutModal.active #checkoutModalOverlay {
+        backdrop-filter: blur(12px) !important; /* Mais blur no desktop */
+        -webkit-backdrop-filter: blur(12px) !important;
+    }
+}
+
+@media (min-width: 1400px) {
+    .checkout-modal-content {
+        max-width: 1500px !important;
+        width: 80% !important;
     }
     
-    .delivery-info-content .simple-list {
-        padding-left: 1rem;
+    .modal-content.checkout-modal-content .modal-body {
+        padding: 2.5rem 3rem !important; /* Aumentado ainda mais para telas grandes */
     }
     
-    .delivery-info-content .simple-list li {
-        font-size: 0.8rem;
-    }
-    
-    .delivery-info-content .inline-option {
-        font-size: 0.75rem;
-    }
-    
-    .delivery-info-content .simple-option h5 {
-        font-size: 0.85rem;
-    }
-    
-    .delivery-info-content .simple-option p {
-        font-size: 0.7rem;
-    }
-}/* Ajustes para mobile */
-@media (max-width: 768px) {
-    .address-number-group {
-        flex: 1;
-    }
-    
-    #customerCep {
-        max-width: 100%;
-    }
-    
-    .form-row {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    
-    .form-group input[type="text"],
-    .form-group input[type="tel"],
-    .form-group textarea,
-    .form-group select {
-        padding: 0.7rem 0.9rem;
-    }
-    
-    #customerObservation {
-        min-height: 100px;
-    }
-    
-    .checkout-submit-btn {
-        padding: 0.9rem;
-        font-size: 1rem;
+    #checkoutModal.active #checkoutModalOverlay {
+        backdrop-filter: blur(15px) !important; /* Ainda mais blur para telas muito grandes */
+        -webkit-backdrop-filter: blur(15px) !important;
     }
 }
 
-/* Scrollbar */
-.checkout-modal-content::-webkit-scrollbar,
-.checkout-summary-section::-webkit-scrollbar,
-#checkoutSummaryList::-webkit-scrollbar {
-    width: 4px;
+.simple-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem !important; /* Aumentado gap */
 }
 
-.checkout-modal-content::-webkit-scrollbar-track,
-.checkout-summary-section::-webkit-scrollbar-track,
-#checkoutSummaryList::-webkit-scrollbar-track {
-    background: #f8f9fa;
+@media (max-width: 600px) {
+    .simple-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-.checkout-modal-content::-webkit-scrollbar-thumb,
-.checkout-summary-section::-webkit-scrollbar-thumb,
-#checkoutSummaryList::-webkit-scrollbar-thumb {
-    background: var(--secondary);
-    border-radius: 2px;
+/* Efeito de brilho suave no card */
+.checkout-modal-content {
+    position: relative;
 }
 
-/* Validação */
-.form-group.required label:after {
-    content: " *";
-    color: #e74c3c;
+.checkout-modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    z-index: 1;
 }
 
-.form-group.error input,
-.form-group.error textarea,
-.form-group.error select {
-    border-color: #e74c3c;
-    background-color: #ffeaea;
+/* Garantir que o modal sempre abra no topo */
+#checkoutModal.active .checkout-modal-content .modal-body {
+    scroll-behavior: smooth;
 }
 
-.error-message {
-    color: #e74c3c;
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-    display: none;
+/* Garantir que campos automaticamente preenchidos não forcem rolagem */
+.form-group input[readonly],
+.form-group input[style*="background-color"] {
+    scroll-margin-top: 20px;
 }
 
-.form-group.error .error-message {
-    display: block;
+/* Prevenir que o autofocus em campos do meio cause rolagem indesejada */
+#checkoutModal .modal-body {
+    scroll-padding-top: 20px;
 }
 
-/* Grupo CEP */
-.cep-group {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+/* Quando o modal abre, garante que o scroll esteja no topo */
+#checkoutModal.active {
+    align-items: flex-start !important;
+    padding-top: 2rem !important;
 }
 
-.cep-group input {
-    flex: 1;
+/* Adicione também um z-index para garantir que fique acima de tudo */
+.checkout-modal-content {
+    margin-top: 20px !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
 }
 
-/* Status do CEP */
-.cep-status {
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    display: none;
+/* Prevenir que campos com autocomplete ou programaticamente preenchidos causem scroll */
+#checkoutModal .form-group input:focus,
+#checkoutModal .form-group select:focus,
+#checkoutModal .form-group textarea:focus {
+    scroll-margin-top: 100px; /* Mantém o campo visível sem scroll brusco */
 }
 
-.cep-status.success {
-    display: block;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+/* Garantir que o modal abra sempre no topo */
+#checkoutModal.active .checkout-modal-content .modal-body {
+    scroll-behavior: smooth;
+    scroll-padding-top: 20px;
 }
 
-.cep-status.error {
-    display: block;
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+/* Estilo para campos preenchidos automaticamente (sem causar focus) */
+#checkoutModal .form-group input[style*="background-color: #f0f9f0"] {
+    border-color: #4CAF50 !important;
+    transition: border-color 0.3s ease;
 }
 
-.cep-status.loading {
-    display: block;
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
+/* Indicador visual suave para campo sugerido (número) */
+#checkoutModal .form-group input[style*="border-color: #FFA726"] {
+    animation: pulseBorder 2s ease-in-out;
 }
 
-/* Opção dinheiro condicional */
-.cash-option {
-    display: none;
+@keyframes pulseBorder {
+    0%, 100% { border-color: #FFA726; }
+    50% { border-color: #FFCC80; }
 }
 
-/* Animação */
-@keyframes fadeIn {
+/* Prevenir que qualquer programatic focus cause scroll */
+#checkoutModal .modal-body {
+    overflow-anchor: none;
+}
+
+/* Garantir que o modal abra com scroll no topo */
+#checkoutModal.active .modal-body {
+    animation: scrollToTop 0.3s ease forwards;
+}
+
+@keyframes scrollToTop {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+        opacity: 0.8;
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
-
-.checkout-modal-content {
-    animation: fadeIn 0.2s ease-out;
-}
-

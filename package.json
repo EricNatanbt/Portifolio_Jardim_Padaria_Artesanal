@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
-    "express": "^4.19.2"
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "express": "^4.22.1"
   },
   "devDependencies": {
     "@netlify/functions": "^2.0.0"

@@ -1,6 +1,8 @@
 class ApiClient {
     constructor() {
-        this.baseUrl = window.location.origin + '/api';
+        // Detecta se está rodando via Netlify Dev (porta 8888) ou servidor direto
+        const isNetlify = window.location.port === '8888' || window.location.hostname.includes('netlify.app');
+        this.baseUrl = isNetlify ? '/.netlify/functions' : '/api';
         console.log('🌐 API Client inicializado para:', this.baseUrl);
     }
 
@@ -39,29 +41,26 @@ class ApiClient {
 
     async saveOrder(orderData) {
         console.log('📤 Salvando pedido via API...');
-        console.log('🔍 Dados completos recebidos:', orderData);
         
         try {
-            // Garante que os dados estejam no formato correto
             const dataToSend = {
                 client: orderData.client || {},
                 order: {
                     total: orderData.order?.total || orderData.total || 0,
                     subtotal: orderData.order?.subtotal || orderData.subtotal || 0,
                     deliveryFee: orderData.order?.deliveryFee || orderData.deliveryFee || 0,
-                    // IMPORTANTE: Usar os nomes corretos que o supabase-proxy.js espera
                     payment_method: orderData.order?.paymentMethod || orderData.paymentMethod || 'pix',
-                    paymentMethod: orderData.order?.paymentMethod || orderData.paymentMethod || 'pix', // Mantém compatibilidade
                     delivery_option: orderData.order?.deliveryOption || orderData.deliveryOption || 'entrega',
-                    deliveryOption: orderData.order?.deliveryOption || orderData.deliveryOption || 'entrega', // Mantém compatibilidade
                     observation: orderData.order?.observation || orderData.observation || ''
                 },
-                items: orderData.items || []
+                items: orderData.items || [],
+                // Campos para compatibilidade com server.js
+                cart: orderData.cart || orderData.items || [],
+                total: orderData.total || orderData.order?.total || 0
             };
 
-            console.log('📤 Dados formatados para envio:', dataToSend);
-            
-            return await this._makeRequest('/saveOrder', 'POST', dataToSend);
+            const endpoint = this.baseUrl.includes('.netlify') ? '/save-order' : '/saveOrder';
+            return await this._makeRequest(endpoint, 'POST', dataToSend);
         } catch (error) {
             console.error('❌ Erro ao preparar pedido:', error);
             throw error;
@@ -111,7 +110,9 @@ class ApiClient {
     // NOVA FUNÇÃO: Buscar os últimos 3 pedidos (Geral)
     async getRecentOrders() {
         console.log(`📋 Buscando os últimos 3 pedidos...`);
-        return await this._makeRequest('/orders', 'GET');
+        // No Netlify o endpoint é /get-all-orders
+        const endpoint = this.baseUrl.includes('.netlify') ? '/get-all-orders' : '/orders';
+        return await this._makeRequest(endpoint, 'GET');
     }
 
     // NOVA FUNÇÃO: Buscar os últimos 3 pedidos por telefone
@@ -123,7 +124,9 @@ class ApiClient {
     // Função para buscar detalhes de um pedido específico (já existe, mas ajustando o endpoint)
     async getOrderDetails(orderId) {
         console.log(`📋 Buscando detalhes do pedido ID: ${orderId}...`);
-        return await this._makeRequest(`/orders/${orderId}`, 'GET');
+        // O endpoint correto no Netlify é /get-order/{id}
+        const endpoint = this.baseUrl.includes('.netlify') ? `/get-order/${orderId}` : `/orders/${orderId}`;
+        return await this._makeRequest(endpoint, 'GET');
     }
 }
 

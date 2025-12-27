@@ -18,30 +18,39 @@ const staticPath = path.join(__dirname, 'public');
 
 // POST /api/saveOrder - Salvar novo pedido
 app.post('/api/saveOrder', async (req, res) => {
-    console.log('API: Pedido recebido:', req.body.client.name);
-    const orderId = 'JD' + Date.now().toString().slice(-8);
+    try {
+        console.log('API: Pedido recebido:', req.body.client?.name || 'Sem nome');
+        const orderId = 'JD' + Date.now().toString().slice(-8);
 
-    const newOrder = {
-        id: orderId,
-        date: new Date().toISOString(),
-        client: req.body.client,
-        cart: req.body.cart,
-        total: req.body.total,
-        status: 'Concluído'
-    };
+        const newOrder = {
+            id: orderId,
+            date: new Date().toISOString(),
+            client: req.body.client || {},
+            cart: req.body.items || req.body.cart || [],
+            total: req.body.order?.total || req.body.total || 0,
+            status: 'Concluído'
+        };
 
-    const orders = await readOrders();
-    orders.unshift(newOrder); // Adiciona no início
-    await writeOrders(orders);
+        const orders = await readOrders();
+        orders.unshift(newOrder);
+        await writeOrders(orders);
 
-    const orderDetailLink = `${req.protocol}://${req.get('host')}/order.html?orderId=${orderId}`;
+        const orderDetailLink = `/order.html?orderId=${orderId}`;
 
-    res.json({
-        success: true,
-        orderId: orderId,
-        orderDetailLink: orderDetailLink,
-        message: 'Pedido salvo com sucesso!'
-    });
+        res.status(200).json({
+            success: true,
+            orderId: orderId,
+            orderDetailLink: orderDetailLink,
+            message: 'Pedido salvo com sucesso!'
+        });
+    } catch (error) {
+        console.error('Erro ao salvar pedido:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Erro interno ao salvar pedido',
+            error: error.message
+        });
+    }
 });
 
 // GET /api/orders - Listar últimos 3 pedidos

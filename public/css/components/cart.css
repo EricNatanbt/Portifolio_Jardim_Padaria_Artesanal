@@ -308,25 +308,13 @@ input.cep-loading {
     flex: 1;
 }
 
-/* Mensagem de status do CEP */
+/* Mensagem de status do CEP - Usando padrão do sistema */
 .cep-status {
     font-size: 12px;
     margin-top: 4px;
     display: flex;
     align-items: center;
     gap: 4px;
-}
-
-.cep-status.success {
-    color: var(--primary);
-}
-
-.cep-status.error {
-    color: #f44336;
-}
-
-.cep-status.loading {
-    color: #ff9800;
 }
 
 /* ============================================

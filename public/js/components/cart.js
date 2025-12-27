@@ -11,7 +11,9 @@ const Cart = {
     _listenersSetup: false,
     _currentUserId: null,
     _previousOrders: [],
-
+getItems() {
+    return this.cartItems;
+},
     // ============================================
     // INICIALIZAÇÃO
     // ============================================
@@ -87,13 +89,21 @@ const Cart = {
         }
 
         // Botão "Finalizar Compra" dentro do carrinho
-        const checkoutBtn = document.querySelector(".cart-footer .checkout-btn");
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                this.openCheckoutModal();
-            });
+const checkoutBtn = document.querySelector(".cart-footer .checkout-btn");
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function() {
+        // Verifica se há itens no carrinho
+        if (Cart && Cart.cartItems && Cart.cartItems.length > 0) {
+            // Abre o modal
+            if (window.openCheckoutModal) {
+                window.openCheckoutModal();
+            }
+        } else {
+            // Mostra notificação se o carrinho estiver vazio
+            window.showNotification('Adicione itens ao carrinho antes de finalizar a compra.', 3000, 'warning');
         }
+    });
+}
     },
 
     _setupPreviousOrdersListeners() {
@@ -123,147 +133,205 @@ const Cart = {
             }
         });
     },
-
-    // ============================================
-    // FUNÇÕES DE PEDIDOS ANTERIORES
-    // ============================================
-    async _loadPreviousOrders() {
-        try {
-            console.log('⏳ Buscando pedidos anteriores...');
-            const orders = await apiClient.getRecentOrders();
-            this._previousOrders = orders;
-            this._renderPreviousOrders();
-        } catch (error) {
-            console.error('❌ Erro ao carregar pedidos anteriores da API:', error);
-            // Tenta carregar do localStorage como fallback
-            this._loadFromLocalStorage();
-        }
-    },
-
-    _loadFromLocalStorage() {
-        console.log('📂 Buscando pedidos anteriores do localStorage...');
-        this._previousOrders = [];
-        const keys = Object.keys(localStorage);
-        const orderKeys = keys.filter(key => key.startsWith('order_'));
+// funcoes de pedidos anteriores
+async _loadPreviousOrders() {
+    try {
+        console.log('⏳ Buscando pedidos anteriores...');
         
-        // Carrega os pedidos mais recentes
-        const allOrders = orderKeys.map(key => {
-            try {
-                const orderData = JSON.parse(localStorage.getItem(key));
-                return orderData;
-            } catch (e) {
-                console.error(`❌ Erro ao carregar pedido ${key}:`, e);
-                return null;
-            }
-        }).filter(order => order !== null);
+        // Tenta pegar o telefone do localStorage
+        const phone = localStorage.getItem('clientePhone');
         
-        // Ordena por data (mais recente primeiro)
-        allOrders.sort((a, b) => {
-            const dateA = new Date(a.order?.created_at || a.order?.timestamp || 0);
-            const dateB = new Date(b.order?.created_at || b.order?.timestamp || 0);
-            return dateB - dateA;
-        });
-        
-        // Limita aos 2 últimos pedidos
-        this._previousOrders = allOrders.slice(0, 2);
-        console.log(`📜 ${this._previousOrders.length} pedidos anteriores carregados do localStorage.`);
-        
-        this._renderPreviousOrders();
-    },
-
-    _renderPreviousOrders() {
-        const listContainer = document.getElementById('previousOrdersList');
-        const container = document.getElementById('previousOrdersContainer');
-        
-        if (!listContainer || !container) {
-            console.warn('⚠️ Elementos de pedidos anteriores não encontrados');
-            return;
-        }
-
-        if (this._previousOrders.length === 0) {
-            container.style.display = 'none';
-            return;
-        }
-
-        container.style.display = 'block';
-        listContainer.innerHTML = '';
-
-        this._previousOrders.forEach(order => {
-            listContainer.innerHTML += this._createOrderHtml(order);
-        });
-    },
-
-    _createOrderHtml(order) {
-    // IMPORTANTE: Usa o ID curto (shortId) que está na chave do localStorage
-    // Primeiro tenta extrair do localStorage
-    let orderKey = null;
-    let shortId = null;
-    
-    // Se o pedido veio do localStorage, já tem o shortId
-    if (order._shortId) {
-        shortId = order._shortId;
-    } else {
-        // Tenta encontrar o pedido no localStorage para obter o shortId correto
-        const keys = Object.keys(localStorage);
-        for (const key of keys) {
-            if (key.startsWith('order_')) {
-                try {
-                    const storedOrder = JSON.parse(localStorage.getItem(key));
-                    // Compara os dados para encontrar o pedido correspondente
-                    const storedId = storedOrder.order?.order_id || storedOrder.order?.id;
-                    const currentId = order.order?.order_id || order.order?.id || order.id;
-                    
-                    if (storedId === currentId) {
-                        shortId = key.replace('order_', '');
-                        orderKey = key;
-                        break;
+        if (phone) {
+            console.log(`📱 Buscando pedidos para o telefone: ${phone}`);
+            // Primeiro busca o cliente
+            const clientResult = await apiClient.getClientByPhone(phone);
+            
+            if (clientResult.success && clientResult.client) {
+                const clientId = clientResult.client.id;
+                console.log(`👤 Cliente encontrado: ${clientId}, buscando pedidos...`);
+                
+                // Busca os pedidos do cliente (esta API retorna os itens)
+                const ordersResponse = await fetch('/.netlify/functions/get-client-orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientId: clientId })
+                });
+                
+                if (ordersResponse.ok) {
+                    const ordersResult = await ordersResponse.json();
+                    if (ordersResult.success) {
+                        // Limita aos 2 pedidos mais recentes - CORREÇÃO AQUI
+                        this._previousOrders = (ordersResult.orders || []).slice(0, 2);
+                        console.log(`📦 ${this._previousOrders.length} pedidos encontrados para o cliente.`);
+                        this._renderPreviousOrders();
+                        return;
                     }
-                } catch (e) {
-                    continue;
                 }
             }
         }
+        
+        // Fallback para getRecentOrders se não tiver telefone ou falhar
+        const response = await apiClient.getRecentOrders();
+        const allOrders = response.orders || response || [];
+        // Limita aos 2 pedidos mais recentes - CORREÇÃO AQUI
+        this._previousOrders = allOrders.slice(0, 2);
+        this._renderPreviousOrders();
+    } catch (error) {
+        console.error('❌ Erro ao carregar pedidos anteriores da API:', error);
+        // Tenta carregar do localStorage como fallback
+        this._loadFromLocalStorage();
     }
+},
+
+_loadFromLocalStorage() {
+    console.log('📂 Buscando pedidos anteriores do localStorage...');
+    this._previousOrders = [];
+    const keys = Object.keys(localStorage);
+    const orderKeys = keys.filter(key => key.startsWith('order_'));
     
-    // Se não encontrou shortId, gera um fallback
-    if (!shortId) {
-        // Tenta usar o ID da API ou um hash do timestamp
-        const apiId = order.order?.id || order.id || order.order?.order_id;
-        shortId = apiId ? apiId.replace(/\D/g, '').slice(-6) : 'temp_' + Date.now().toString(36);
-    }
+    // Carrega os pedidos mais recentes
+    const allOrders = orderKeys.map(key => {
+        try {
+            const orderData = JSON.parse(localStorage.getItem(key));
+            // Adiciona o shortId aos dados do pedido
+            orderData._shortId = key.replace('order_', '');
+            return orderData;
+        } catch (e) {
+            console.error(`❌ Erro ao carregar pedido ${key}:`, e);
+            return null;
+        }
+    }).filter(order => order !== null);
     
-    // Formata a data
-    const orderDate = order.order?.created_at || order.order?.timestamp || order.date;
-    const formattedDate = this._formatOrderDate(orderDate);
-    
-    // Calcula o total
-    const total = order.order?.total || order.total || 0;
-    
-    const formattedTotal = total.toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
+    // Ordena por data (mais recente primeiro)
+    allOrders.sort((a, b) => {
+        const dateA = new Date(a.order?.created_at || a.order?.timestamp || 0);
+        const dateB = new Date(b.order?.created_at || b.order?.timestamp || 0);
+        return dateB - dateA; // Ordem decrescente (mais recente primeiro)
     });
     
-    // Lista os produtos com detalhes
-    const orderItems = order.items || order.cart || [];
-    const productsList = orderItems.map(item => {
-        const itemTotal = (item.price * item.quantity).toLocaleString('pt-BR', {
+    // Limita aos 2 últimos pedidos - CORREÇÃO AQUI
+    this._previousOrders = allOrders.slice(0, 2);
+    console.log(`📜 ${this._previousOrders.length} pedidos anteriores carregados do localStorage.`);
+    
+    this._renderPreviousOrders();
+},
+
+_renderPreviousOrders() {
+    const listContainer = document.getElementById('previousOrdersList');
+    const container = document.getElementById('previousOrdersContainer');
+    
+    if (!listContainer || !container) {
+        console.warn('⚠️ Elementos de pedidos anteriores não encontrados');
+        return;
+    }
+
+    // Verifica se tem pedidos para mostrar
+    if (!this._previousOrders || this._previousOrders.length === 0) {
+        container.style.display = 'none';
+        listContainer.innerHTML = '';
+        return;
+    }
+
+    // Limita aos 2 últimos pedidos (redundância por segurança)
+    const ordersToShow = this._previousOrders.slice(0, 2);
+    
+    container.style.display = 'block';
+    listContainer.innerHTML = '';
+
+    ordersToShow.forEach(order => {
+        listContainer.innerHTML += this._createOrderHtml(order);
+    });
+    
+    // Atualiza o texto do botão para mostrar quantos pedidos existem
+    const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+    if (previousOrdersBtn && previousOrdersBtn.innerHTML.includes('Pedidos anteriores')) {
+        previousOrdersBtn.innerHTML = `📋 Pedidos anteriores (${ordersToShow.length})`;
+    }
+},
+
+    _createOrderHtml(order) {
+        console.log('📄 Processando HTML para pedido:', order);
+        
+        // IMPORTANTE: Usa o ID curto (shortId) que está na chave do localStorage
+        let orderKey = null;
+        let shortId = null;
+        
+        // Se o pedido veio do localStorage, já tem o shortId
+        if (order._shortId) {
+            shortId = order._shortId;
+        } else {
+            // Tenta encontrar o pedido no localStorage para obter o shortId correto
+            const keys = Object.keys(localStorage);
+            for (const key of keys) {
+                if (key.startsWith('order_')) {
+                    try {
+                        const storedOrder = JSON.parse(localStorage.getItem(key));
+                        // Compara os dados para encontrar o pedido correspondente
+                        const storedId = storedOrder.order?.order_id || storedOrder.order?.id;
+                        const currentId = order.order?.order_id || order.id || order.order_id;
+                        
+                        if (storedId === currentId) {
+                            shortId = key.replace('order_', '');
+                            orderKey = key;
+                            break;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        // Se não encontrou shortId, gera um fallback
+        if (!shortId) {
+            const apiId = order.order_id || order.id || order.order?.order_id || order.order?.id;
+            shortId = apiId ? apiId.toString().replace(/\D/g, '').slice(-6) : 'temp_' + Date.now().toString(36);
+        }
+        
+        // Formata a data - Tenta várias propriedades possíveis
+        const orderDate = order.created_at || order.order?.created_at || order.order?.timestamp || order.date || order.timestamp;
+        console.log('📅 Data encontrada:', orderDate);
+        const formattedDate = this._formatOrderDate(orderDate);
+        
+        // Calcula o total
+        const total = order.total || order.order?.total || order.total_amount || order.order?.total_amount || 0;
+        
+        const formattedTotal = total.toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL'
         });
-        return `
-            <div class="order-item-detail">
-                <span>${item.quantity}x ${item.name || item.product_name}</span>
-                <span>${itemTotal}</span>
-            </div>
-        `;
-    }).join('');
+        
+        // Lista os produtos com detalhes
+        // A API get-all-orders não retorna itens, então precisamos lidar com isso
+        const orderItems = order.items || order.cart || order.order?.items || [];
+        let productsList = '';
+        
+        if (orderItems && orderItems.length > 0) {
+            productsList = orderItems.map(item => {
+                const itemPrice = parseFloat(item.price || item.unit_price || 0);
+                const itemQty = parseInt(item.quantity || 1);
+                const itemTotal = (itemPrice * itemQty).toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+                return `
+                    <div class="order-item-detail">
+                        <span>${itemQty}x ${item.product_name || item.name || 'Produto'}</span>
+                        <span>${itemTotal}</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            productsList = '<div class="order-item-detail"><span>Clique em "Ver Detalhes" para ver os itens</span></div>';
+        }
     
     // Gera o link de detalhes COM O ID CORRETO
-    const detailsLink = `/order.html?i=${shortId}`;
+    // Prioriza o order_id real para a API
+    const realOrderId = order.order_id || order.order?.order_id || shortId;
+    const detailsLink = `/order.html?orderId=${realOrderId}`;
     
     // ID para exibição (pode ser diferente do link)
-    const displayId = order.order?.order_id || order.order?.id || shortId;
+    const displayId = realOrderId;
     
     return `
         <div class="previous-order-item">
@@ -287,7 +355,7 @@ const Cart = {
                     </svg>
                     Detalhes do Pedido
                 </a>
-                <button class="repeat-order-btn" data-order-id="${shortId}">
+                <button class="repeat-order-btn" data-order-id="${realOrderId}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 4v6h6"></path>
                         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
@@ -333,58 +401,7 @@ _loadFromLocalStorage() {
     this._renderPreviousOrders();
 },
 
-// Atualize a função repeatOrder para usar o shortId correto:
-async repeatOrder(shortId) {
-    if (!shortId) return;
 
-    try {
-        console.log(`⏳ Buscando detalhes do pedido shortId: ${shortId} para repetição...`);
-        
-        // Tenta buscar do localStorage primeiro
-        const orderKey = `order_${shortId}`;
-        const orderData = localStorage.getItem(orderKey);
-        
-        if (!orderData) {
-            console.warn(`⚠️ Pedido ${orderKey} não encontrado no localStorage.`);
-            window.showNotification('Pedido não encontrado no histórico local', 3000, 'error');
-            return;
-        }
-
-        const orderDetails = JSON.parse(orderData);
-        
-        if (!orderDetails || (!orderDetails.items && !orderDetails.cart)) {
-            console.warn(`⚠️ Pedido ${shortId} vazio ou sem itens.`);
-            window.showNotification('Pedido vazio ou sem itens', 3000, 'error');
-            return;
-        }
-
-        // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
-        this.clearCart();
-        
-        // Adiciona cada item do pedido anterior ao carrinho
-        const items = orderDetails.items || orderDetails.cart || [];
-        items.forEach(item => {
-            // Verifica se o item tem todos os dados necessários
-            if (item.name && item.price) {
-                this.addItem({
-                    id: item.id || item.product_id,
-                    name: item.name || item.product_name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    image: item.image || '/img/produtos/default.png'
-                }, item.quantity);
-            }
-        });
-
-        this.updateCartUI();
-        this.openCart();
-        window.showNotification(`Pedido #${shortId} adicionado ao carrinho!`, 3000, 'success');
-
-    } catch (error) {
-        console.error(`❌ Erro ao repetir pedido ${shortId}:`, error);
-        window.showNotification('Erro ao repetir pedido. Tente novamente.', 'error');
-    }
-},
 
     _formatOrderDate(dateString) {
         if (!dateString) return 'Data não disponível';
@@ -412,16 +429,21 @@ async repeatOrder(shortId) {
             // Tenta buscar da API primeiro
             let orderDetails;
             try {
-                orderDetails = await apiClient.getOrderDetails(orderId);
+                const response = await apiClient.getOrderDetails(orderId);
+                // A API get-order retorna { success: true, orderData: { ... } }
+                orderDetails = response.orderData || response;
             } catch (apiError) {
                 console.log('⚠️ Não conseguiu buscar da API, tentando localStorage...');
                 // Busca do localStorage
                 orderDetails = this._findOrderInLocalStorage(orderId);
             }
             
-            if (!orderDetails || !orderDetails.items) {
+            // Normaliza os itens (pode vir como items ou cart)
+            const items = orderDetails?.items || orderDetails?.cart || [];
+            
+            if (!orderDetails || items.length === 0) {
                 console.warn(`⚠️ Pedido ${orderId} não encontrado ou vazio.`);
-                window.showNotification('Pedido não encontrado', 3000, 'error');
+                window.showNotification('Pedido não encontrado ou sem itens', 3000, 'error');
                 return;
             }
 
@@ -429,23 +451,39 @@ async repeatOrder(shortId) {
             this.clearCart();
             
             // Adiciona cada item do pedido anterior ao carrinho
-            const items = orderDetails.items || orderDetails.cart || [];
             items.forEach(item => {
-                // Verifica se o item tem todos os dados necessários
-                if (item.name && item.price) {
+                // Normaliza os campos do item
+                const itemName = item.name || item.product_name;
+                const itemPrice = item.price || item.unit_price;
+                const itemId = item.id || item.product_id;
+                
+                // Verifica se o item tem os dados mínimos necessários
+                if (itemName && itemPrice) {
                     this.addItem({
-                        id: item.id || item.product_id,
-                        name: item.name || item.product_name,
-                        price: item.price,
-                        quantity: item.quantity,
-                        image: item.image || '/img/produtos/default.png'
-                    }, item.quantity);
+                        id: itemId,
+                        name: itemName,
+                        price: parseFloat(itemPrice),
+                        quantity: parseInt(item.quantity) || 1,
+                        image: item.image || `/img/produtos/produto${itemId}.png` || '/img/produtos/default.png'
+                    }, parseInt(item.quantity) || 1);
                 }
             });
 
             this.updateCartUI();
             this.openCart();
-            window.showNotification(`Pedido #${orderId} adicionado ao carrinho!`, 3000, 'success');
+            
+            // Fecha a aba de pedidos anteriores automaticamente
+            const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+            const previousOrdersList = document.getElementById('previousOrdersList');
+            if (previousOrdersList && previousOrdersList.style.display === 'block') {
+                previousOrdersList.style.display = 'none';
+                if (previousOrdersBtn) {
+                    previousOrdersBtn.innerHTML = '📋 Pedidos anteriores';
+                    previousOrdersBtn.classList.remove('active');
+                }
+            }
+            
+            window.showNotification('Pedido repetido com sucesso!', 3000, 'success');
 
         } catch (error) {
             console.error(`❌ Erro ao repetir pedido ${orderId}:`, error);
@@ -584,15 +622,20 @@ async repeatOrder(shortId) {
         });
     },
 
-    _applyCepMask(input) {
-        input.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 5) {
-                value = value.substring(0, 5) + '-' + value.substring(5, 8);
-            }
-            e.target.value = value;
-        });
-    },
+_applyCepMask(input) {
+    input.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 5) {
+            value = value.substring(0, 5) + '-' + value.substring(5, 8);
+        }
+        e.target.value = value;
+    });
+    
+    // Também formata o valor inicial se já houver algo
+    if (input.value) {
+        input.value = this._formatCepForDisplay(input.value);
+    }
+},
 
     _setupDeliveryOptionToggle() {
         const deliveryOptionSelect = document.getElementById("deliveryOption");
@@ -662,72 +705,126 @@ async repeatOrder(shortId) {
         }
     },
 
-    // ============================================
-    // BUSCA DE ENDEREÇO POR CEP (VIA CEP API)
-    // ============================================
-    async _fetchAddressByCep(cep) {
-        // Remove caracteres não numéricos
-        const cleanCep = cep.replace(/\D/g, '');
+// ============================================
+// BUSCA DE ENDEREÇO POR CEP (VIA CEP API)
+// ============================================
+async _fetchAddressByCep(cep) {
+    // Remove caracteres não numéricos
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    // Valida se tem 8 dígitos
+    if (cleanCep.length !== 8) {
+        if (cleanCep.length > 0) {
+            window.showNotification(' CEP inválido. Deve ter 8 dígitos.', 3000, 'error');
+        }
         
-        // Valida se tem 8 dígitos
-        if (cleanCep.length !== 8) {
-            if (cleanCep.length > 0) {
-                window.showNotification(' CEP inválido. Deve ter 8 dígitos.', 3000, 'error');
+        // Restaura o valor original se for inválido
+        const cepInput = document.getElementById('customerCep');
+        if (cepInput && cepInput.value === 'Buscando...') {
+            cepInput.value = this._formatCepForDisplay(cep);
+            cepInput.disabled = false;
+        }
+        return null;
+    }
+
+    // Salva a posição atual do scroll ANTES de fazer qualquer coisa
+    const modalBody = document.querySelector('#checkoutModal .modal-body');
+    const scrollTopBefore = modalBody ? modalBody.scrollTop : 0;
+    
+    // Mostra loading - salva o valor ORIGINAL para restaurar depois
+    const cepInput = document.getElementById('customerCep');
+    const originalValue = cepInput ? this._formatCepForDisplay(cep) : cep;
+    
+    if (cepInput) {
+        cepInput.value = 'Buscando...';
+        cepInput.disabled = true;
+    }
+
+    // Timeout de segurança para evitar que fique preso em "Buscando..."
+    const safetyTimeout = setTimeout(() => {
+        if (cepInput && cepInput.value === 'Buscando...') {
+            console.warn('⚠️ Timeout na busca do CEP. Restaurando valor original.');
+            cepInput.value = originalValue;
+            cepInput.disabled = false;
+            window.showNotification('Tempo limite excedido ao buscar CEP. Tente novamente.', 3000, 'warning');
+        }
+    }, 10000); // 10 segundos de timeout
+
+    try {
+        console.log(`📍 Buscando endereço para CEP: ${cleanCep}`);
+        
+        // Faz requisição para a API ViaCEP
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        
+        if (!response.ok) {
+            throw new Error('Erro na requisição');
+        }
+        
+        const data = await response.json();
+        
+        // Limpa o timeout de segurança
+        clearTimeout(safetyTimeout);
+        
+        // Verifica se o CEP foi encontrado
+        if (data.erro) {
+            window.showNotification(' CEP não encontrado. Preencha manualmente.', 3000, 'error');
+            this._clearAddressFields();
+            
+            // Restaura o CEP original formatado
+            if (cepInput) {
+                cepInput.value = originalValue;
+                cepInput.disabled = false;
+            }
+            
+            // Restaura a posição do scroll
+            if (modalBody) {
+                modalBody.scrollTop = scrollTopBefore;
             }
             return null;
         }
-
-        // Mostra loading
-        const cepInput = document.getElementById('customerCep');
-        const originalValue = cepInput.value;
-        cepInput.value = 'Buscando...';
-        cepInput.disabled = true;
-
-        try {
-            console.log(`📍 Buscando endereço para CEP: ${cleanCep}`);
-            
-            // Faz requisição para a API ViaCEP
-            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
-            
-            if (!response.ok) {
-                throw new Error('Erro na requisição');
-            }
-            
-            const data = await response.json();
-            
-            // Verifica se o CEP foi encontrado
-            if (data.erro) {
-                window.showNotification(' CEP não encontrado. Preencha manualmente.', 3000, 'error');
-                this._clearAddressFields();
-                return null;
-            }
-            
-            // Preenche os campos de endereço
-            this._fillAddressFields(data);
-            
-            window.showNotification('Endereço encontrado! Agora insira o número.', 3000, 'success');
-            
-            // Foca no campo de número
-            setTimeout(() => {
-                const numberField = document.getElementById('customerNumber');
-                if (numberField) {
-                    numberField.focus();
-                }
-            }, 500);
-            
-            return data;
-            
-        } catch (error) {
-            console.error('❌ Erro ao buscar CEP:', error);
-            window.showNotification(' Erro ao buscar CEP. Preencha manualmente.', 3000, 'error');
-            this._clearAddressFields();
-            return null;
-        } finally {
-            // Restaura o campo CEP
+        
+        // Preenche os campos de endereço SEM foco automático
+        this._fillAddressFieldsWithoutFocus(data);
+        
+        window.showNotification('Endereço encontrado! Agora insira o número.', 3000, 'success');
+        
+        // Restaura o CEP formatado no campo
+        if (cepInput) {
             cepInput.value = originalValue;
             cepInput.disabled = false;
         }
-    },
+        
+        // RESTAURA A POSIÇÃO DO SCROLL após preenchimento
+        if (modalBody) {
+            setTimeout(() => {
+                modalBody.scrollTop = scrollTopBefore;
+            }, 10);
+        }
+        
+        return data;
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar CEP:', error);
+        
+        // Limpa o timeout de segurança
+        clearTimeout(safetyTimeout);
+        
+        window.showNotification(' Erro ao buscar CEP. Preencha manualmente.', 3000, 'error');
+        this._clearAddressFields();
+        
+        // Restaura o CEP original em caso de erro
+        if (cepInput) {
+            cepInput.value = originalValue;
+            cepInput.disabled = false;
+        }
+        
+        // Restaura a posição do scroll
+        if (modalBody) {
+            modalBody.scrollTop = scrollTopBefore;
+        }
+        return null;
+    }
+},
 
     _fillAddressFields(addressData) {
         const fields = {
@@ -772,6 +869,59 @@ async repeatOrder(shortId) {
             }
         }, 100);
     },
+    _fillAddressFieldsWithoutFocus(addressData) {
+    const fields = {
+        'customerStreet': addressData.logradouro || '',
+        'customerNeighborhood': addressData.bairro || '',
+        'customerCity': `${addressData.localidade || ''} - ${addressData.uf || ''}`,
+        'customerComplement': addressData.complemento || ''
+    };
+
+    // Preenche cada campo SEM focar neles
+    Object.entries(fields).forEach(([fieldId, value]) => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.value = value;
+            
+            // Aplica estilo sutil para indicar preenchimento automático
+            if (value && fieldId !== 'customerComplement') {
+                field.style.backgroundColor = '#f0f9f0';
+                field.style.borderColor = '#4CAF50';
+                field.title = 'Preenchido automaticamente. Pode editar se necessário.';
+                
+                // Adiciona evento para remover o estilo quando o usuário editar
+                const originalValue = field.value;
+                field.addEventListener('input', function onEdit() {
+                    if (this.value !== originalValue) {
+                        this.style.backgroundColor = '';
+                        this.style.borderColor = '';
+                        this.title = '';
+                        this.removeEventListener('input', onEdit);
+                    }
+                });
+            }
+        }
+    });
+
+    // NÃO foca no campo de número - mantém o usuário onde está
+    // Apenas adiciona uma dica visual
+    const numberField = document.getElementById('customerNumber');
+    if (numberField) {
+        numberField.style.borderColor = '#FFA726'; // Laranja para indicar "próximo passo"
+        numberField.style.borderWidth = '2px';
+        
+        // Remove o destaque depois de 3 segundos ou quando o usuário interage
+        setTimeout(() => {
+            numberField.style.borderColor = '';
+            numberField.style.borderWidth = '';
+        }, 3000);
+        
+        numberField.addEventListener('focus', () => {
+            numberField.style.borderColor = '';
+            numberField.style.borderWidth = '';
+        }, { once: true });
+    }
+},
 
     _clearAddressFields() {
         const fieldsToClear = ['customerStreet', 'customerNeighborhood', 'customerCity', 'customerComplement'];
@@ -940,37 +1090,67 @@ async repeatOrder(shortId) {
         }
     },
 
-    openCheckoutModal() {
-        if (this.cartItems.length === 0) {
-            window.showNotification("Seu carrinho está vazio. Adicione produtos antes de finalizar.", 3000, 'error');
-            return;
-        }
+openCheckoutModal() {
+    if (this.cartItems.length === 0) {
+        window.showNotification("Seu carrinho está vazio. Adicione produtos antes de finalizar.", 3000, 'error');
+        return;
+    }
 
-        this.closeCart();
-        const checkoutModal = document.getElementById("checkoutModal");
-        if (checkoutModal) {
-            this.renderCheckoutSummary();
-            checkoutModal.style.display = "flex";
-            document.body.style.overflow = "hidden";
+    this.closeCart();
+    const checkoutModal = document.getElementById("checkoutModal");
+    if (checkoutModal) {
+        this.renderCheckoutSummary();
+        checkoutModal.style.display = "flex";
+        checkoutModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+        
+        // Reset do formulário (mas não do telefone se já existe em localStorage)
+        const form = document.getElementById("checkoutForm");
+        if (form) {
+            form.reset();
+            // Tenta preencher com dados salvos do cliente
+            this._prefillCustomerData();
+        }
+        
+        // Reset do frete
+        this.deliveryFee = 0;
+        this.updateCheckoutSummary();
+        
+        // ADICIONE ESTA LINHA PARA FOCO CORRETO
+        this._focusFirstField();
+    }
+},
+_focusFirstField() {
+    setTimeout(() => {
+        const modal = document.getElementById('checkoutModal');
+        if (!modal) return;
+        
+        // Primeiro, rola para o topo
+        const modalBody = modal.querySelector('.modal-body');
+        if (modalBody) {
+            modalBody.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Depois foca no primeiro campo não readonly
+        const fields = modal.querySelectorAll('input:not([readonly]), select, textarea');
+        if (fields.length > 0) {
+            fields[0].focus();
             
-            // Reset do formulário (mas não do telefone se já existe em localStorage)
-            const form = document.getElementById("checkoutForm");
-            if (form) {
-                form.reset();
-                // Tenta preencher com dados salvos do cliente
-                this._prefillCustomerData();
+            // Se o campo já tiver valor, seleciona o texto
+            if (fields[0].value) {
+                fields[0].select();
             }
-            
-            // Reset do frete
-            this.deliveryFee = 0;
-            this.updateCheckoutSummary();
         }
-    },
-
+    }, 300); // Delay para garantir que o modal está completamente renderizado
+},
     closeCheckoutModal() {
         const checkoutModal = document.getElementById("checkoutModal");
         if (checkoutModal) {
             checkoutModal.style.display = "none";
+            checkoutModal.classList.remove("active");
             document.body.style.overflow = "auto";
             this._submitting = false;
             
@@ -1052,24 +1232,87 @@ async repeatOrder(shortId) {
     // PRÉ-PREENCHER DADOS DO CLIENTE
     // ============================================
     _prefillCustomerData() {
-        const savedPhone = localStorage.getItem('lastCustomerPhone');
-        if (savedPhone) {
-            const phoneInput = document.getElementById('customerPhone');
-            if (phoneInput) {
-                phoneInput.value = savedPhone;
+    console.log('📝 Tentando pré-preencher dados do cliente...');
+    
+    // 1. Tenta preencher o telefone
+    const savedPhone = localStorage.getItem('lastCustomerPhone') || localStorage.getItem('clientePhone');
+    if (savedPhone) {
+        const phoneInput = document.getElementById('customerPhone');
+        if (phoneInput) {
+            // Normaliza o telefone para exibição (remove 55 se houver)
+            let displayPhone = savedPhone;
+            if (displayPhone.startsWith('55') && displayPhone.length > 10) {
+                displayPhone = displayPhone.substring(2);
+            }
+            phoneInput.value = this._formatPhoneForDisplay(displayPhone);
+            console.log('✅ Telefone pré-preenchido:', phoneInput.value);
+        }
+    }
+
+    // 2. Tenta preencher o nome
+    const savedName = localStorage.getItem('lastCustomerName');
+    if (savedName) {
+        const nameInput = document.getElementById('customerName');
+        if (nameInput) {
+            nameInput.value = savedName;
+            console.log('✅ Nome pré-preenchido:', savedName);
+        }
+    }
+    
+    // 3. Tenta preencher o CEP e buscar endereço SEM foco automático
+    const savedCep = localStorage.getItem('lastCustomerCep');
+    if (savedCep) {
+        const cepInput = document.getElementById('customerCep');
+        if (cepInput) {
+            // Formata o CEP para exibição
+            cepInput.value = this._formatCepForDisplay(savedCep);
+            console.log('✅ CEP pré-preenchido:', cepInput.value);
+            
+            // Busca endereço automaticamente MAS sem causar scroll
+            setTimeout(async () => {
+                // Passa o CEP LIMPO (sem formatação) para a busca
+                await this._fetchAddressByCep(savedCep.replace(/\D/g, ''));
+                
+                // Após buscar o CEP, tenta preencher os campos específicos que não vêm do ViaCEP
+                const savedNumber = localStorage.getItem('lastCustomerNumber');
+                if (savedNumber) {
+                    const numberInput = document.getElementById('customerNumber');
+                    if (numberInput) {
+                        numberInput.value = savedNumber;
+                        console.log('✅ Número pré-preenchido:', savedNumber);
+                    }
+                }
+
+                const savedComplement = localStorage.getItem('lastCustomerComplement');
+                if (savedComplement) {
+                    const complementInput = document.getElementById('customerComplement');
+                    if (complementInput) {
+                        complementInput.value = savedComplement;
+                        console.log('✅ Complemento pré-preenchido:', savedComplement);
+                    }
+                }
+            }, 800); // Delay maior para garantir que o modal está completamente renderizado
+        }
+    }
+},
+
+    _prefillAddressDetails() {
+        // Preenche número e complemento que foram salvos anteriormente
+        const savedNumber = localStorage.getItem('lastCustomerNumber');
+        if (savedNumber) {
+            const numberInput = document.getElementById('customerNumber');
+            if (numberInput) {
+                numberInput.value = savedNumber;
+                console.log('✅ Número pré-preenchido:', savedNumber);
             }
         }
-        
-        // Tenta preencher endereço salvo
-        const savedCep = localStorage.getItem('lastCustomerCep');
-        if (savedCep) {
-            const cepInput = document.getElementById('customerCep');
-            if (cepInput) {
-                cepInput.value = savedCep;
-                // Busca endereço automaticamente
-                setTimeout(() => {
-                    this._fetchAddressByCep(savedCep);
-                }, 1000);
+
+        const savedComplement = localStorage.getItem('lastCustomerComplement');
+        if (savedComplement) {
+            const complementInput = document.getElementById('customerComplement');
+            if (complementInput) {
+                complementInput.value = savedComplement;
+                console.log('✅ Complemento pré-preenchido:', savedComplement);
             }
         }
     },
@@ -1125,12 +1368,19 @@ async repeatOrder(shortId) {
                 return;
             }
             
-            // Salva CEP para pré-preenchimento futuro
+            // Salva dados de endereço para pré-preenchimento futuro
             localStorage.setItem('lastCustomerCep', cep);
+            localStorage.setItem('lastCustomerStreet', street);
+            localStorage.setItem('lastCustomerNumber', number);
+            localStorage.setItem('lastCustomerNeighborhood', neighborhood);
+            localStorage.setItem('lastCustomerCity', city);
+            localStorage.setItem('lastCustomerComplement', complement);
         }
 
-        // Salva telefone para pré-preenchimento futuro
+        // Salva dados pessoais para pré-preenchimento futuro
+        localStorage.setItem('lastCustomerName', name);
         localStorage.setItem('lastCustomerPhone', this._formatPhoneForDisplay(phone));
+        localStorage.setItem('clientePhone', '55' + phone);
 
         // Mostra loading
         const submitBtn = document.querySelector('.checkout-submit-btn');
@@ -1179,6 +1429,14 @@ async repeatOrder(shortId) {
         }
         return phone;
     },
+
+    _formatCepForDisplay(cep) {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length === 8) {
+        return cleanCep.substring(0, 5) + '-' + cleanCep.substring(5);
+    }
+    return cep; // Retorna como está se não tiver 8 dígitos
+},
 
     async _processOrder(name, phone, deliveryOption, paymentMethod, observation, addressData = {}) {
         const orderId = 'JD' + Date.now().toString().slice(-8);
@@ -1261,10 +1519,13 @@ async repeatOrder(shortId) {
         let universalLink = null;
         
         try {
+            // Garante que estamos enviando os dados no formato que a API espera
             apiResult = await apiClient.saveOrder({
                 client: clientData,
                 order: orderInfo,
-                items: orderInfo.items
+                items: orderInfo.items,
+                cart: orderInfo.items, // Duplicado para compatibilidade com server.js
+                total: total           // Duplicado para compatibilidade com server.js
             });
             
             if (apiResult && apiResult.success) {

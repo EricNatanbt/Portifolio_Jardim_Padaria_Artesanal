@@ -63,7 +63,7 @@ exports.handler = async (event, context) => {
         let order = null;
         let orderError = null;
         
-        // Tenta primeiro pelo order_id
+        // Tenta primeiro pelo order_id (ID curto legível)
         const result1 = await supabase
             .from('orders')
             .select('*')
@@ -74,18 +74,25 @@ exports.handler = async (event, context) => {
             order = result1.data;
             console.log('✅ Pedido encontrado pelo order_id');
         } else {
-            // Tenta pelo id (caso orderId seja o id numérico)
-            const result2 = await supabase
-                .from('orders')
-                .select('*')
-                .eq('id', orderId)
-                .maybeSingle();
-                
-            if (!result2.error && result2.data) {
-                order = result2.data;
-                console.log('✅ Pedido encontrado pelo id');
+            // Se não encontrou pelo order_id, tenta pelo id (UUID)
+            // Mas só tenta se o orderId parecer um UUID para evitar erro de sintaxe no Postgres
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+            
+            if (isUUID) {
+                const result2 = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('id', orderId)
+                    .maybeSingle();
+                    
+                if (!result2.error && result2.data) {
+                    order = result2.data;
+                    console.log('✅ Pedido encontrado pelo id (UUID)');
+                } else {
+                    orderError = result2.error;
+                }
             } else {
-                orderError = result1.error || result2.error;
+                orderError = result1.error || { message: 'Pedido não encontrado e ID não é um UUID válido' };
             }
         }
 

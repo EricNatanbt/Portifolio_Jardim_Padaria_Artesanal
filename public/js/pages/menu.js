@@ -51,10 +51,8 @@ class MenuInstance {
     }
 
     async renderCardapio(dayIndex) {
-        // Carrega os produtos do Supabase na primeira vez
-        if (this.allProducts.length === 0) {
-            this.allProducts = await this.getProductsFromSupabase();
-        }
+        // Sempre busca produtos frescos do Supabase para garantir que mudanças apareçam instantaneamente
+        this.allProducts = await this.getProductsFromSupabase();
         
         const containerCardapio = document.getElementById("container-cardapio");
         const semFornadas = document.getElementById("sem-fornadas");
