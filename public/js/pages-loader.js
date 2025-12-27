@@ -70,6 +70,13 @@ class PagesLoader {
                                 <p>Quarta a Sexta: 14h – 18h<br>Sábado: 10h – 15h</p>
                             </div>
                         </div>
+                        <div class="info-card">
+                            <div class="info-icon">🥐</div>
+                            <div class="info-content">
+                                <h4>Aviso de Feirinhas</h4>
+                                <p> Participações divulgadas em breve.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
