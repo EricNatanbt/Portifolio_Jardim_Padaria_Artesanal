@@ -144,12 +144,13 @@ class PagesLoader {
                 <div class="container">
                     <div class="cta-content">
                         <h3>Pronto para Experimentar?</h3>
-                        <p>Venha nos visitar ou faça seu pedido pelo WhatsApp</p>
+                        <p>Faça sua encomenda para ocasiões especiais ou converse conosco sobre parcerias.</p>
                         <div class="cta-buttons">
-                            <button class="cta-button primary" data-page="menu">Ver Cardápio Completo</button>
-                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
+                        <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
                                 <img style="width: 24px; height: 24px; margin-right: 0.5rem;" src="img/logos/whatsapp.png" alt="WhatsApp">
-                                Pedir pelo WhatsApp
+                            Encomende aqui</a>
+                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
+                                Vamos ser parceiros!
                             </a>
                         </div>
                     </div>
