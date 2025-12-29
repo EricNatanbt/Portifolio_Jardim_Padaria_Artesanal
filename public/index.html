@@ -218,15 +218,10 @@
             </div>
             <div class="modal-body">
                 <div class="product-image-modal">
-                    <img id="modalProductImage" src="img/logos/Logo.png" alt="Logo da Padaria"
-                        style="width: 60px; height: 60px; object-fit: contain; margin: 0 auto;">
+                    <img id="modalProductImage" src="img/logos/Logo.png" alt="Logo da Padaria" class="modal-product-img">
                 </div>
                 <div class="product-details">
                     <p id="modalProductDescription" class="product-description"></p>
-                    <div class="ingredients">
-                        <h4>Ingredientes</h4>
-                        <p id="modalProductIngredients"></p>
-                    </div>
                     <div class="product-price-modal">
                         <span id="modalProductPrice">R$ 0,00</span>
                     </div>
@@ -462,12 +457,12 @@
     </div>
     </div>
 
-    <!-- Modal de Opções de Contato -->
+     <!-- Modal de Opções de Contato -->
     <div id="contactModal" class="modal" style="display: none;">
         <div class="modal-overlay" id="contactModalOverlay"></div>
         <div class="modal-content contact-modal-content">
             <div class="modal-header">
-                <h3>Como você prefere entrar em contato?</h3>
+                <h3>Fale com a Padaria Jardim</h3>
                 <button id="closeContactModal" class="close-btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -479,14 +474,9 @@
                 <button id="contactOptionCall" class="contact-option-btn">
                     <img src="img/logos/whatsapp.png" alt="WhatsApp"
                         style="width: 24px; height: 24px; margin-right: 0.5rem;">
-                    Enviar Mensagem no WhatsApp
+                    Faça sua encomenda via WhatsApp
                 </button>
 
-            </div>
-            <div class="modal-footer">
-                <button id="contactOptionCancel" class="contact-option-btn cancel-btn">
-                    Cancelar
-                </button>
             </div>
         </div>
     </div>

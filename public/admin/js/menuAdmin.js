@@ -33,7 +33,7 @@ data: availableDate.value
 }
 
 
-alert("Produto salvo!");
+window.showNotification("Produto salvo!", 3000, "success");
 renderLista(produtos);
 limparFormulario();
 };
@@ -42,7 +42,7 @@ limparFormulario();
 btnDelete.onclick = () => {
 if (produtoSelecionado) {
 produtos = produtos.filter(p => p.id !== produtoSelecionado.id);
-alert("Produto excluído!");
+window.showNotification("Produto excluído!", 3000, "success");
 renderLista(produtos);
 limparFormulario();
 }

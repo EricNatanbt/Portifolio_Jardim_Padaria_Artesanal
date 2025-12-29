@@ -118,6 +118,9 @@ class MenuInstance {
                     produtoDiv.setAttribute('data-product-id', produto.id);
 
                     produtoDiv.innerHTML = `
+                        <div class="produto-imagem-container">
+                            <img src="${produto.image || 'img/logos/Logo.png'}" alt="${produto.name}" class="produto-img-card">
+                        </div>
                         <div class="produto-info">
                             <div class="produto-nome">${produto.name}</div>
                             <div class="produto-preco">R$ ${produto.price.toFixed(2).replace('.', ',')}</div>
@@ -167,7 +170,7 @@ class MenuInstance {
         this.currentDayIndex = dayIndex;
     }
 
-    openProductModal(product) {
+     openProductModal(product) {
         if (window.Modal && typeof window.Modal.openProductModal === 'function') {
             window.Modal.openProductModal(product);
         } else {
@@ -182,8 +185,8 @@ class MenuInstance {
                 modalProductIngredients && modalProductPrice && addToCartModal) {
                 
                 modalProductName.textContent = product.name;
-                modalProductDescription.textContent = product.description || 'Sem descrição disponível.';
-                modalProductIngredients.textContent = product.ingredients || 'Ingredientes não especificados.';
+                modalProductDescription.innerHTML = (product.description || 'Sem descrição disponível.').replace(/\n/g, '<br>');
+                modalProductIngredients.innerHTML = (product.ingredients || 'Ingredientes não especificados.').replace(/\n/g, '<br>');
                 modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
                 
                 addToCartModal.onclick = () => {
@@ -259,7 +262,8 @@ class MenuInstance {
                 ingredients: item.ingredients,
                 category: item.category,
                 available_days: item.available_days || [],
-                day: item.available_days || []
+                day: item.available_days || [],
+                image: item.image_url || item.imagem || 'img/logos/Logo.png'
             }));
             
         } catch (error) {

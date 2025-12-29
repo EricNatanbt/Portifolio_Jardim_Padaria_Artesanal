@@ -70,6 +70,13 @@ class PagesLoader {
                                 <p>Quarta a Sexta: 14h – 18h<br>Sábado: 10h – 15h</p>
                             </div>
                         </div>
+                        <div class="info-card">
+                            <div class="info-icon">🥐</div>
+                            <div class="info-content">
+                                <h4>Aviso de Feirinhas</h4>
+                                <p> Participações divulgadas em breve.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -144,12 +151,13 @@ class PagesLoader {
                 <div class="container">
                     <div class="cta-content">
                         <h3>Pronto para Experimentar?</h3>
-                        <p>Venha nos visitar ou faça seu pedido pelo WhatsApp</p>
+                        <p>Faça sua encomenda para ocasiões especiais ou converse conosco sobre parcerias.</p>
                         <div class="cta-buttons">
-                            <button class="cta-button primary" data-page="menu">Ver Cardápio Completo</button>
-                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
+                        <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
                                 <img style="width: 24px; height: 24px; margin-right: 0.5rem;" src="img/logos/whatsapp.png" alt="WhatsApp">
-                                Pedir pelo WhatsApp
+                            Encomende aqui</a>
+                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0" class="cta-button secondary" target="_blank">
+                                Vamos ser parceiros!
                             </a>
                         </div>
                     </div>

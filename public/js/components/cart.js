@@ -138,49 +138,190 @@ async _loadPreviousOrders() {
     try {
         console.log('⏳ Buscando pedidos anteriores...');
         
-        // Tenta pegar o telefone do localStorage
-        const phone = localStorage.getItem('clientePhone');
+        // 1. Obtém o telefone do localStorage
+        let phone = localStorage.getItem('clientePhone') || localStorage.getItem('lastCustomerPhone');
         
-        if (phone) {
-            console.log(`📱 Buscando pedidos para o telefone: ${phone}`);
-            // Primeiro busca o cliente
-            const clientResult = await apiClient.getClientByPhone(phone);
-            
-            if (clientResult.success && clientResult.client) {
-                const clientId = clientResult.client.id;
-                console.log(`👤 Cliente encontrado: ${clientId}, buscando pedidos...`);
-                
-                // Busca os pedidos do cliente (esta API retorna os itens)
-                const ordersResponse = await fetch('/.netlify/functions/get-client-orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientId: clientId })
-                });
-                
-                if (ordersResponse.ok) {
-                    const ordersResult = await ordersResponse.json();
-                    if (ordersResult.success) {
-                        // Limita aos 2 pedidos mais recentes - CORREÇÃO AQUI
-                        this._previousOrders = (ordersResult.orders || []).slice(0, 2);
-                        console.log(`📦 ${this._previousOrders.length} pedidos encontrados para o cliente.`);
-                        this._renderPreviousOrders();
-                        return;
-                    }
-                }
-            }
+        if (!phone) {
+            console.log('📱 Nenhum telefone de cliente encontrado.');
+            this._showNoPreviousOrders();
+            return;
         }
         
-        // Fallback para getRecentOrders se não tiver telefone ou falhar
-        const response = await apiClient.getRecentOrders();
-        const allOrders = response.orders || response || [];
-        // Limita aos 2 pedidos mais recentes - CORREÇÃO AQUI
-        this._previousOrders = allOrders.slice(0, 2);
+        // Remove caracteres não numéricos
+        phone = phone.replace(/\D/g, '');
+        
+        // 2. Verifica se tem telefone válido (mínimo 10 dígitos com DDD)
+        if (phone.length < 10) {
+            console.log('📱 Telefone inválido (mínimo 10 dígitos).');
+            this._showNoPreviousOrders();
+            return;
+        }
+        
+        console.log(`📱 Telefone encontrado: ${phone}`);
+        
+        // 3. Adiciona 55 para buscar no banco de dados
+        const phoneForDatabase = phone.startsWith('55') ? phone : `55${phone}`;
+        
+        console.log(`📱 Buscando pedidos para telefone: ${phoneForDatabase}`);
+        
+        let orders = [];
+        
+        // 4. Tenta buscar via API getRecentOrdersByPhone (que já deve retornar limitado)
+        try {
+            console.log(`📦 Tentando API getRecentOrdersByPhone...`);
+            const apiResponse = await apiClient.getRecentOrdersByPhone(phoneForDatabase);
+            
+            if (apiResponse && apiResponse.success && apiResponse.orders) {
+                orders = apiResponse.orders;
+                console.log(`✅ ${orders.length} pedidos encontrados via API.`);
+            } else {
+                console.log(`⚠️ API não retornou pedidos, tentando localStorage...`);
+                orders = this._getOrdersByPhoneFromLocalStorage(phone);
+            }
+        } catch (apiError) {
+            console.warn('⚠️ Erro na API, usando localStorage:', apiError);
+            orders = this._getOrdersByPhoneFromLocalStorage(phone);
+        }
+        
+        // 5. Garante que mostra no máximo 2 pedidos
+        this._previousOrders = orders.slice(0, 2);
+        
+        console.log(`📊 Pedidos que serão exibidos: ${this._previousOrders.length}`);
+        
+        // 6. Renderiza os pedidos
         this._renderPreviousOrders();
+        
     } catch (error) {
-        console.error('❌ Erro ao carregar pedidos anteriores da API:', error);
-        // Tenta carregar do localStorage como fallback
-        this._loadFromLocalStorage();
+        console.error('❌ Erro ao carregar pedidos anteriores:', error);
+        this._showNoPreviousOrders();
     }
+},
+
+_showNoPreviousOrders() {
+    this._previousOrders = [];
+    
+    const listContainer = document.getElementById('previousOrdersList');
+    const container = document.getElementById('previousOrdersContainer');
+    
+    if (listContainer && container) {
+        container.style.display = 'block';
+        listContainer.innerHTML = `
+            <div class="no-previous-orders">
+                <p>📭 Nenhum pedido anterior encontrado.</p>
+                <p class="small-text">Faça seu primeiro pedido para começar seu histórico!</p>
+            </div>
+        `;
+        
+        // Atualiza botão
+        const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+        if (previousOrdersBtn) {
+            previousOrdersBtn.innerHTML = `📋 Pedidos anteriores`;
+        }
+    }
+},
+
+_getOrdersByPhoneFromLocalStorage(phone) {
+    console.log(`🔍 Buscando pedidos no localStorage para telefone: ${phone}`);
+    
+    const orders = [];
+    const keys = Object.keys(localStorage);
+    const orderKeys = keys.filter(key => key.startsWith('order_'));
+    
+    // Prepara o telefone para comparação (com e sem 55)
+    const phoneVariations = [
+        phone, // Como veio
+        phone.startsWith('55') ? phone : `55${phone}`, // Com 55
+        phone.startsWith('55') ? phone.substring(2) : phone // Sem 55
+    ];
+    
+    console.log(`📱 Variações de telefone para busca:`, phoneVariations);
+    
+    for (const key of orderKeys) {
+        try {
+            const orderData = JSON.parse(localStorage.getItem(key));
+            
+            // Extrai telefone do pedido
+            const orderPhone = this._extractPhoneFromOrder(orderData);
+            
+            if (orderPhone) {
+                // Remove caracteres não numéricos para comparação
+                const cleanOrderPhone = orderPhone.replace(/\D/g, '');
+                
+                // Verifica se o telefone do pedido corresponde a alguma variação
+                const isMatch = phoneVariations.some(variation => {
+                    const cleanVariation = variation.replace(/\D/g, '');
+                    return cleanOrderPhone === cleanVariation;
+                });
+                
+                if (isMatch) {
+                    orderData._shortId = key.replace('order_', '');
+                    orderData._source = 'localStorage';
+                    orders.push(orderData);
+                }
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    
+    // Ordena por data (mais recente primeiro)
+    orders.sort((a, b) => {
+        const dateA = new Date(a.order?.created_at || a.order?.timestamp || 0);
+        const dateB = new Date(b.order?.created_at || b.order?.timestamp || 0);
+        return dateB - dateA;
+    });
+    
+    // Já retorna limitado a 2
+    return orders.slice(0, 2);
+},
+
+_extractPhoneFromOrder(orderData) {
+    if (!orderData) return null;
+    
+    // Tenta várias propriedades possíveis em ordem de prioridade
+    const phoneSources = [
+        orderData.customer?.phone,
+        orderData.client?.phone,
+        orderData.phone,
+        orderData.order?.customer_phone,
+        orderData.order?.client_phone
+    ];
+    
+    for (const phone of phoneSources) {
+        if (phone && typeof phone === 'string' && phone.trim() !== '') {
+            // Remove caracteres não numéricos
+            const cleanPhone = phone.toString().replace(/\D/g, '');
+            
+            // Se tiver menos de 10 dígitos, ignora (não é um telefone válido)
+            if (cleanPhone.length >= 10) {
+                return cleanPhone;
+            }
+        }
+    }
+    
+    return null;
+},
+// Adicione esta função utilitária:
+_normalizePhone(phone) {
+    if (!phone) return null;
+    
+    // Remove todos os caracteres não numéricos
+    const cleanPhone = phone.toString().replace(/\D/g, '');
+    
+    // Verifica se é um telefone válido
+    if (cleanPhone.length < 10) {
+        return null;
+    }
+    
+    // Garante que tem código do país (55) para o banco
+    const withCountryCode = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+    
+    return {
+        raw: phone,
+        clean: cleanPhone,
+        with55: withCountryCode,
+        without55: cleanPhone.startsWith('55') ? cleanPhone.substring(2) : cleanPhone
+    };
 },
 
 _loadFromLocalStorage() {
@@ -227,111 +368,131 @@ _renderPreviousOrders() {
 
     // Verifica se tem pedidos para mostrar
     if (!this._previousOrders || this._previousOrders.length === 0) {
-        container.style.display = 'none';
-        listContainer.innerHTML = '';
+        container.style.display = 'block';
+        listContainer.innerHTML = `
+            <div class="no-previous-orders">
+                <p>📭 Nenhum pedido anterior encontrado.</p>
+                <p class="small-text">Faça seu primeiro pedido para começar seu histórico!</p>
+            </div>
+        `;
+        
+        // Atualiza botão
+        const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+        if (previousOrdersBtn) {
+            previousOrdersBtn.innerHTML = `📋 Pedidos anteriores`;
+        }
+        
         return;
     }
 
-    // Limita aos 2 últimos pedidos (redundância por segurança)
-    const ordersToShow = this._previousOrders.slice(0, 2);
-    
     container.style.display = 'block';
     listContainer.innerHTML = '';
 
-    ordersToShow.forEach(order => {
+    // Renderiza APENAS 2 pedidos (já está limitado, mas por segurança)
+    const ordersToShow = this._previousOrders.slice(0, 2);
+    
+    ordersToShow.forEach((order, index) => {
+        console.log(`📄 Renderizando pedido ${index + 1} de ${ordersToShow.length}`);
         listContainer.innerHTML += this._createOrderHtml(order);
     });
     
-    // Atualiza o texto do botão para mostrar quantos pedidos existem
+    // Atualiza o texto do botão para mostrar APENAS 2 pedidos
     const previousOrdersBtn = document.getElementById('previousOrdersBtn');
-    if (previousOrdersBtn && previousOrdersBtn.innerHTML.includes('Pedidos anteriores')) {
+    if (previousOrdersBtn) {
         previousOrdersBtn.innerHTML = `📋 Pedidos anteriores (${ordersToShow.length})`;
     }
 },
-
-    _createOrderHtml(order) {
-        console.log('📄 Processando HTML para pedido:', order);
-        
-        // IMPORTANTE: Usa o ID curto (shortId) que está na chave do localStorage
-        let orderKey = null;
-        let shortId = null;
-        
-        // Se o pedido veio do localStorage, já tem o shortId
-        if (order._shortId) {
-            shortId = order._shortId;
-        } else {
-            // Tenta encontrar o pedido no localStorage para obter o shortId correto
-            const keys = Object.keys(localStorage);
-            for (const key of keys) {
-                if (key.startsWith('order_')) {
-                    try {
-                        const storedOrder = JSON.parse(localStorage.getItem(key));
-                        // Compara os dados para encontrar o pedido correspondente
-                        const storedId = storedOrder.order?.order_id || storedOrder.order?.id;
-                        const currentId = order.order?.order_id || order.id || order.order_id;
-                        
-                        if (storedId === currentId) {
-                            shortId = key.replace('order_', '');
-                            orderKey = key;
-                            break;
-                        }
-                    } catch (e) {
-                        continue;
+_createOrderHtml(order) {
+    console.log('📄 Processando HTML para pedido:', order);
+    
+    // Obtém todos os IDs possíveis
+    const shortId = order._shortId;
+    const apiOrderId = order.order?.order_id || order.order?.id || order.order_id;
+    const displayOrderId = order.order?.order_id || order.order?.id || order.order_id || shortId;
+    
+    console.log(`🔑 IDs disponíveis: shortId=${shortId}, apiOrderId=${apiOrderId}, displayOrderId=${displayOrderId}`);
+    
+    // DECIDE qual ID usar para ações
+    // Prefere o shortId para localStorage, mas se tiver apiOrderId, usa ele
+    let actionOrderId = apiOrderId || shortId;
+    let isLocalStorageOrder = !apiOrderId || apiOrderId === shortId;
+    
+    // Se não tem ID claro, tenta gerar um
+    if (!actionOrderId) {
+        // Tenta encontrar no localStorage
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+            if (key.startsWith('order_')) {
+                try {
+                    const storedOrder = JSON.parse(localStorage.getItem(key));
+                    const storedApiId = storedOrder.order?.order_id || storedOrder.order?.id;
+                    const storedDisplayId = storedOrder.order?.order_id || storedOrder.order?.id || storedOrder.order_id;
+                    
+                    if (storedDisplayId === displayOrderId || storedApiId === apiOrderId) {
+                        actionOrderId = key.replace('order_', '');
+                        isLocalStorageOrder = true;
+                        console.log(`🔍 Encontrou correspondência no localStorage: ${actionOrderId}`);
+                        break;
                     }
+                } catch (e) {
+                    continue;
                 }
             }
         }
         
-        // Se não encontrou shortId, gera um fallback
-        if (!shortId) {
-            const apiId = order.order_id || order.id || order.order?.order_id || order.order?.id;
-            shortId = apiId ? apiId.toString().replace(/\D/g, '').slice(-6) : 'temp_' + Date.now().toString(36);
+        // Se ainda não tem, cria um fallback
+        if (!actionOrderId) {
+            actionOrderId = 'temp_' + Date.now().toString(36);
+            isLocalStorageOrder = true;
         }
-        
-        // Formata a data - Tenta várias propriedades possíveis
-        const orderDate = order.created_at || order.order?.created_at || order.order?.timestamp || order.date || order.timestamp;
-        console.log('📅 Data encontrada:', orderDate);
-        const formattedDate = this._formatOrderDate(orderDate);
-        
-        // Calcula o total
-        const total = order.total || order.order?.total || order.total_amount || order.order?.total_amount || 0;
-        
-        const formattedTotal = total.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        });
-        
-        // Lista os produtos com detalhes
-        // A API get-all-orders não retorna itens, então precisamos lidar com isso
-        const orderItems = order.items || order.cart || order.order?.items || [];
-        let productsList = '';
-        
-        if (orderItems && orderItems.length > 0) {
-            productsList = orderItems.map(item => {
-                const itemPrice = parseFloat(item.price || item.unit_price || 0);
-                const itemQty = parseInt(item.quantity || 1);
-                const itemTotal = (itemPrice * itemQty).toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                });
-                return `
-                    <div class="order-item-detail">
-                        <span>${itemQty}x ${item.product_name || item.name || 'Produto'}</span>
-                        <span>${itemTotal}</span>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            productsList = '<div class="order-item-detail"><span>Clique em "Ver Detalhes" para ver os itens</span></div>';
-        }
+    }
     
-    // Gera o link de detalhes COM O ID CORRETO
-    // Prioriza o order_id real para a API
-    const realOrderId = order.order_id || order.order?.order_id || shortId;
-    const detailsLink = `/order.html?orderId=${realOrderId}`;
+    // Formata a data
+    const orderDate = order.created_at || order.order?.created_at || order.order?.timestamp || order.date || order.timestamp;
+    const formattedDate = this._formatOrderDate(orderDate);
     
-    // ID para exibição (pode ser diferente do link)
-    const displayId = realOrderId;
+    // Calcula o total
+    const total = order.total || order.order?.total || order.total_amount || order.order?.total_amount || 0;
+    const formattedTotal = total.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+    
+    // Lista os produtos
+    const orderItems = order.items || order.cart || order.order?.items || [];
+    let productsList = '';
+    
+    if (orderItems && orderItems.length > 0) {
+        productsList = orderItems.map(item => {
+            const itemPrice = parseFloat(item.price || item.unit_price || 0);
+            const itemQty = parseInt(item.quantity || 1);
+            const itemTotal = (itemPrice * itemQty).toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            });
+            return `
+                <div class="order-item-detail">
+                    <span>${itemQty}x ${item.product_name || item.name || 'Produto'}</span>
+                    <span>${itemTotal}</span>
+                </div>
+            `;
+        }).join('');
+    } else {
+        productsList = '<div class="order-item-detail"><span>Clique em "Ver Detalhes" para ver os itens</span></div>';
+    }
+    
+    // Gera o link de detalhes
+    const detailsLink = `/order.html?orderId=${encodeURIComponent(actionOrderId)}${isLocalStorageOrder ? '&source=local' : ''}`;
+    
+    // ID para exibição (formata para ficar mais apresentável)
+    let displayId = displayOrderId;
+    if (displayId && displayId.length > 10) {
+        displayId = displayId.substring(0, 8) + '...';
+    } else if (!displayId) {
+        displayId = 'Pedido';
+    }
+    
+    console.log(`🔗 Link gerado: ${detailsLink}, displayId: ${displayId}`);
     
     return `
         <div class="previous-order-item">
@@ -347,7 +508,7 @@ _renderPreviousOrders() {
             </div>
             
             <div class="order-actions">
-                <a href="${detailsLink}" target="_blank" class="order-details-btn">
+                <a href="${detailsLink}" target="_blank" class="order-details-btn" data-order-id="${actionOrderId}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -355,7 +516,7 @@ _renderPreviousOrders() {
                     </svg>
                     Detalhes do Pedido
                 </a>
-                <button class="repeat-order-btn" data-order-id="${realOrderId}">
+                <button class="repeat-order-btn" data-order-id="${actionOrderId}">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 4v6h6"></path>
                         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
@@ -378,11 +539,9 @@ _loadFromLocalStorage() {
     const allOrders = orderKeys.map(key => {
         try {
             const orderData = JSON.parse(localStorage.getItem(key));
-            // Adiciona o shortId aos dados do pedido
             orderData._shortId = key.replace('order_', '');
             return orderData;
         } catch (e) {
-            console.error(`❌ Erro ao carregar pedido ${key}:`, e);
             return null;
         }
     }).filter(order => order !== null);
@@ -394,7 +553,7 @@ _loadFromLocalStorage() {
         return dateB - dateA;
     });
     
-    // Limita aos 2 últimos pedidos
+    // LIMITA AOS 2 ÚLTIMOS PEDIDOS - MUDANÇA AQUI
     this._previousOrders = allOrders.slice(0, 2);
     console.log(`📜 ${this._previousOrders.length} pedidos anteriores carregados do localStorage.`);
     
@@ -420,111 +579,215 @@ _loadFromLocalStorage() {
         }
     },
 
-    async repeatOrder(orderId) {
-        if (!orderId) return;
+async repeatOrder(orderId) {
+    if (!orderId) return;
 
+    try {
+        console.log(`⏳ Buscando detalhes do pedido ${orderId} para repetição...`);
+        
+        let orderDetails = null;
+        let source = 'unknown';
+        
+        // PRIMEIRO: Tenta buscar da API usando getOrderDetails
         try {
-            console.log(`⏳ Buscando detalhes do pedido ${orderId} para repetição...`);
+            console.log(`🌐 Tentando buscar pedido ${orderId} da API...`);
+            const response = await apiClient.getOrderDetails(orderId);
             
-            // Tenta buscar da API primeiro
-            let orderDetails;
-            try {
-                const response = await apiClient.getOrderDetails(orderId);
-                // A API get-order retorna { success: true, orderData: { ... } }
-                orderDetails = response.orderData || response;
-            } catch (apiError) {
-                console.log('⚠️ Não conseguiu buscar da API, tentando localStorage...');
-                // Busca do localStorage
-                orderDetails = this._findOrderInLocalStorage(orderId);
+            // Verifica se a resposta tem sucesso e dados
+            if (response && response.success !== false && response.orderData) {
+                orderDetails = response.orderData;
+                source = 'api';
+                console.log(`✅ Pedido ${orderId} encontrado na API`);
+            } else {
+                console.log(`⚠️ API retornou sem dados para ${orderId}`);
+                throw new Error('API sem dados');
             }
+        } catch (apiError) {
+            console.log('⚠️ Não conseguiu buscar da API, tentando localStorage...');
             
-            // Normaliza os itens (pode vir como items ou cart)
-            const items = orderDetails?.items || orderDetails?.cart || [];
+            // SEGUNDO: Tenta buscar do localStorage
+            orderDetails = this._findOrderInLocalStorage(orderId);
             
-            if (!orderDetails || items.length === 0) {
-                console.warn(`⚠️ Pedido ${orderId} não encontrado ou vazio.`);
-                window.showNotification('Pedido não encontrado ou sem itens', 3000, 'error');
-                return;
-            }
-
-            // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
-            this.clearCart();
-            
-            // Adiciona cada item do pedido anterior ao carrinho
-            items.forEach(item => {
-                // Normaliza os campos do item
-                const itemName = item.name || item.product_name;
-                const itemPrice = item.price || item.unit_price;
-                const itemId = item.id || item.product_id;
+            if (orderDetails) {
+                source = 'localStorage';
+                console.log(`✅ Pedido ${orderId} encontrado no localStorage`);
+            } else {
+                // TENTA BUSCAR POR SHORT ID
+                console.log(`🔍 Tentando buscar por shortId...`);
                 
-                // Verifica se o item tem os dados mínimos necessários
-                if (itemName && itemPrice) {
-                    this.addItem({
-                        id: itemId,
-                        name: itemName,
-                        price: parseFloat(itemPrice),
-                        quantity: parseInt(item.quantity) || 1,
-                        image: item.image || `/img/produtos/produto${itemId}.png` || '/img/produtos/default.png'
-                    }, parseInt(item.quantity) || 1);
-                }
-            });
-
-            this.updateCartUI();
-            this.openCart();
-            
-            // Fecha a aba de pedidos anteriores automaticamente
-            const previousOrdersBtn = document.getElementById('previousOrdersBtn');
-            const previousOrdersList = document.getElementById('previousOrdersList');
-            if (previousOrdersList && previousOrdersList.style.display === 'block') {
-                previousOrdersList.style.display = 'none';
-                if (previousOrdersBtn) {
-                    previousOrdersBtn.innerHTML = '📋 Pedidos anteriores';
-                    previousOrdersBtn.classList.remove('active');
-                }
-            }
-            
-            window.showNotification('Pedido repetido com sucesso!', 3000, 'success');
-
-        } catch (error) {
-            console.error(`❌ Erro ao repetir pedido ${orderId}:`, error);
-            window.showNotification('Erro ao repetir pedido. Tente novamente.', 'error');
-        }
-    },
-
-    _findOrderInLocalStorage(orderId) {
-        const keys = Object.keys(localStorage);
-        for (const key of keys) {
-            if (key.startsWith('order_')) {
-                try {
-                    const order = JSON.parse(localStorage.getItem(key));
-                    if (order.order?.id === orderId || order.order?.order_id === orderId || order.id === orderId) {
-                        return order;
+                // Verifica se o orderId parece ser um ID da API (começa com JD)
+                if (orderId.startsWith('JD')) {
+                    // Tenta buscar no localStorage usando shortId
+                    const keys = Object.keys(localStorage);
+                    const orderKeys = keys.filter(key => key.startsWith('order_'));
+                    
+                    for (const key of orderKeys) {
+                        try {
+                            const storedOrder = JSON.parse(localStorage.getItem(key));
+                            const storedApiId = storedOrder.order?.order_id || storedOrder.order?.id;
+                            
+                            if (storedApiId === orderId) {
+                                orderDetails = storedOrder;
+                                source = 'localStorage-by-api-id';
+                                console.log(`✅ Pedido encontrado no localStorage pelo ID da API: ${key}`);
+                                break;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
                     }
-                } catch (e) {
-                    continue;
                 }
             }
         }
-        return null;
-    },
-
-    addItem(product, quantity = 1) {
-        // Implementação do método addItem
-        const existingItem = this.cartItems.find(item => item.id === product.id);
         
-        if (existingItem) {
-            existingItem.quantity += quantity;
-        } else {
-            this.cartItems.push({
-                ...product,
-                quantity: quantity
-            });
+        // TERCEIRO: Se ainda não encontrou, tenta buscar como shortId do localStorage
+        if (!orderDetails) {
+            console.log(`🔍 Tentando buscar como shortId direto...`);
+            // Tenta adicionar "order_" prefix se não tiver
+            const localKey = orderId.startsWith('order_') ? orderId : `order_${orderId}`;
+            
+            try {
+                const storedData = localStorage.getItem(localKey);
+                if (storedData) {
+                    orderDetails = JSON.parse(storedData);
+                    source = 'localStorage-direct';
+                    console.log(`✅ Pedido encontrado com chave direta: ${localKey}`);
+                }
+            } catch (e) {
+                console.error(`❌ Erro ao acessar localStorage:`, e);
+            }
         }
         
-        this.saveCartToStorage();
-        this.updateCartUI();
-    },
+        // Verifica se encontrou o pedido
+        if (!orderDetails) {
+            console.warn(`⚠️ Pedido ${orderId} não encontrado em nenhuma fonte.`);
+            window.showNotification('Pedido não encontrado. Talvez tenha expirado ou sido removido.', 3000, 'error');
+            return;
+        }
+        
+        // Normaliza os itens (pode vir como items ou cart)
+        const items = orderDetails?.items || orderDetails?.cart || orderDetails?.order?.items || [];
+        
+        if (items.length === 0) {
+            console.warn(`⚠️ Pedido ${orderId} encontrado mas sem itens.`);
+            window.showNotification('Pedido encontrado mas sem itens para repetir.', 3000, 'warning');
+            return;
+        }
 
+        console.log(`📍 Fonte dos dados: ${source}, ${items.length} itens encontrados`);
+        
+        // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
+        this.clearCart();
+        
+        // Adiciona cada item do pedido anterior ao carrinho
+        items.forEach(item => {
+            // Normaliza os campos do item
+            const itemName = item.name || item.product_name;
+            const itemPrice = item.price || item.unit_price;
+            const itemId = item.id || item.product_id;
+            
+            // Verifica se o item tem os dados mínimos necessários
+            if (itemName && itemPrice) {
+                this.addItem({
+                    id: itemId,
+                    name: itemName,
+                    price: parseFloat(itemPrice),
+                    quantity: parseInt(item.quantity) || 1,
+                    image: item.image || `/img/produtos/produto${itemId}.png` || '/img/produtos/default.png'
+                }, parseInt(item.quantity) || 1);
+            }
+        });
+
+        this.updateCartUI();
+        this.openCart();
+        
+        // Fecha a aba de pedidos anteriores automaticamente
+        const previousOrdersBtn = document.getElementById('previousOrdersBtn');
+        const previousOrdersList = document.getElementById('previousOrdersList');
+        if (previousOrdersList && previousOrdersList.style.display === 'block') {
+            previousOrdersList.style.display = 'none';
+            if (previousOrdersBtn) {
+                previousOrdersBtn.innerHTML = '📋 Pedidos anteriores';
+                previousOrdersBtn.classList.remove('active');
+            }
+        }
+        
+        window.showNotification('Pedido repetido com sucesso!', 3000, 'success');
+
+    } catch (error) {
+        console.error(`❌ Erro ao repetir pedido ${orderId}:`, error);
+        window.showNotification('Erro ao repetir pedido. Tente novamente.', 'error');
+    }
+},
+
+// Melhore a função _findOrderInLocalStorage
+_findOrderInLocalStorage(orderId) {
+    console.log(`🔍 Buscando pedido ${orderId} no localStorage...`);
+    
+    const keys = Object.keys(localStorage);
+    
+    // CASO 1: orderId já inclui "order_" prefix
+    if (orderId.startsWith('order_')) {
+        const key = orderId;
+        if (keys.includes(key)) {
+            try {
+                const orderData = JSON.parse(localStorage.getItem(key));
+                console.log(`✅ Encontrado com chave completa: ${key}`);
+                return orderData;
+            } catch (e) {
+                console.error(`❌ Erro ao parsear ${key}:`, e);
+            }
+        }
+    }
+    
+    // CASO 2: orderId é um shortId (sem "order_")
+    const orderKey = `order_${orderId}`;
+    if (keys.includes(orderKey)) {
+        try {
+            const orderData = JSON.parse(localStorage.getItem(orderKey));
+            console.log(`✅ Encontrado com shortId: ${orderKey}`);
+            return orderData;
+        } catch (e) {
+            console.error(`❌ Erro ao parsear ${orderKey}:`, e);
+        }
+    }
+    
+    // CASO 3: Busca por ID da API em todos os pedidos
+    const orderKeys = keys.filter(key => key.startsWith('order_'));
+    console.log(`🔍 Verificando ${orderKeys.length} pedidos no localStorage...`);
+    
+    for (const key of orderKeys) {
+        try {
+            const orderData = JSON.parse(localStorage.getItem(key));
+            
+            // Verifica múltiplos campos possíveis de ID
+            const possibleIds = [
+                key.replace('order_', ''), // shortId da chave
+                orderData.order?.order_id,
+                orderData.order?.id,
+                orderData.order_id,
+                orderData.id,
+                orderData._shortId
+            ];
+            
+            // Remove valores nulos/undefined e converte para string
+            const cleanIds = possibleIds
+                .filter(id => id != null)
+                .map(id => id.toString());
+            
+            // Verifica se algum dos IDs corresponde
+            if (cleanIds.includes(orderId.toString())) {
+                console.log(`✅ Encontrado! Chave: ${key}, IDs: ${cleanIds.join(', ')}`);
+                return orderData;
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    
+    console.log(`❌ Pedido ${orderId} não encontrado no localStorage`);
+    return null;
+},
     _setupCheckoutListeners() {
         const closeCheckoutModal = document.getElementById("closeCheckoutModal");
         const checkoutModalOverlay = document.getElementById("checkoutModalOverlay");
@@ -1025,7 +1288,7 @@ async _fetchAddressByCep(cep) {
                 const cartItem = document.createElement("div");
                 cartItem.className = "cart-item";
 
-                const imageUrl = item.image || "img/logos/Logo.png";
+                const imageUrl = item.image || item.imagem || "img/logos/Logo.png";
 
                 cartItem.innerHTML = `
                     <img src="${imageUrl}" class="cart-item-img" alt="${item.name}">
@@ -1231,21 +1494,36 @@ _focusFirstField() {
     // ============================================
     // PRÉ-PREENCHER DADOS DO CLIENTE
     // ============================================
-    _prefillCustomerData() {
+_prefillCustomerData() {
     console.log('📝 Tentando pré-preencher dados do cliente...');
     
-    // 1. Tenta preencher o telefone
-    const savedPhone = localStorage.getItem('lastCustomerPhone') || localStorage.getItem('clientePhone');
-    if (savedPhone) {
+    // 1. Tenta preencher o telefone - PRIORIDADE para clientePhone (com 55)
+    const savedPhoneWith55 = localStorage.getItem('clientePhone');
+    const savedPhoneWithout55 = localStorage.getItem('lastCustomerPhone');
+    
+    // Prefere o telefone COM 55 (do banco)
+    let phoneToUse = savedPhoneWith55 || savedPhoneWithout55;
+    
+    if (phoneToUse) {
         const phoneInput = document.getElementById('customerPhone');
         if (phoneInput) {
-            // Normaliza o telefone para exibição (remove 55 se houver)
-            let displayPhone = savedPhone;
-            if (displayPhone.startsWith('55') && displayPhone.length > 10) {
+            // Remove código do país (55) para exibição no campo
+            let displayPhone = phoneToUse;
+            if (displayPhone.startsWith('55')) {
                 displayPhone = displayPhone.substring(2);
             }
+            
+            // Aplica máscara
             phoneInput.value = this._formatPhoneForDisplay(displayPhone);
             console.log('✅ Telefone pré-preenchido:', phoneInput.value);
+            
+            // Garante que ambos estão salvos para consistência
+            if (!savedPhoneWith55 && phoneToUse.startsWith('55')) {
+                localStorage.setItem('clientePhone', phoneToUse);
+            }
+            if (!savedPhoneWithout55) {
+                localStorage.setItem('lastCustomerPhone', displayPhone);
+            }
         }
     }
 
@@ -1588,7 +1866,19 @@ _focusFirstField() {
                 }))
             }
         }, shortId, universalLink);
-        
+
+// Salva o telefone no formato correto para ambas as situações
+
+// Telefone SEM 55 (para exibição)
+localStorage.setItem('lastCustomerName', name);
+localStorage.setItem('lastCustomerPhone', phone); // Já formatado sem 55
+
+// Telefone COM 55 (para busca no banco)
+const phoneWith55 = `55${phone.replace(/\D/g, '')}`;
+localStorage.setItem('clientePhone', phoneWith55);
+
+console.log(`📱 Telefone salvo: ${phone} (sem 55) e ${phoneWith55} (com 55)`);
+
         // PASSO 7: Abrir WhatsApp
         this._openWhatsApp(message);
     },
@@ -1600,7 +1890,7 @@ _focusFirstField() {
     },
 
     _createLocalUserId(name, phone) {
-        const localUserId = `local_${phone}_${Date.now().toString(36)}`;
+        const localUserId = `local_+55${phone}_${Date.now().toString(36)}`;
         console.log(`👤 ID local gerado para usuário: ${localUserId}`);
         return localUserId;
     },
