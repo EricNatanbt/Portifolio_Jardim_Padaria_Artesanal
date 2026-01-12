@@ -17,7 +17,8 @@ const InicioPage = {
                 console.log('🚀 Inicializando carrossel de produtos');
                 window.Carousel.initialize('.products-carousel', {
                     delay: 3000,
-                    autoPlay: true
+                    autoPlay: true,
+                    force: true // Força a reinicialização ao voltar para a página
                 });
             } else {
                 console.error('❌ Componente Carousel não encontrado para inicializar.');

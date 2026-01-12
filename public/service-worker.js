@@ -333,9 +333,9 @@ setInterval(cleanupOldCaches, 24 * 60 * 60 * 1000); // Uma vez por dia
 // TRATAMENTO DE ERROS GLOBAIS
 // ============================================
 self.addEventListener('error', event => {
-    console.error('❌ Erro no Service Worker:', event.error);
+    console.error('Erro no Service Worker:', event.error);
 });
 
 self.addEventListener('unhandledrejection', event => {
-    console.error('❌ Promise rejeitada não tratada:', event.reason);
+    console.error('Promise rejeitada não tratada:', event.reason);
 });

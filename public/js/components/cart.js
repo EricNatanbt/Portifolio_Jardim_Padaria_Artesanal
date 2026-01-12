@@ -413,9 +413,9 @@ _createOrderHtml(order) {
     console.log(`🔑 IDs disponíveis: shortId=${shortId}, apiOrderId=${apiOrderId}, displayOrderId=${displayOrderId}`);
     
     // DECIDE qual ID usar para ações
-    // Prefere o shortId para localStorage, mas se tiver apiOrderId, usa ele
+    // Prioriza o ID oficial (API) se disponível
     let actionOrderId = apiOrderId || shortId;
-    let isLocalStorageOrder = !apiOrderId || apiOrderId === shortId;
+    let isLocalStorageOrder = !apiOrderId;
     
     // Se não tem ID claro, tenta gerar um
     if (!actionOrderId) {
@@ -482,7 +482,9 @@ _createOrderHtml(order) {
     }
     
     // Gera o link de detalhes
-    const detailsLink = `/order.html?orderId=${encodeURIComponent(actionOrderId)}${isLocalStorageOrder ? '&source=local' : ''}`;
+    // Se tivermos um ID oficial (que começa com JD-), usamos apenas orderId
+    const isOfficialId = actionOrderId && actionOrderId.toString().startsWith('JD-');
+    const detailsLink = `/order.html?orderId=${encodeURIComponent(actionOrderId)}${(isLocalStorageOrder && !isOfficialId) ? '&source=local' : ''}`;
     
     // ID para exibição (formata para ficar mais apresentável)
     let displayId = displayOrderId;
@@ -677,29 +679,63 @@ async repeatOrder(orderId) {
         console.log(`📍 Fonte dos dados: ${source}, ${items.length} itens encontrados`);
         
         // Limpa o carrinho atual antes de adicionar os itens do pedido anterior
-        this.clearCart();
+        Cart.clearCart();
         
         // Adiciona cada item do pedido anterior ao carrinho
         items.forEach(item => {
+            console.log('🔍 Processando item para repetição:', item);
+            
             // Normaliza os campos do item
             const itemName = item.name || item.product_name;
             const itemPrice = item.price || item.unit_price;
-            const itemId = item.id || item.product_id;
+            const itemId = item.product_id || item.id; // Prioriza product_id para itens vindos do banco
             
             // Verifica se o item tem os dados mínimos necessários
             if (itemName && itemPrice) {
-                this.addItem({
+                // Tenta encontrar a imagem no item ou usa um fallback baseado no ID
+                let itemImage = item.image || item.image_url || item.imagem || item.product_image;
+                
+                console.log(`🖼️ Imagem original do item: ${itemImage}`);
+
+                // Se não tiver imagem, tenta construir o caminho padrão ou usa o logo
+                if (!itemImage || itemImage === 'null' || itemImage === 'undefined') {
+                    // Tenta encontrar o produto no menu global para pegar a imagem correta
+                    const menuProducts = window.allProducts || [];
+                    const foundProduct = menuProducts.find(p => p.id == itemId || p.name == itemName);
+                    
+                    if (foundProduct && foundProduct.image) {
+                        itemImage = foundProduct.image;
+                        console.log(`🔄 Imagem recuperada do menu global: ${itemImage}`);
+                    } else if (itemId && !isNaN(itemId)) {
+                        // Verifica se o ID é um número e tenta o caminho padrão
+                        itemImage = `img/produtos/produto${itemId}.png`;
+                        console.log(`🔄 Usando fallback por ID: ${itemImage}`);
+                    } else {
+                        itemImage = 'img/logos/Logo.png';
+                        console.log(`🔄 Usando fallback logo: ${itemImage}`);
+                    }
+                }
+
+                // Usa Cart.addToCart para garantir o contexto correto e a lógica de disponibilidade
+                const quantity = parseInt(item.quantity) || 1;
+                const product = {
                     id: itemId,
                     name: itemName,
                     price: parseFloat(itemPrice),
-                    quantity: parseInt(item.quantity) || 1,
-                    image: item.image || `/img/produtos/produto${itemId}.png` || '/img/produtos/default.png'
-                }, parseInt(item.quantity) || 1);
+                    image: itemImage,
+                    available_days: ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'] // Ignora trava de dia na repetição
+                };
+                
+                console.log('🛒 Adicionando produto normalizado ao carrinho:', product);
+                
+                for (let i = 0; i < quantity; i++) {
+                    Cart.addToCart(product);
+                }
             }
         });
 
-        this.updateCartUI();
-        this.openCart();
+        Cart.updateCartUI();
+        Cart.openCart();
         
         // Fecha a aba de pedidos anteriores automaticamente
         const previousOrdersBtn = document.getElementById('previousOrdersBtn');
@@ -1221,6 +1257,10 @@ async _fetchAddressByCep(cep) {
 
         if (existingItem) {
             existingItem.quantity += 1;
+            // Atualiza a imagem se o item existente não tiver uma, mas o novo tiver
+            if ((!existingItem.image || existingItem.image.includes('Logo.png')) && product.image) {
+                existingItem.image = product.image;
+            }
         } else {
             this.cartItems.push({ 
                 ...product, 
@@ -1827,8 +1867,8 @@ _prefillCustomerData() {
         const shortId = this._saveToLocalStorage({
             customer: clientData,
             order: {
-                order_id: orderId, // Campo normalizado
-                id: orderId,       // Campo de compatibilidade
+                order_id: apiResult && apiResult.success ? apiResult.orderId : orderId, // Prioriza ID da API
+                id: apiResult && apiResult.success ? apiResult.orderId : orderId,       // Campo de compatibilidade
                 total: total,
                 subtotal: subtotal,
                 delivery_fee: this.deliveryFee,

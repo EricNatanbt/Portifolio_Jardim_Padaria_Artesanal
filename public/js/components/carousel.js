@@ -7,13 +7,20 @@ const Carousel = {
     initialize(selector, options = {}) {
         const defaultOptions = {
             delay: 3000, // 3 segundos
-            autoPlay: true
+            autoPlay: true,
+            force: false // Nova opção para forçar reinicialização
         };
 
         const settings = { ...defaultOptions, ...options };
 
         const carousels = document.querySelectorAll(selector);
         carousels.forEach((carousel, index) => {
+            // Se force for true, removemos o atributo de inicialização e paramos o intervalo anterior
+            if (settings.force) {
+                carousel.removeAttribute('data-carousel-initialized');
+                this.stop(index);
+            }
+
             // Verifica se já foi inicializado
             if (carousel.getAttribute('data-carousel-initialized') === 'true') {
                 return;

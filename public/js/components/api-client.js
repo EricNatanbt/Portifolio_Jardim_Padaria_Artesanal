@@ -118,7 +118,9 @@ class ApiClient {
     // NOVA FUNÇÃO: Buscar os últimos 3 pedidos por telefone
     async getRecentOrdersByPhone(phone) {
         console.log(`📋 Buscando os últimos 3 pedidos para o telefone ${phone}...`);
-        return await this._makeRequest(`/orders/by-phone?phone=${encodeURIComponent(phone)}`, 'GET');
+        // No Netlify, o endpoint mapeia para o nome do arquivo da função
+        const endpoint = this.baseUrl.includes('.netlify') ? `/get-orders-by-phone?phone=${encodeURIComponent(phone)}` : `/orders/by-phone?phone=${encodeURIComponent(phone)}`;
+        return await this._makeRequest(endpoint, 'GET');
     }
 
     // Função para buscar detalhes de um pedido específico (já existe, mas ajustando o endpoint)

@@ -1,4 +1,3 @@
-// NOVO order-display-fixed.js
 class OrderDisplayFixed {
     constructor() {
         this.orderData = null;

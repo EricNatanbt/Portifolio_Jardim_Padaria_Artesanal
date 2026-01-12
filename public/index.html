@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="css/pages/menu.css?v=2.0.2">
     <link rel="stylesheet" href="css/pages/cuidados.css?v=2.0.2">
     <link rel="stylesheet" href="css/pages/pedidos.css?v=2.0.2">
-    <link rel="stylesheet" href="css/pages/feedbacks.css?v=2.0.2">
+    <link rel="stylesheet" href="feedback/dist/assets/index-BMjro3Kc.css?v=2.0.2">
     <link rel="icon" type="image/x-icon" href="img/logos/Logo.png">
     <link rel="icon" type="image/png" href="img/logos/Logo.png">
     <link rel="apple-touch-icon" href="img/logos/apple-touch-icon.png">
@@ -266,7 +266,7 @@
                             </div>
                             <div class="form-group required">
                                 <label for="customerPhone">Telefone:</label>
-                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX ) XXXXX-XXXX"
+                                <input type="tel" id="customerPhone" name="customerPhone" placeholder="(XX) XXXXX-XXXX"
                                     required>
                             </div>
                         </div>
@@ -498,7 +498,7 @@
     <script type="module" src="js/pages/sobrenos.js?v=2.0.0"></script>
     <script type="module" src="js/pages/menu.js?v=2.0.0"></script>
     <script type="module" src="js/pages/cuidados.js?v=2.0.0"></script>
-    <script type="module" src="js/pages/feedbacks.js?v=2.0.0"></script>
+     <script type="module" src="feedback/dist/assets/index-DX-KxH7s.js?v=2.0.0"></script>
     <!-- Main Script -->
     <script type="module" src="js/main.js?v=2.0.0"></script>
     <!-- NOVO: Pages Loader -->
@@ -518,7 +518,7 @@
                 // Aguarda um pouco antes de registrar o novo
                 setTimeout(() => {
                     // Registra o novo Service Worker sem parâmetros de versão
-                    navigator.serviceWorker.register('/service-worker.js', {
+                    navigator.serviceWorker.register('service-worker.js', {
                         scope: '/',
                         updateViaCache: 'none' // Importante: não usar cache para o SW
                     })

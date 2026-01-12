@@ -163,11 +163,12 @@ app.use(express.static(staticPath));
 
 // Rota de fallback para SPA
 app.get(/^(?!\/api\/)/, (req, res) => {
-    if (!req.path.includes('.')) {
-        res.sendFile(path.join(staticPath, 'index.html'));
-    } else {
-        res.status(404).send('Not Found');
+    // Se for uma requisição de arquivo (tem extensão), mas não foi encontrado pelo express.static
+    if (path.extname(req.path)) {
+        return res.status(404).send('Not Found');
     }
+    // Se for uma rota de navegação (sem extensão), envia o index.html
+    res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 app.listen(port, () => {

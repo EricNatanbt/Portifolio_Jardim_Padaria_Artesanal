@@ -40,7 +40,7 @@ function closeCheckoutModal() {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
         // Registra o service worker
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('service-worker.js')
             .then(function (registration) {
                 console.log('Service Worker registrado com sucesso:', registration.scope);
 
@@ -104,6 +104,11 @@ async function initializeApp() {
             console.log('✅ Carrinho inicializado');
         }
 
+        if (window.Feedbacks && typeof window.Feedbacks.initialize === 'function') {
+            window.Feedbacks.initialize();
+            console.log('✅ Feedbacks inicializado');
+        }
+
         // 4. Configura eventos do checkout modal
         setupCheckoutModalEvents();
 
@@ -138,6 +143,14 @@ async function loadComponents() {
         // Carrega Carousel
         const carouselModule = await import('./components/carousel.js');
         window.Carousel = carouselModule.default || carouselModule.Carousel;
+
+        // Carrega Feedbacks
+        try {
+            const feedbacksModule = await import('./pages/feedbacks.js');
+            window.Feedbacks = feedbacksModule.default || feedbacksModule.Feedbacks;
+        } catch (e) {
+            console.warn('Aviso: Módulo de feedbacks não pôde ser carregado dinamicamente');
+        }
 
         console.log('✅ Componentes carregados:', {
             Modal: !!Modal,
@@ -435,6 +448,7 @@ async function initializePageComponents(pageName) {
         console.error(`❌ Erro ao inicializar página ${pageName}:`, error);
     }
 }
+
 
 // ============================================
 // UTILITÁRIOS

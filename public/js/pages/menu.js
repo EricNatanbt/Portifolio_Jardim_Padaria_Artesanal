@@ -73,7 +73,6 @@ class MenuInstance {
             const dia = this.dias[dayIndex];
             const produtosDoDia = await this.getProductsForDay(dia);
 
-            console.log(`📊 Renderizando cardápio para ${dia}: ${produtosDoDia.length} produtos`);
 
             // Agrupar produtos por categoria
             const produtosPorCategoria = {};
@@ -223,9 +222,7 @@ class MenuInstance {
         }
     }
 
-    async getProductsFromSupabase() {
-        console.log('🔄 Buscando produtos do Supabase...');
-        
+    async getProductsFromSupabase() { 
         try {
             // Usa a nova implementação via API
             const result = await window.supabase
@@ -237,8 +234,6 @@ class MenuInstance {
                 window.showNotification('Erro ao carregar o cardápio. Tente novamente.', 3000, 'error');
                 return [];
             }
-
-            console.log(`✅ ${result.data.length} produtos carregados do Supabase`);
             
             // Ordena localmente
             const sortedData = result.data.sort((a, b) => {
@@ -248,13 +243,8 @@ class MenuInstance {
                 if (a.name > b.name) return 1;
                 return 0;
             });
-            
-            // Log para debug
-            sortedData.forEach((item, index) => {
-                console.log(`📝 Produto ${index + 1}: ${item.name} | Categoria: ${item.category} | Dias: ${JSON.stringify(item.available_days)}`);
-            });
 
-            return sortedData.map(item => ({
+            const normalizedProducts = sortedData.map(item => ({
                 id: item.id,
                 name: item.name,
                 price: parseFloat(item.price) || 0,
@@ -265,6 +255,11 @@ class MenuInstance {
                 day: item.available_days || [],
                 image: item.image_url || item.imagem || 'img/logos/Logo.png'
             }));
+
+            // Armazena globalmente para acesso por outros componentes (como o carrinho ao repetir pedido)
+            window.allProducts = normalizedProducts;
+
+            return normalizedProducts;
             
         } catch (error) {
             console.error('❌ Erro na requisição de produtos:', error);
@@ -281,54 +276,27 @@ class MenuInstance {
         console.log(`🔍 Filtrando produtos para o dia: ${day}`);
         
         const produtosFiltrados = this.allProducts.filter(produto => {
-            const temDia = produto.available_days && 
-                          Array.isArray(produto.available_days) && 
-                          produto.available_days.includes(day);
-            
-            if (!temDia) {
-                console.log(`   ❌ ${produto.name} NÃO está disponível na ${day}`);
-            } else {
-                console.log(`   ✅ ${produto.name} disponível na ${day}`);
-            }
-            
+            const temDia = produto.available_days && (
+                produto.available_days.includes(day) || 
+                produto.available_days.includes(day.toLowerCase())
+            );
             return temDia;
         });
-        
-        console.log(`📊 Encontrados ${produtosFiltrados.length} produtos para ${day}`);
+
         return produtosFiltrados;
     }
 
     previousDay() {
-        let newIndex;
-
-        if (this.currentDayIndex === -1) {
-            newIndex = this.dias.length - 1;
-        } else if (this.currentDayIndex === 0) {
-            newIndex = -1;
-        } else {
-            newIndex = this.currentDayIndex - 1;
-        }
-
+        let newIndex = this.currentDayIndex - 1;
+        if (newIndex < 0) newIndex = this.dias.length - 1;
         this.renderCardapio(newIndex);
     }
 
     nextDay() {
-        let newIndex;
-
-        if (this.currentDayIndex === -1) {
-            newIndex = 0;
-        } else if (this.currentDayIndex === this.dias.length - 1) {
-            newIndex = -1;
-        } else {
-            newIndex = this.currentDayIndex + 1;
-        }
-
+        let newIndex = this.currentDayIndex + 1;
+        if (newIndex >= this.dias.length) newIndex = 0;
         this.renderCardapio(newIndex);
     }
 }
 
-// Exporta para uso global
-window.MenuPage = MenuPage;
-
-// Export default
 export default MenuPage;
