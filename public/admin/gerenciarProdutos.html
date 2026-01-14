@@ -1,133 +1,190 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Gerenciar Produtos</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/gerenciarProduto.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gerenciar Produtos</title>
+    <link rel="stylesheet" href="./css/admin-common.css">
+    <link rel="stylesheet" href="css/gerenciarProduto.css">
+    <link rel="icon" type="image/png" href="../img/logos/Logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>Painel Administrativo</h1>
-        <p>Jardim Padaria - Gerenciamento de Produtos</p>
-    </div>
+    <header class="admin-header">
+        <div class="logo-section" style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="../img/logos/Logo.png" alt="Logo" style="height: 2.5rem; width: 2.5rem;">
+            <h1>Gerenciar Produtos</h1>
+        </div>
+        <div class="header-nav">
+            <a href="inicioAdmin.html" class="btn-back-site">⬅ Voltar ao Início</a>
+        </div>
+    </header>
 
-    <div class="products-table-container">
-        <!-- Botão separado para criar produto -->
-        <button class="btn-add" id="addProductBtn">Adicionar Produto</button>
+    <div class="admin-container">
+        <div class="admin-card">
+            <div class="table-header-actions">
+                <h2 style="margin:0;">Lista de Produtos</h2>
+                <button class="btn btn-primary" id="addProductBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Novo Produto
+                </button>
+            </div>
 
-        <div class="products-table">
-            <table id="productsTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Imagem</th>
-                        <th>Nome</th>
-                        <th>Categoria</th>
-                        <th>Preço</th>
-                        <th>Dias Disponíveis</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="productsBody">
-                    <tr>
-                        <td colspan="7" style="text-align:center;padding:2rem;">Carregando produtos...</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th class="td-image">Imagem</th>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Disponibilidade</th>
+                            <th style="text-align:right;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:3rem;">
+                                <div style="color:var(--muted-foreground);">Carregando produtos...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div class="admin-footer">
-        <p>Painel Administrativo - Jardim Padaria</p>
+    <footer style="text-align: center; padding: 2rem; color: var(--muted-foreground); font-size: 0.9rem;">
+        &copy; 2026 Jardim Padaria Artesanal - Painel de Controle
+    </footer>
+
+    <!-- Modal Criar Produto -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeCreateModal">&times;</span>
+            <h2>Criar Novo Produto</h2>
+            <form id="createForm">
+                <div class="form-group">
+                    <label for="createNome">Nome do Produto</label>
+                    <input type="text" id="createNome" placeholder="Ex: Pão de Fermentação Natural" required>
+                </div>
+                
+                <div class="form-group half">
+                    <label for="createPreco">Preço (R$)</label>
+                    <input type="number" id="createPreco" step="0.01" placeholder="0,00" required>
+                </div>
+                
+                <div class="form-group half">
+                    <label for="createCategoria">Categoria</label>
+                    <select id="createCategoria" required>
+                        <option value="">Selecione</option>
+                        <option value="Pães">Pães</option>
+                        <option value="Ciabattas">Ciabattas</option>
+                        <option value="Focaccias">Focaccias</option>
+                        <option value="Doce">Doce</option>
+                        <option value="Salgados">Salgados</option>
+                        <option value="Pronta-Entrega">Pronta-Entrega</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createDescricao">Descrição</label>
+                    <textarea id="createDescricao" rows="3" placeholder="Descreva os detalhes do produto..." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Dias de Fornada</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="createDias" value="quarta"> Quarta</label>
+                        <label><input type="checkbox" name="createDias" value="quinta"> Quinta</label>
+                        <label><input type="checkbox" name="createDias" value="sexta"> Sexta</label>
+                        <label><input type="checkbox" name="createDias" value="sabado"> Sábado</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Foto do Produto</label>
+                    <div class="image-upload-container">
+                        <input type="file" id="createImagem" accept="image/*">
+                        <div id="createImagePreview" class="image-preview"></div>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelCreateBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Produto</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Modal Criar Produto -->
-<div id="createModal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="closeCreateModal">&times;</span>
-        <h2>Criar Produto</h2>
-        <form id="createForm">
-            <label for="createNome">Nome do Produto:</label>
-            <input type="text" id="createNome" required class="half">
-            
-            <label for="createPreco">Preço:</label>
-            <input type="number" id="createPreco" step="0.01" required class="half">
-            
-            <label for="createDescricao">Descrição:</label>
-            <textarea id="createDescricao" rows="3" required></textarea>
-            
-            <label>Dias Disponíveis (Quarta a Sábado):</label>
-            <div class="checkbox-group">
-                <label><input type="checkbox" name="createDias" value="quarta">Quarta</label>
-                <label><input type="checkbox" name="createDias" value="quinta">Quinta</label>
-                <label><input type="checkbox" name="createDias" value="sexta">Sexta</label>
-                <label><input type="checkbox" name="createDias" value="sabado">Sábado</label>
-            </div>
-            
-            <label for="createCategoria">Categoria:</label>
-            <select id="createCategoria" required class="half">
-                <option value="">Selecione</option>
-                <option value="paes">Pães</option>
-                <option value="doce">Doce</option>
-                <option value="salgados">Salgados</option>
-                <option value="outros">Outros</option>
-            </select>
+    <!-- Modal Editar Produto -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeEditModal">&times;</span>
+            <h2>Editar Produto</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                
+                <div class="form-group">
+                    <label for="editNome">Nome do Produto</label>
+                    <input type="text" id="editNome" required>
+                </div>
+                
+                <div class="form-group half">
+                    <label for="editPreco">Preço (R$)</label>
+                    <input type="number" id="editPreco" step="0.01" required>
+                </div>
+                
+                <div class="form-group half">
+                    <label for="editCategoria">Categoria</label>
+                    <select id="editCategoria" required>
+                        <option value="">Selecione</option>
+                        <option value="Pães">Pães</option>
+                        <option value="Ciabattas">Ciabattas</option>
+                        <option value="Focaccias">Focaccias</option>
+                        <option value="Doce">Doce</option>
+                        <option value="Salgados">Salgados</option>
+                        <option value="Pronta-Entrega">Pronta-Entrega</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDescricao">Descrição</label>
+                    <textarea id="editDescricao" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Dias de Fornada</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="editDias" value="quarta"> Quarta</label>
+                        <label><input type="checkbox" name="editDias" value="quinta"> Quinta</label>
+                        <label><input type="checkbox" name="editDias" value="sexta"> Sexta</label>
+                        <label><input type="checkbox" name="editDias" value="sabado"> Sábado</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Alterar Foto</label>
+                    <div class="image-upload-container">
+                        <input type="file" id="editImagem" accept="image/*">
+                        <div id="editImagePreview" class="image-preview"></div>
+                    </div>
+                </div>
 
-            <div class="buttons">
-                <button type="submit" class="btn-add">Criar</button>
-                <button type="button" class="btn-cancel" id="cancelCreateBtn">Cancelar</button>
-            </div>
-        </form>
+                <div class="buttons">
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Modal Editar Produto -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="closeEditModal">&times;</span>
-        <h2>Editar Produto</h2>
-        <form id="editForm">
-            <input type="hidden" id="editId">
-            
-            <label for="editNome">Nome do Produto:</label>
-            <input type="text" id="editNome" required class="half">
-            
-            <label for="editPreco">Preço:</label>
-            <input type="number" id="editPreco" step="0.01" required class="half">
-            
-            <label for="editDescricao">Descrição:</label>
-            <textarea id="editDescricao" rows="3" required></textarea>
-            
-            <label>Dias Disponíveis (Quarta a Sábado):</label>
-            <div class="checkbox-group">
-                <label><input type="checkbox" name="editDias" value="quarta">Quarta</label>
-                <label><input type="checkbox" name="editDias" value="quinta">Quinta</label>
-                <label><input type="checkbox" name="editDias" value="sexta">Sexta</label>
-                <label><input type="checkbox" name="editDias" value="sabado">Sábado</label>
-            </div>
-            
-            <label for="editCategoria">Categoria:</label>
-            <select id="editCategoria" required class="half">
-                <option value="">Selecione</option>
-                <option value="paes">Pães</option>
-                <option value="doce">Doce</option>
-                <option value="salgados">Salgados</option>
-                <option value="outros">Outros</option>
-            </select>
-
-            <div class="buttons">
-                <button type="submit" class="btn-add">Salvar</button>
-                <button type="button" class="btn-cancel" id="cancelEditBtn">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script src="js/gerenciarProdutos.js"></script>
+    <div id="notificationBar" class="notification-bar"></div>
+    <script src="../js/main.js"></script>
+    <script src="js/gerenciarProdutos.js"></script>
 </body>
 </html>

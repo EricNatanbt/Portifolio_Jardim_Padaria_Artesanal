@@ -57,7 +57,13 @@ class SupabaseQueryBuilder {
                 ? '?' + new URLSearchParams(params).toString()
                 : '';
             
-            const response = await fetch(`${this.apiBase}/${endpoint}${queryString}`);
+            const response = await fetch(`${this.apiBase}/${endpoint}${queryString}`, {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);

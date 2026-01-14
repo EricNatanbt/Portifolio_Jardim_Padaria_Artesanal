@@ -37,14 +37,20 @@ const Modal = {
         // Preencher dados do modal
         if (modalProductName) modalProductName.textContent = product.name;
         
-        // Para a imagem, vamos manter o ícone ou usar a logo
+        // Exibir a foto real do produto
         if (modalProductImage) {
-            modalProductImage.src = "img/logos/Logo.png";
+            modalProductImage.src = product.image || product.imagem || "img/logos/Logo.png";
             modalProductImage.alt = product.name;
         }
         
-        if (modalProductDescription) modalProductDescription.textContent = product.description || "Delicioso produto artesanal da Padaria Jardim.";
-        if (modalProductIngredients) modalProductIngredients.textContent = product.ingredients || "Ingredientes selecionados com cuidado e qualidade.";
+        if (modalProductDescription) {
+            const description = product.description || "Delicioso produto artesanal da Padaria Jardim.";
+            modalProductDescription.innerHTML = description.replace(/\n/g, '<br>');
+        }
+        if (modalProductIngredients) {
+            const ingredients = product.ingredients || "Ingredientes selecionados com cuidado e qualidade.";
+            modalProductIngredients.innerHTML = ingredients.replace(/\n/g, '<br>');
+        }
         if (modalProductPrice) modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
         
         if (productModal) {

@@ -437,7 +437,7 @@ class PagesLoader {
                 </div>
 
                 <div class="footer-bottom">
-                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
+                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural. <a href="/admin/inicioAdmin.html" style="opacity: 0.3; text-decoration: none; color: inherit; font-size: 0.6rem;">Admin</a></p>
                 </div>
             </footer>
         `;

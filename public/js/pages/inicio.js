@@ -11,15 +11,19 @@ const InicioPage = {
     async setupCarousel() {
         console.log('🔄 Configurando carrossel...');
         
-        if (window.Carousel && window.Carousel.initialize) {
-            //Adicionado para ficar uma chamada padronizada
-            window.Carousel.initialize('.products-carousel', {
-                delay: 3000,
-                autoPlay: true
-            });
-        } else {
-            console.error('❌ Componente Carousel não encontrado para inicializar.');
-        }
+        // Pequeno delay para garantir que o HTML injetado pelo pages-loader já está no DOM
+        setTimeout(() => {
+            if (window.Carousel && window.Carousel.initialize) {
+                console.log('🚀 Inicializando carrossel de produtos');
+                window.Carousel.initialize('.products-carousel', {
+                    delay: 3000,
+                    autoPlay: true,
+                    force: true // Força a reinicialização ao voltar para a página
+                });
+            } else {
+                console.error('❌ Componente Carousel não encontrado para inicializar.');
+            }
+        }, 200);
     },
 
     async setupTodayProducts() {

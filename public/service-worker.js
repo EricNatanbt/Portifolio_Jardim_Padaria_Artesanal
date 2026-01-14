@@ -1,6 +1,6 @@
-// service-worker.js - Versão 2.0.1 (Corrigida)
-const CACHE_NAME = 'jardim-padaria-v2.0.1';
-const DYNAMIC_CACHE = 'jardim-dynamic-v2.0.1';
+// service-worker.js - Versão 2.1.2 (Correção Menu Mobile)
+const CACHE_NAME = 'jardim-padaria-v2.1.2';
+const DYNAMIC_CACHE = 'jardim-dynamic-v2.1.2';
 
 // Arquivos para cache inicial (instalação)
 const STATIC_FILES = [
@@ -135,24 +135,14 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // 3. Para requisições de API, usar estratégia "Network First"
-    if (url.pathname.includes('/api/')) {
+    // 3. Para requisições de API, usar estratégia "Network Only" para garantir dados frescos
+    // Se quiser suporte offline, use "Network First" mas sem cachear a resposta de sucesso permanentemente
+    if (url.pathname.includes('/api/') || url.pathname.includes('/.netlify/functions/')) {
         event.respondWith(
-            fetch(request)
-                .then(response => {
-                    // Só cacheia se for uma resposta GET bem-sucedida
-                    if (canCacheRequest(request) && response.ok) {
-                        const responseClone = response.clone();
-                        caches.open(DYNAMIC_CACHE).then(cache => {
-                            cache.put(request, responseClone);
-                        });
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    // Se offline, tentar buscar do cache
-                    return caches.match(request);
-                })
+            fetch(request).catch(() => {
+                // Se offline, tentar buscar do cache como último recurso
+                return caches.match(request);
+            })
         );
         return;
     }
@@ -343,9 +333,9 @@ setInterval(cleanupOldCaches, 24 * 60 * 60 * 1000); // Uma vez por dia
 // TRATAMENTO DE ERROS GLOBAIS
 // ============================================
 self.addEventListener('error', event => {
-    console.error('❌ Erro no Service Worker:', event.error);
+    console.error('Erro no Service Worker:', event.error);
 });
 
 self.addEventListener('unhandledrejection', event => {
-    console.error('❌ Promise rejeitada não tratada:', event.reason);
+    console.error('Promise rejeitada não tratada:', event.reason);
 });

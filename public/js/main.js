@@ -6,12 +6,41 @@ let Cart = null;
 let Modal = null;
 
 // ============================================
+// FUNÇÕES PARA CONTROLE DO MODAL DE CHECKOUT
+// ============================================
+function openCheckoutModal() {
+    if (window.Cart && typeof window.Cart.openCheckoutModal === 'function') {
+        window.Cart.openCheckoutModal();
+    } else {
+        const checkoutModal = document.getElementById('checkoutModal');
+        if (checkoutModal) {
+            checkoutModal.classList.add('active');
+            checkoutModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+}
+
+function closeCheckoutModal() {
+    if (window.Cart && typeof window.Cart.closeCheckoutModal === 'function') {
+        window.Cart.closeCheckoutModal();
+    } else {
+        const checkoutModal = document.getElementById('checkoutModal');
+        if (checkoutModal) {
+            checkoutModal.classList.remove('active');
+            checkoutModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+// ============================================
 // INICIALIZAÇÃO
 // ============================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
         // Registra o service worker
-        navigator.serviceWorker.register('/service-worker.js')
+        navigator.serviceWorker.register('service-worker.js')
             .then(function (registration) {
                 console.log('Service Worker registrado com sucesso:', registration.scope);
 
@@ -50,18 +79,8 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Força limpeza de cache ao carregar
-window.addEventListener('beforeunload', function () {
-    // Limpa cache do localStorage se necessário
-    if (localStorage.getItem('forceRefresh')) {
-        localStorage.removeItem('forceRefresh');
-        caches.keys().then(cacheNames => {
-            cacheNames.forEach(cacheName => {
-                caches.delete(cacheName);
-            });
-        });
-    }
-});
+// O cache agora é gerenciado de forma mais inteligente pelo Service Worker
+// Não é mais necessário forçar a limpeza total em cada unload
 
 async function initializeApp() {
     console.log('🚀 Inicializando aplicação Jardim Padaria...');
@@ -85,7 +104,15 @@ async function initializeApp() {
             console.log('✅ Carrinho inicializado');
         }
 
-        // 4. Inicializa a página atual
+        if (window.Feedbacks && typeof window.Feedbacks.initialize === 'function') {
+            window.Feedbacks.initialize();
+            console.log('✅ Feedbacks inicializado');
+        }
+
+        // 4. Configura eventos do checkout modal
+        setupCheckoutModalEvents();
+
+        // 5. Inicializa a página atual
         initializePageComponents(currentPage);
 
         console.log('🎉 Aplicação inicializada com sucesso!');
@@ -117,6 +144,14 @@ async function loadComponents() {
         const carouselModule = await import('./components/carousel.js');
         window.Carousel = carouselModule.default || carouselModule.Carousel;
 
+        // Carrega Feedbacks
+        try {
+            const feedbacksModule = await import('./pages/feedbacks.js');
+            window.Feedbacks = feedbacksModule.default || feedbacksModule.Feedbacks;
+        } catch (e) {
+            console.warn('Aviso: Módulo de feedbacks não pôde ser carregado dinamicamente');
+        }
+
         console.log('✅ Componentes carregados:', {
             Modal: !!Modal,
             Cart: !!Cart,
@@ -129,6 +164,50 @@ async function loadComponents() {
         setTimeout(() => loadComponents(), 2000);
         throw error;
     }
+}
+
+// ============================================
+// CONFIGURAÇÃO DE EVENTOS DO CHECKOUT MODAL
+// ============================================
+function setupCheckoutModalEvents() {
+    // Botão de fechar do checkout
+    const closeCheckoutBtn = document.getElementById('closeCheckoutModal');
+    if (closeCheckoutBtn) {
+        closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
+    }
+    
+    // Overlay do checkout
+    const checkoutOverlay = document.getElementById('checkoutModalOverlay');
+    if (checkoutOverlay) {
+        checkoutOverlay.addEventListener('click', closeCheckoutModal);
+    }
+    
+    // Botão de finalizar compra do carrinho
+const checkoutBtn = document.querySelector('.checkout-btn');
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Verifica se há itens no carrinho
+        if (Cart && Cart.cartItems && Cart.cartItems.length > 0) {
+            // Abre o modal de checkout
+            openCheckoutModal();
+        } else {
+            showNotification('Adicione itens ao carrinho antes de finalizar a compra.', 3000, 'warning');
+        }
+    });
+}
+    
+    // Tecla ESC para fechar
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const checkoutModal = document.getElementById('checkoutModal');
+            if (checkoutModal && checkoutModal.classList.contains('active')) {
+                closeCheckoutModal();
+            }
+        }
+    });
 }
 
 // ============================================
@@ -370,6 +449,7 @@ async function initializePageComponents(pageName) {
     }
 }
 
+
 // ============================================
 // UTILITÁRIOS
 // ============================================
@@ -591,6 +671,10 @@ window.abrirContato = abrirContato;
 window.toggleSimulationMode = toggleSimulationMode; // Para debug
 window.getSimulationMode = getSimulationMode; // Para debug
 
+// Novas exportações para o checkout modal
+window.openCheckoutModal = openCheckoutModal;
+window.closeCheckoutModal = closeCheckoutModal;
+
 // Exporta para uso em módulos ES6
 export {
     navigateToPage,
@@ -601,5 +685,7 @@ export {
     initializeApp,
     abrirGoogleMaps,
     abrirWhatsApp,
-    abrirContato
+    abrirContato,
+    openCheckoutModal,
+    closeCheckoutModal
 };

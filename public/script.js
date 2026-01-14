@@ -51,7 +51,6 @@ const closeModal = document.getElementById("closeModal");
 const modalProductName = document.getElementById("modalProductName");
 const modalProductImage = document.getElementById("modalProductImage");
 const modalProductDescription = document.getElementById("modalProductDescription");
-const modalProductIngredients = document.getElementById("modalProductIngredients");
 const modalProductPrice = document.getElementById("modalProductPrice");
 const addToCartModal = document.getElementById("addToCartModal");
 
@@ -399,7 +398,6 @@ function openProductModal(product) {
     modalProductName.textContent = product.name;
     modalProductImage.textContent = getProductIcon(product.category);
     modalProductDescription.textContent = product.description;
-    modalProductIngredients.textContent = product.ingredients || "Ingredientes selecionados com cuidado e qualidade.";
     modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
     
     productModal.style.display = 'flex';

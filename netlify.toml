@@ -9,7 +9,20 @@
 [functions]
   node_bundler = "esbuild"
 
+[[edge_functions]]
+  path = "/admin/*"
+  function = "auth"
+
 # Redirecionamentos para SPA
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

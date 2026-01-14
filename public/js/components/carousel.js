@@ -7,13 +7,20 @@ const Carousel = {
     initialize(selector, options = {}) {
         const defaultOptions = {
             delay: 3000, // 3 segundos
-            autoPlay: true
+            autoPlay: true,
+            force: false // Nova opção para forçar reinicialização
         };
 
         const settings = { ...defaultOptions, ...options };
 
         const carousels = document.querySelectorAll(selector);
         carousels.forEach((carousel, index) => {
+            // Se force for true, removemos o atributo de inicialização e paramos o intervalo anterior
+            if (settings.force) {
+                carousel.removeAttribute('data-carousel-initialized');
+                this.stop(index);
+            }
+
             // Verifica se já foi inicializado
             if (carousel.getAttribute('data-carousel-initialized') === 'true') {
                 return;
@@ -59,15 +66,17 @@ const Carousel = {
     showImage(images, index) {
         // Remove a classe active de todas as imagens
         images.forEach(img => {
-            img.style.opacity = '0';
             img.classList.remove('active');
+            // Se não houver transição CSS, garantimos via JS
+            img.style.opacity = '0';
+            img.style.zIndex = '0';
         });
 
         // Adiciona a classe active na imagem atual
-        setTimeout(() => {
-            images[index].style.opacity = '1';
-            images[index].classList.add('active');
-        }, 50);
+        const activeImage = images[index];
+        activeImage.classList.add('active');
+        activeImage.style.opacity = '1';
+        activeImage.style.zIndex = '1';
     },
 
     // Método para destruir um carrossel

@@ -1,3 +1,5 @@
+@import url('components/checkout-modal.css');
+
 /* ============================================
    VARIÁVEIS DE COR E ESPAÇAMENTO
    ============================================ */
@@ -7,12 +9,12 @@
     --secondary: #D8A65E; /* Laranja Terra */
     --accent: #e8dcb2; /* Marrom Café */
     --accent-light: #F5ECCF; /* Amarelo Creme */
-    --background: #fdfaee; /* Amarelo Creme */
+    --background: #F5ECCF; /* Amarelo Creme */
     --foreground: #303922; /* Verde Escuro */
     --card: #FFFFFF;
-    --muted: #f0e6c5; /* Muted derivado do Amarelo Creme */
+    --muted: #eee1b6; /* Muted derivado do Amarelo Creme */
     --muted-foreground: #603E1E; /* Marrom Café */
-    --border: #fdfaee; /* Laranja Terra */
+    --border: #F5ECCF; /* Laranja Terra */
     --input: #FFFFFF;
     
     --spacing-xs: 0.25rem;
@@ -161,53 +163,8 @@ input {
     scrollbar-width: thin; /* Pequena */
     scrollbar-color: var(--primary) var(--primary-dark); /* Cor da barra e do fundo */
 }
-/* ============================================
-   NOTIFICATION BAR STYLING
-   ============================================ */
-.notification-bar {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    padding: 12px 20px;
-    border-radius: var(--radius);
-    color: #C62828; /* Texto vermelho escuro para contraste */
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(229, 115, 115, 0.3); /* Sombra mais suave e avermelhada */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-100%);
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
-    max-width: 90%;
-    text-align: center;
-}
-
-.notification-bar.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-/* Estilo para notificação de erro (balão vermelho) */
-.notification-bar.error {
-    background-color: #f7cbcb; /* Vermelho muito claro, quase branco */
-    border: 1px solid #ed5a5a; /* Borda vermelha suave */
-}
-
-/* Estilo para notificação de informação (padrão, se houver) */
-.notification-bar.info {
-    background-color: var(--primary); /* Cor primária verde */
-    border: 1px solid var(--primary-dark);
-}
-
-@media (max-width: 640px) {
-    .notification-bar {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-    }
-}
+/* O sistema de notificações padrão utiliza o ID #notificationBar definido no final deste arquivo. 
+   As classes .notification-bar foram removidas para evitar conflitos. */
 
 /* ============================================
    PAGES SYSTEM WITH SMOOTH TRANSITIONS
@@ -229,8 +186,6 @@ input {
 .nav-link, .mobile-nav-link, .cta-button, .product-card, .cart-btn, .menu-toggle {
     transition: all 0.3s ease;
 }
-
-@import url('components/checkout-modal.css');
 
 /* Smooth hover effects */
 .cta-button:hover {
@@ -496,6 +451,27 @@ input {
     background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
     color: #1C3D2D;
     border-left: 4px solid #4CAF50;
+}
+
+/* TIPO SUCCESS - Verde tema */
+#notificationBar.success {
+    background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%);
+    color: #1C3D2D;
+    border-left: 4px solid #8BC34A;
+}
+
+/* TIPO ERROR - Vermelho suave */
+#notificationBar.error {
+    background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+    color: #B71C1C;
+    border-left: 4px solid #F44336;
+}
+
+/* TIPO WARNING - Amarelo/Laranja */
+#notificationBar.warning {
+    background: linear-gradient(135deg, #FFFDE7 0%, #FFF9C4 100%);
+    color: #F57F17;
+    border-left: 4px solid #FBC02D;
 }
 
 /* ============================================

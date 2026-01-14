@@ -58,14 +58,23 @@ exports.handler = async (event, context) => {
         
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Atualiza o status do pedido
-        const { data, error } = await supabase
-            .from('orders')
-            .update({ 
-                status: status,
-                updated_at: new Date().toISOString()
-            })
-            .or(`order_id.eq.${orderId},id.eq.${orderId}`) // Tenta ambos os IDs
+        // Verifica se o orderId é um UUID válido
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+        
+        let query = supabase.from('orders').update({ 
+            status: status,
+            updated_at: new Date().toISOString()
+        });
+
+        if (isUUID) {
+            // Se for UUID, tenta casar com a coluna 'id' ou 'order_id'
+            query = query.or(`id.eq.${orderId},order_id.eq.${orderId}`);
+        } else {
+            // Se não for UUID, tenta casar apenas com 'order_id' para evitar erro de cast no Postgres
+            query = query.eq('order_id', orderId);
+        }
+
+        const { data, error } = await query
             .select('id, order_id, status, client_id')
             .maybeSingle();
 
