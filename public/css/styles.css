@@ -1,3 +1,5 @@
+@import url('components/checkout-modal.css');
+
 /* ============================================
    VARIÁVEIS DE COR E ESPAÇAMENTO
    ============================================ */
@@ -7,12 +9,12 @@
     --secondary: #D8A65E; /* Laranja Terra */
     --accent: #e8dcb2; /* Marrom Café */
     --accent-light: #F5ECCF; /* Amarelo Creme */
-    --background: #fdfaee; /* Amarelo Creme */
+    --background: #F5ECCF; /* Amarelo Creme */
     --foreground: #303922; /* Verde Escuro */
     --card: #FFFFFF;
-    --muted: #f0e6c5; /* Muted derivado do Amarelo Creme */
+    --muted: #eee1b6; /* Muted derivado do Amarelo Creme */
     --muted-foreground: #603E1E; /* Marrom Café */
-    --border: #fdfaee; /* Laranja Terra */
+    --border: #F5ECCF; /* Laranja Terra */
     --input: #FFFFFF;
     
     --spacing-xs: 0.25rem;
@@ -184,8 +186,6 @@ input {
 .nav-link, .mobile-nav-link, .cta-button, .product-card, .cart-btn, .menu-toggle {
     transition: all 0.3s ease;
 }
-
-@import url('components/checkout-modal.css');
 
 /* Smooth hover effects */
 .cta-button:hover {
