@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - Vanilla JS</title>
+    <link rel="stylesheet" href="feedback.css">
+    
+</head>
+<body>
+
+    <div class="container-3colunas">
+        
+        <!-- Coluna iFood -->
+        <div class="coluna">
+            <h3 class="col-title">iFood</h3>
+            <div class="col-scroll">
+                <div class="card">
+                    <div class="card-top">
+                        <span class="emoji">😊</span>
+                        <div>
+                            <div class="nome">Déborah</div>
+                        </div>
+                    </div>
+                    <div class="estrelas">★★★★★</div>
+                    <p class="texto"></p>
+                </div>
+                <div class="card">
+                    <div class="card-top">
+                        <span class="emoji">🤩</span>
+                        <div>
+                            <div class="nome">Juliana</div>
+                        </div>
+                    </div>
+                    <div class="estrelas">★★★★★</div>
+                    <p class="texto"></p>
+                </div>
+            </div>
+            <h3 class="col-footer">iFood</h3>
+        </div>
+
+        <!-- Coluna Google Reviews -->
+        <div class="coluna">
+            <h3 class="col-title">Google Reviews</h3>
+            <div class="col-scroll">
+                <div class="card">
+                    <div class="card-top">
+                        <span class="emoji">😄</span>
+                        <div>
+                            <div class="nome">Ketlen Mendes</div>
+                        </div>
+                    </div>
+                    <div class="estrelas">★★★★</div>
+                    <p class="texto">Produtos de ótima qualidade! Fiz pedido de uma ciabatta e Focaccia, todos os dois são incríveis, sabor maravilhoso eu AMEI, atendimento impecável e apresentação do produto também. Vale muito a pena experimentar essas delícias!</p>
+                </div>
+                <div class="card">
+                    <div class="card-top">
+                        <span class="emoji">😁</span>
+                        <div>
+                            <div class="nome">Mariana Santos</div>
+                        </div>
+                    </div>
+                    <div class="estrelas">★★★★★</div>
+                    <p class="texto">Tudo muito bem embalado, os itens são deliciosos. Não tenho muitos registros, mas estava muito bom! A foto abaixo é da ciabatta de parmesão e orégano(comprei também a clássica); coloquei queijo e esquentei na sanduicheira, o pão bem macio. Comprei um muffin de banana e doce de leite. Nossa, uma delícia! Sem falar do pastel de nata, estava com gostinho de infância. Aguardando, ansiosa, pela próxima fornada para Recife 💚💚</p>
+                </div>
+            </div>
+            <h3 class="col-footer">Google</h3>
+        </div>
+
+        <!-- Coluna Stories -->
+        <div class="coluna fade-in">
+            <h3 class="col-title">Stories</h3>
+            <div class="story-container">
+                <button id="prevBtn" class="story-btn">◀</button>
+                <div class="story-content" id="storyContent">
+                    <!-- Conteúdo injetado via JS -->
+                </div>
+                <button id="nextBtn" class="story-btn">▶</button>
+            </div>
+            <div class="story-progress-bar">
+                <div id="progressBar" class="story-progress-fill" style="width: 0%;"></div>
+            </div>
+            <h3 class="col-footer">Stories</h3>
+        </div>
+
+    </div>
+
+    <script src="feedback.js"></script>
+</body>
+</html>

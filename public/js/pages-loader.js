@@ -8,7 +8,8 @@ class PagesLoader {
             'inicio': this.getInicioContent(),
             'sobre': this.getSobreContent(),
             'cuidados': this.getCuidadosContent(),
-            'pedidos': this.getPedidosContent()  // NOVO: Página de pedidos
+            'pedidos': this.getPedidosContent(),
+            'feedbacks': this.getFeedbacksContent(),
         };
         this.footerContent = this.getFooterContent();
         this.init();
@@ -380,11 +381,151 @@ class PagesLoader {
 
     // NOVO: Método para carregar a página de pedidos
     getPedidosContent() {
-   return `
+        return `
     <div id="react-feedback-root"></div>
 `;
 
-}
+    }
+
+   getFeedbacksContent() {
+        return `
+            <section class="feedback-section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>O que Nossos Clientes Dizem</h2>
+                        <p>Leia os depoimentos de quem já experimentou a magia da Padaria Jardim</p>
+                    </div>
+
+                    <div class="container-3colunas">
+                        <!-- Coluna iFood -->
+                        <div class="coluna">
+                            <h3 class="col-title">iFood</h3>
+                            <div class="col-scroll">
+                                <div class="card">
+                                    <div class="card-top">
+                                        <span class="emoji">😊</span>
+                                        <div>
+                                            <div class="nome">Déborah</div>
+                                        </div>
+                                    </div>
+                                    <div class="estrelas">★★★★★</div>
+                                    <p class="texto">Simplesmente maravilhoso! O pão chega quentinho e o sabor é inigualável.</p>
+                                </div>
+                                <div class="card">
+                                    <div class="card-top">
+                                        <span class="emoji">🤩</span>
+                                        <div>
+                                            <div class="nome">Juliana</div>
+                                        </div>
+                                    </div>
+                                    <div class="estrelas">★★★★★</div>
+                                    <p class="texto">Melhor padaria artesanal de Campina Grande. Atendimento nota 10!</p>
+                                </div>
+                            </div>
+                            <h3 class="col-footer">iFood</h3>
+                        </div>
+
+                        <!-- Coluna Google Reviews -->
+                        <div class="coluna">
+                            <h3 class="col-title">Google Reviews</h3>
+                            <div class="col-scroll">
+                                <div class="card">
+                                    <div class="card-top">
+                                        <span class="emoji">😄</span>
+                                        <div>
+                                            <div class="nome">Ketlen Mendes</div>
+                                        </div>
+                                    </div>
+                                    <div class="estrelas">★★★★</div>
+                                    <p class="texto">Produtos de ótima qualidade! Fiz pedido de uma ciabatta e Focaccia, todos os dois são incríveis, sabor maravilhoso eu AMEI, atendimento impecável e apresentação do produto também. Vale muito a pena experimentar essas delícias!</p>
+                                </div>
+                                <div class="card">
+                                    <div class="card-top">
+                                        <span class="emoji">😁</span>
+                                        <div>
+                                            <div class="nome">Mariana Santos</div>
+                                        </div>
+                                    </div>
+                                    <div class="estrelas">★★★★★</div>
+                                    <p class="texto">Tudo muito bem embalado, os itens são deliciosos. Não tenho muitos registros, mas estava muito bom! A foto abaixo é da ciabatta de parmesão e orégano(comprei também a clássica); coloquei queijo e esquentei na sanduicheira, o pão bem macio. Comprei um muffin de banana e doce de leite. Nossa, uma delícia! Sem falar do pastel de nata, estava com gostinho de infância. Aguardando, ansiosa, pela próxima fornada para Recife 💚💚</p>
+                                </div>
+                            </div>
+                            <h3 class="col-footer">Google</h3>
+                        </div>
+
+                        <!-- Coluna Stories -->
+                        <div class="coluna fade-in">
+                            <h3 class="col-title">Stories</h3>
+                            <div class="story-container" id="storyContainer" 
+                                 data-videos="videos/1.mp4, videos/2.mp4, videos/4.mp4, videos/5 .mp4">
+                                <button id="prevBtn" class="story-btn">◀</button>
+                                <div class="story-content" id="storyContent">
+                                    <!-- Conteúdo injetado via JS -->
+                                </div>
+                                <button id="nextBtn" class="story-btn">▶</button>
+                            </div>
+                            <div class="story-progress-bar">
+                                <div id="progressBar" class="story-progress-fill" style="width: 0%;"></div>
+                            </div>
+                            <h3 class="col-footer">Stories</h3>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        `;
+    }
+
+    getFooterContent() {
+        return `
+            <footer>
+                <div class="footer-content">
+                    <!-- Sobre -->
+                    <section class="footer-section">
+                        <h3>Padaria Jardim</h3>
+                        <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
+                    </section>
+
+                    <!-- Contato -->
+                    <section class="footer-section">
+                        <h3>Contato</h3>
+                        <p>📍 Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
+                        <p>📞 (83) 99920-4618</p>
+                    </section>
+
+                    <!-- Horário -->
+                    <section class="footer-section">
+                        <h3>Horário</h3>
+                        <p>Terça a domingo</p>
+                        <p>07h - 19h</p>
+                    </section>
+
+                    <!-- Formas de Pagamento -->
+                    <section class="footer-section">
+                        <h3>Formas de Pagamento</h3>
+                        <div class="footer-payment-icons">
+                            <img src="img/payment/cardVisa.png" alt="Visa">
+                            <img src="img/payment/cardMastercard.png" alt="MasterCard">
+                            <img src="img/payment/cardElo.png" alt="Elo">
+                            <img src="img/payment/pix.png" alt="Pix">
+                            <img src="img/payment/cash.png" alt="Dinheiro">
+                        </div>
+                    </section>
+
+                    <!-- Siga-nos -->
+                    <section class="footer-section">
+                        <h3>Siga-nos</h3>
+                        <div class="footer-social-icons">
+                            <a href="https://www.instagram.com/jardimpadariacg/">
+                                <img src="img/logos/instagram.png" alt="Instagram">
+                            </a>
+                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0">
+                                <img src="img/logos/whatsapp.png" alt="WhatsApp">
+                            </a>
+                        </div>
+                    </section>
+                </div>
+        `;
+    }
 
     getFooterContent() {
         return `
@@ -444,5 +585,4 @@ class PagesLoader {
     }
 }
 
-// Inicializa o carregador de páginas
 new PagesLoader();

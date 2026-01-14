@@ -145,12 +145,6 @@ async function loadComponents() {
         window.Carousel = carouselModule.default || carouselModule.Carousel;
 
         // Carrega Feedbacks
-        try {
-            const feedbacksModule = await import('./pages/feedbacks.js');
-            window.Feedbacks = feedbacksModule.default || feedbacksModule.Feedbacks;
-        } catch (e) {
-            console.warn('Aviso: Módulo de feedbacks não pôde ser carregado dinamicamente');
-        }
 
         console.log('✅ Componentes carregados:', {
             Modal: !!Modal,
@@ -175,32 +169,32 @@ function setupCheckoutModalEvents() {
     if (closeCheckoutBtn) {
         closeCheckoutBtn.addEventListener('click', closeCheckoutModal);
     }
-    
+
     // Overlay do checkout
     const checkoutOverlay = document.getElementById('checkoutModalOverlay');
     if (checkoutOverlay) {
         checkoutOverlay.addEventListener('click', closeCheckoutModal);
     }
-    
+
     // Botão de finalizar compra do carrinho
-const checkoutBtn = document.querySelector('.checkout-btn');
-if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Verifica se há itens no carrinho
-        if (Cart && Cart.cartItems && Cart.cartItems.length > 0) {
-            // Abre o modal de checkout
-            openCheckoutModal();
-        } else {
-            showNotification('Adicione itens ao carrinho antes de finalizar a compra.', 3000, 'warning');
-        }
-    });
-}
-    
+    const checkoutBtn = document.querySelector('.checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Verifica se há itens no carrinho
+            if (Cart && Cart.cartItems && Cart.cartItems.length > 0) {
+                // Abre o modal de checkout
+                openCheckoutModal();
+            } else {
+                showNotification('Adicione itens ao carrinho antes de finalizar a compra.', 3000, 'warning');
+            }
+        });
+    }
+
     // Tecla ESC para fechar
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             const checkoutModal = document.getElementById('checkoutModal');
             if (checkoutModal && checkoutModal.classList.contains('active')) {
@@ -404,16 +398,12 @@ async function initializePageComponents(pageName) {
                 }
                 break;
 
+
             case 'feedbacks':
-                try {
-                    const feedbacksModule = await import('./pages/feedbacks.js');
-                    window.FeedbacksPage = feedbacksModule.default || feedbacksModule.FeedbacksPage;
-                    if (window.FeedbacksPage && window.FeedbacksPage.initialize) {
-                        await window.FeedbacksPage.initialize();
-                    }
-                    console.log('✅ Página Feedbacks inicializada');
-                } catch (error) {
-                    console.error('❌ Erro ao carregar página de feedbacks:', error);
+                const feedbackModule = await import('./pages/feedback.js');
+                const FeedbackPage = feedbackModule.default || feedbackModule.FeedbackPage;
+                if (FeedbackPage && FeedbackPage.initialize) {
+                    FeedbackPage.initialize();
                 }
                 break;
 
