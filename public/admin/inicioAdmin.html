@@ -5,34 +5,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Jardim Padaria</title>
+    <link rel="stylesheet" href="./css/admin-common.css">
     <link rel="stylesheet" href="./css/inicioAdmin.css">
-<link rel="icon" type="image/png" href="../img/logos/Logo.png">
+    <link rel="icon" type="image/png" href="../img/logos/Logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-    <header>
-        <h1>Administração — Jardim Padaria</h1>
+    <header class="admin-header">
+        <div class="logo-section" style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="../img/logos/Logo.png" alt="Logo" style="height: 2.5rem; width: 2.5rem;">
+            <h1>Painel Administrativo</h1>
+        </div>
+        <div class="header-nav">
+            <a href="/" class="btn-back-site">Ir para o Site</a>
+        </div>
     </header>
 
-    <div class="container">
-        <h2>Gerenciamento</h2>
+    <div class="admin-container">
+        <div class="admin-card">
+            <h2 style="margin-bottom: 1.5rem; text-align: center;">Gerenciamento do Sistema</h2>
+            <p style="text-align: center; color: var(--muted-foreground); margin-bottom: 2.5rem;">Bem-vindo ao painel de controle da Jardim Padaria Artesanal.</p>
 
-        <div class="grid">
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <h2>Gerenciar Pedidos</h2>
+                    <p>Acompanhe, atualize o status e finalize os pedidos dos clientes em tempo real.</p>
+                    <a href="gerenciarPedidos.html" class="btn btn-primary">Acessar Pedidos</a>
+                </div>
 
-            <div class="card">
-                <h2>Gerenciar Pedidos</h2>
-                <p>Veja, atualize e finalize pedidos em andamento.</p>
-                <a href="/admin/gerenciarPedidos.html">Acessar</a>
+                <div class="card">
+                    <div class="card-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.27 6.96 8.73 5.05 8.73-5.05"/><path d="M12 22.08V12"/></svg>
+                    </div>
+                    <h2>Gerenciar Produtos</h2>
+                    <p>Adicione novos itens, edite preços, descrições e controle a disponibilidade do cardápio.</p>
+                    <a href="gerenciarProdutos.html" class="btn btn-primary">Acessar Produtos</a>
+                </div>
             </div>
-
-            <div class="card">
-                <h2>Gerenciar Produtos</h2>
-                <p>Adicione, remova ou modifique produtos.</p>
-                <a href="/admin/gerenciarProdutos.html">Acessar</a>
-
         </div>
     </div>
+
+    <footer style="text-align: center; padding: 2rem; color: var(--muted-foreground); font-size: 0.9rem;">
+        &copy; 2026 Jardim Padaria Artesanal - Todos os direitos reservados
+    </footer>
 
 </body>
 

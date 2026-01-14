@@ -3,1240 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Jardim Padaria</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Admin - Gerenciar Pedidos</title>
+    <link rel="stylesheet" href="./css/admin-common.css">
+    <link rel="stylesheet" href="./css/gerenciarPedidos.css">
     <link rel="icon" type="image/png" href="../img/logos/Logo.png">
-    <style>
-        :root {
-            --primary: #1C3D2D;
-            --primary-light: #2A5C42;
-            --secondary: #A2B28E;
-            --background: #FCF9F5;
-            --card: #FFFFFF;
-            --border: #D4E8DC;
-            --success: #27AE60;
-            --warning: #E67E22;
-            --error: #E74C3C;
-            --info: #3498DB;
-            --text-primary: #333333;
-            --text-secondary: #666666;
-            --text-light: #888888;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-            font-size: 14px;
-            padding: 20px;
-        }
-        
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            min-height: 100vh;
-        }
-        
-        /* Header */
-        .admin-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(28, 61, 45, 0.2);
-        }
-        
-        .admin-header h1 {
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
-        }
-        
-        /* Controls */
-        .admin-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .refresh-btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--success);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .refresh-btn:hover {
-            background: #219653;
-            transform: translateY(-2px);
-        }
-        
-        .date-filter {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .date-filter input {
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 0.25rem;
-        }
-        
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: var(--card);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        /* Filter Controls */
-        .filter-controls {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-        
-        .filter-select, .search-input {
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 0.25rem;
-            min-width: 180px;
-        }
-        
-        .search-input {
-            flex: 1;
-            min-width: 250px;
-        }
-        
-        /* Table */
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .order-count {
-            background: var(--primary-light);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.9rem;
-        }
-        
-        .orders-table-container {
-            background: var(--card);
-            border-radius: 0.5rem;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 2rem;
-        }
-        
-        .orders-table {
-            overflow-x: auto;
-        }
-        
-        .orders-table table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1200px;
-        }
-        
-        .orders-table th {
-            background: #f8f9fa;
-            color: var(--text-secondary);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid var(--border);
-        }
-        
-        .orders-table th.sortable {
-            cursor: pointer;
-        }
-        
-        .orders-table td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .orders-table tr:nth-child(even) {
-            background: #fafbfc;
-        }
-        
-        .orders-table tr:hover {
-            background: #f0f7f2;
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .status-pendente { background: #FFF3E0; color: #E67E22; }
-        .status-preparando { background: #E3F2FD; color: #1976D2; }
-        .status-pronto { background: #E8F5E9; color: #2E7D32; }
-        .status-entregue { background: #E8F5E9; color: #1B5E20; }
-        .status-cancelado { background: #FFEBEE; color: #C62828; }
-        
-        /* Action Buttons */
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-            margin-right: 0.5rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: var(--secondary); color: var(--primary); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-danger { background: var(--error); color: white; }
-        .btn-info { background: var(--info); color: white; }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        /* Loading */
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-        
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Footer */
-        .admin-footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-light);
-            border-top: 1px solid var(--border);
-            margin-top: 2rem;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .admin-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-controls {
-                flex-direction: column;
-            }
-            
-            .filter-select, .search-input {
-                width: 100%;
-            }
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <header class="admin-header">
+        <div class="logo-section" style="display: flex; align-items: center; gap: 0.75rem;">
+            <img src="../img/logos/Logo.png" alt="Logo" style="height: 2.5rem; width: 2.5rem;">
+            <h1>Gerenciar Pedidos</h1>
+        </div>
+        <div class="header-nav">
+            <a href="inicioAdmin.html" class="btn-back-site">⬅ Voltar ao Início</a>
+        </div>
+    </header>
+
     <div class="admin-container">
-        <div class="admin-header">
-            <h1>🍞 Painel Administrativo</h1>
-            <p>Jardim Padaria - Gerenciamento de Pedidos</p>
-        </div>
-        
-        <div class="admin-controls">
-            <button id="refreshBtn" class="refresh-btn">
-                🔄 Atualizar Dados
-            </button>
-            <div class="date-filter">
-                <input type="date" id="startDate">
-                <span>até</span>
-                <input type="date" id="endDate">
-                <button id="applyDateFilter" class="action-btn btn-primary">Filtrar</button>
-                <button id="clearDateFilter" class="action-btn btn-secondary">Limpar</button>
-            </div>
-        </div>
-        
+        <!-- Stats Grid -->
         <div class="stats-grid" id="statsGrid">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <p>Carregando estatísticas...</p>
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total de Pedidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingOrders">0</div>
+                <div class="stat-label">Pendentes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="preparingOrders">0</div>
+                <div class="stat-label">Preparando</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="readyOrders">0</div>
+                <div class="stat-label">Prontos/Entregues</div>
             </div>
         </div>
-        
-        <div class="filter-controls">
-            <select id="statusFilter" class="filter-select">
-                <option value="">Todos os Status</option>
-                <option value="pendente">Pendente</option>
-                <option value="preparando">Preparando</option>
-                <option value="pronto">Pronto</option>
-                <option value="entregue">Entregue</option>
-                <option value="cancelado">Cancelado</option>
-            </select>
-            
-            <select id="deliveryFilter" class="filter-select">
-                <option value="">Todas as Entregas</option>
-                <option value="entrega">Entrega</option>
-                <option value="retirada">Retirada</option>
-            </select>
-            
-            <select id="paymentFilter" class="filter-select">
-                <option value="">Todos os Pagamentos</option>
-                <option value="pix">Pix</option>
-                <option value="cartao">Cartão</option>
-                <option value="dinheiro">Dinheiro</option>
-            </select>
-            
-            <input type="text" id="searchInput" class="filter-select search-input" placeholder="Buscar por ID, nome ou telefone...">
-        </div>
-        
-        <div class="orders-table-container">
+
+        <div class="admin-card">
+            <div class="admin-controls">
+                <button class="btn btn-primary refresh-btn" id="refreshBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    Atualizar
+                </button>
+                
+                <div class="date-filter">
+                    <label>Filtrar por data:</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" id="startDate" class="filter-input">
+                        <span>até</span>
+                        <input type="date" id="endDate" class="filter-input">
+                        <button id="applyDateFilter" class="btn btn-secondary">Filtrar</button>
+                        <button id="clearDateFilter" class="btn btn-ghost">Limpar</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" id="exportBtn">
+                    📥 Exportar CSV
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="statusFilter" class="filter-select">
+                    <option value="todos">Todos os Status</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="preparando">Preparando</option>
+                    <option value="pronto">Pronto</option>
+                    <option value="entregue">Entregue</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+                
+                <select id="deliveryFilter" class="filter-select">
+                    <option value="todos">Todas as Entregas</option>
+                    <option value="entrega">Entrega</option>
+                    <option value="retirada">Retirada</option>
+                </select>
+
+                <select id="paymentFilter" class="filter-select">
+                    <option value="todos">Todos os Pagamentos</option>
+                    <option value="pix">PIX</option>
+                    <option value="cartao">Cartão</option>
+                    <option value="dinheiro">Dinheiro</option>
+                </select>
+
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por cliente, telefone ou ID...">
+            </div>
+
             <div class="table-header">
-                <h3>Pedidos Recentes</h3>
-                <span class="order-count" id="orderCount">0 pedidos</span>
+                <h3 style="margin:0;">Pedidos Recentes</h3>
+                <span class="order-count" id="orderCount">0 pedidos encontrados</span>
             </div>
-            <div class="orders-table">
+
+            <div class="table-responsive">
                 <table id="ordersTable">
                     <thead>
                         <tr>
-                            <th data-sort="order_id" class="sortable">ID</th>
-                            <th data-sort="client_name" class="sortable">Cliente</th>
-                            <th data-sort="client_phone" class="sortable">Telefone</th>
-                            <th data-sort="total" class="sortable">Total</th>
-                            <th data-sort="status" class="sortable">Status</th>
-                            <th data-sort="delivery_option" class="sortable">Entrega</th>
-                            <th data-sort="payment_method" class="sortable">Pagamento</th>
-                            <th data-sort="created_at" class="sortable">Data</th>
+                            <th class="sortable" data-sort="order_id">ID</th>
+                            <th class="sortable" data-sort="created_at">Data/Hora</th>
+                            <th class="sortable" data-sort="customer_name">Cliente</th>
+                            <th class="sortable" data-sort="total">Total</th>
+                            <th class="sortable" data-sort="status">Status</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="ordersBody">
-                        <tr>
-                            <td colspan="9" class="loading">
-                                <div class="loading-spinner"></div>
-                                <p>Carregando pedidos...</p>
-                            </td>
-                        </tr>
+                        <!-- Pedidos serão injetados aqui -->
                     </tbody>
                 </table>
-            </div>
-        </div>
-        
-        <div id="noOrdersMessage" class="no-orders" style="display: none;">
-            <h3>Nenhum pedido encontrado</h3>
-            <p>Não há pedidos correspondentes aos filtros aplicados.</p>
-        </div>
-        
-        <div class="admin-footer">
-            <p>🛠️ Painel Administrativo - Jardim Padaria | Última atualização: <span id="lastUpdate">-</span></p>
-        </div>
-    </div>
-    
-    <!-- Modal de Detalhes do Pedido -->
-    <div class="modal" id="orderModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Detalhes do Pedido</h3>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <div id="modalContent">
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Carregando detalhes do pedido...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Alterar Status -->
-    <div class="modal" id="editStatusModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Alterar Status do Pedido</h3>
-                <button class="modal-close" onclick="closeEditStatusModal()">×</button>
-            </div>
-            <div id="editStatusContent">
-                <div>
-                    <h4>Selecione o novo status:</h4>
-                    <select id="newStatusSelect" style="width: 100%; margin: 10px 0; padding: 8px;">
-                        <option value="pendente">Pendente</option>
-                        <option value="preparando">Preparando</option>
-                        <option value="pronto">Pronto</option>
-                        <option value="entregue">Entregue</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
-                </div>
-                <div style="text-align: right; margin-top: 20px;">
-                    <button class="action-btn btn-secondary" onclick="closeEditStatusModal()">Cancelar</button>
-                    <button class="action-btn btn-success" onclick="saveOrderStatus()">Salvar</button>
+                <div id="noOrdersMessage" style="display: none; text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                    Nenhum pedido encontrado com os filtros selecionados.
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Admin Panel JavaScript - Versão Corrigida
-        class AdminPanel {
-            constructor() {
-                this.orders = [];
-                this.filteredOrders = [];
-                this.currentSort = { column: 'created_at', direction: 'desc' };
-                this.currentOrderId = null;
-                this.apiBase = window.location.origin + '/.netlify/functions';
-                this.init();
-            }
-            
-            async init() {
-                console.log('🚀 Inicializando AdminPanel...');
-                await this.loadAllData();
-                this.setupEventListeners();
-                console.log('✅ AdminPanel inicializado');
-            }
-            
-            async loadAllData() {
-                await Promise.all([
-                    this.loadOrders(),
-                    this.loadStats()
-                ]);
-                this.updateTimestamp();
-            }
-            
-            async loadOrders() {
-                try {
-                    this.showLoading(true);
-                    console.log('📥 Carregando pedidos...');
-                    
-                    const response = await fetch(`${this.apiBase}/get-all-orders`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    console.log('📦 Resultado:', result);
-                    
-                    if (result.success) {
-                        this.orders = result.orders || [];
-                        this.filteredOrders = [...this.orders];
-                        this.sortOrders();
-                        this.displayOrders();
-                        this.updateOrderCount();
-                        this.updateNoOrdersMessage();
-                    } else {
-                        throw new Error(result.message || 'Erro ao carregar pedidos');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao carregar pedidos:', error);
-                    this.orders = await this.getFallbackOrders();
-                    this.filteredOrders = [...this.orders];
-                    this.sortOrders();
-                    this.displayOrders();
-                    this.updateOrderCount();
-                    this.updateNoOrdersMessage();
-                    this.showError('Usando dados de exemplo - ' + error.message);
-                } finally {
-                    this.showLoading(false);
-                }
-            }
-            
-            async loadStats() {
-                try {
-                    console.log('📊 Carregando estatísticas...');
-                    const response = await fetch(`${this.apiBase}/get-admin-stats`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    console.log('📈 Resultado de stats:', result);
-                    
-                    if (result.success) {
-                        this.displayStats(result.stats);
-                    } else {
-                        throw new Error(result.message || 'Erro ao carregar estatísticas');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao carregar estatísticas:', error);
-                    const stats = this.calculateLocalStats();
-                    this.displayStats(stats);
-                }
-            }
-            
-            async getOrderDetails(orderId) {
-                try {
-                    console.log(`🔍 Buscando detalhes do pedido: ${orderId}`);
-                    const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        return result.orderData;
-                    } else {
-                        throw new Error(result.message || 'Pedido não encontrado');
-                    }
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao buscar detalhes:', error);
-                    return this.getFallbackOrderDetails(orderId);
-                }
-            }
-            
-            calculateLocalStats() {
-                const stats = {
-                    total: this.orders.length,
-                    pendente: this.orders.filter(o => o.status === 'pendente').length,
-                    preparando: this.orders.filter(o => o.status === 'preparando').length,
-                    pronto: this.orders.filter(o => o.status === 'pronto').length,
-                    entregue: this.orders.filter(o => o.status === 'entregue').length,
-                    cancelado: this.orders.filter(o => o.status === 'cancelado').length,
-                    total_value: this.orders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0)
-                };
-                return stats;
-            }
-            
-            displayStats(stats) {
-                const statsGrid = document.getElementById('statsGrid');
-                if (!statsGrid) return;
-                
-                statsGrid.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.total || 0}</div>
-                        <div class="stat-label">Total de Pedidos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.pendente || 0}</div>
-                        <div class="stat-label">Pendentes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.preparando || 0}</div>
-                        <div class="stat-label">Em Preparação</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.pronto || 0}</div>
-                        <div class="stat-label">Prontos</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.entregue || 0}</div>
-                        <div class="stat-label">Entregues</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">R$ ${(stats.total_value || 0).toFixed(2)}</div>
-                        <div class="stat-label">Valor Total</div>
-                    </div>
-                `;
-            }
-            
-            getPaymentMethodText(paymentMethod) {
-                const normalizedMethod = paymentMethod?.toLowerCase() || 'pix';
-                const paymentMap = {
-                    'pix': '💰 Pix',
-                    'cartao': '💳 Cartão',
-                    'dinheiro': '💵 Dinheiro',
-                    'card': '💳 Cartão',
-                    'cash': '💵 Dinheiro',
-                    'money': '💵 Dinheiro'
-                };
-                return paymentMap[normalizedMethod] || paymentMethod;
-            }
-            
-            displayOrders() {
-                const tbody = document.getElementById('ordersBody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                if (this.filteredOrders.length === 0) {
-                    this.updateNoOrdersMessage();
-                    return;
-                }
-                
-                this.filteredOrders.forEach(order => {
-                    const row = document.createElement('tr');
-                    
-                    const date = new Date(order.created_at).toLocaleString('pt-BR');
-                    const total = parseFloat(order.total || order.total_amount || 0);
-                    const deliveryOption = order.delivery_option || order.deliveryOption || 'entrega';
-                    const paymentMethod = order.payment_method || order.paymentMethod || 'pix';
-                    
-                    row.innerHTML = `
-                        <td>
-                            <strong>${order.order_id || order.id}</strong>
-                        </td>
-                        <td>${order.client_name || order.client?.name || 'N/A'}</td>
-                        <td>${this.formatPhone(order.client_phone || order.client?.phone)}</td>
-                        <td>R$ ${total.toFixed(2)}</td>
-                        <td><span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></td>
-                        <td>${deliveryOption === 'retirada' ? '🛵 Retirada' : '🚗 Entrega'}</td>
-                        <td>${this.getPaymentMethodText(paymentMethod)}</td>
-                        <td>${date}</td>
-                        <td>
-                            <button class="action-btn btn-primary" onclick="adminPanel.viewOrder('${order.order_id || order.id}')">Ver</button>
-                            <button class="action-btn btn-info" onclick="adminPanel.editOrderStatus('${order.order_id || order.id}')">Status</button>
-                            ${order.status === 'pendente' ? 
-                                `<button class="action-btn btn-success" onclick="adminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'preparando')">Preparar</button>` : ''}
-                            ${order.status === 'preparando' ? 
-                                `<button class="action-btn btn-warning" onclick="adminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'pronto')">Pronto</button>` : ''}
-                            ${order.status === 'pronto' ? 
-                                `<button class="action-btn btn-success" onclick="adminPanel.updateOrderStatusQuick('${order.order_id || order.id}', 'entregue')">Entregar</button>` : ''}
-                        </td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                });
-            }
-            
-            updateOrderCount() {
-                const orderCount = document.getElementById('orderCount');
-                if (orderCount) {
-                    orderCount.textContent = `${this.filteredOrders.length} pedidos`;
-                }
-            }
-            
-            updateNoOrdersMessage() {
-                const noOrdersMessage = document.getElementById('noOrdersMessage');
-                const tbody = document.getElementById('ordersBody');
-                
-                if (this.filteredOrders.length === 0) {
-                    noOrdersMessage.style.display = 'block';
-                    tbody.innerHTML = '';
-                } else {
-                    noOrdersMessage.style.display = 'none';
-                }
-            }
-            
-            getStatusText(status) {
-                const statusMap = {
-                    'pendente': '📋 Pendente',
-                    'preparando': '👨‍🍳 Preparando',
-                    'pronto': '✅ Pronto',
-                    'entregue': '🚗 Entregue',
-                    'cancelado': '❌ Cancelado'
-                };
-                return statusMap[status] || status;
-            }
-            
-            formatPhone(phone) {
-                if (!phone) return 'N/A';
-                const cleanPhone = phone.toString().replace(/\D/g, '');
-                
-                if (cleanPhone.length === 13) {
-                    return `(${cleanPhone.substring(3, 5)}) ${cleanPhone.substring(5, 10)}-${cleanPhone.substring(10)}`;
-                } else if (cleanPhone.length === 11) {
-                    return `(${cleanPhone.substring(0, 2)}) ${cleanPhone.substring(2, 7)}-${cleanPhone.substring(7)}`;
-                }
-                return phone;
-            }
-            
-            async viewOrder(orderId) {
-                try {
-                    this.showModalLoading(true);
-                    const orderDetails = await this.getOrderDetails(orderId);
-                    
-                    const modalContent = document.getElementById('modalContent');
-                    const customer = orderDetails.customer || {};
-                    const order = orderDetails.order || {};
-                    const items = orderDetails.items || [];
-                    
-                    const subtotal = parseFloat(order.subtotal || order.total || 0);
-                    const deliveryFee = parseFloat(order.delivery_fee || order.deliveryFee || 0);
-                    const total = parseFloat(order.total || order.total_amount || 0);
-                    const createdDate = new Date(order.created_at).toLocaleString('pt-BR');
-                    const paymentMethod = order.payment_method || order.paymentMethod || 'pix';
-                    
-                    modalContent.innerHTML = `
-                        <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                            <h4>📋 Informações do Pedido</h4>
-                            <p><strong>ID:</strong> ${order.order_id || order.id}</p>
-                            <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></p>
-                            <p><strong>Data:</strong> ${createdDate}</p>
-                            <p><strong>Entrega:</strong> ${order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega'}</p>
-                            <p><strong>Pagamento:</strong> ${this.getPaymentMethodText(paymentMethod)}</p>
-                            ${order.observation ? `<p><strong>Observação:</strong> ${order.observation}</p>` : ''}
-                        </div>
-                        
-                        <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                            <h4>👤 Informações do Cliente</h4>
-                            <p><strong>Nome:</strong> ${customer.name || 'N/A'}</p>
-                            <p><strong>Telefone:</strong> ${this.formatPhone(customer.phone)}</p>
-                            ${order.delivery_option === 'entrega' ? `
-                                <p><strong>Endereço:</strong> ${customer.address || order.address || 'N/A'}</p>
-                                ${customer.street ? `<p><strong>Rua:</strong> ${customer.street}</p>` : ''}
-                                ${customer.number ? `<p><strong>Número:</strong> ${customer.number}</p>` : ''}
-                                ${customer.neighborhood ? `<p><strong>Bairro:</strong> ${customer.neighborhood}</p>` : ''}
-                                ${customer.city ? `<p><strong>Cidade:</strong> ${customer.city}</p>` : ''}
-                            ` : ''}
-                        </div>
-                        
-                        <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                            <h4>🛒 Itens do Pedido</h4>
-                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                                <thead>
-                                    <tr style="background: #f8f9fa;">
-                                        <th style="padding: 8px; text-align: left;">Produto</th>
-                                        <th style="padding: 8px; text-align: left;">Quantidade</th>
-                                        <th style="padding: 8px; text-align: left;">Preço Unit.</th>
-                                        <th style="padding: 8px; text-align: left;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${items.map(item => `
-                                        <tr>
-                                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.product_name || item.name}</td>
-                                            <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.quantity}</td>
-                                            <td style="padding: 8px; border-bottom: 1px solid #eee;">R$ ${parseFloat(item.price || item.unit_price || 0).toFixed(2)}</td>
-                                            <td style="padding: 8px; border-bottom: 1px solid #eee;">R$ ${(parseFloat(item.price || item.unit_price || 0) * parseInt(item.quantity)).toFixed(2)}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-                            <h4>💰 Resumo Financeiro</h4>
-                            <p><strong>Subtotal:</strong> R$ ${subtotal.toFixed(2)}</p>
-                            ${deliveryFee > 0 ? `<p><strong>Frete:</strong> R$ ${deliveryFee.toFixed(2)}</p>` : ''}
-                            <p style="font-weight: bold; border-top: 2px solid #1C3D2D; padding-top: 10px;">
-                                <strong>TOTAL:</strong> R$ ${total.toFixed(2)}
-                            </p>
-                        </div>
-                        
-                        <div style="text-align: center; margin-top: 20px;">
-                            <button class="action-btn btn-primary" onclick="adminPanel.editOrderStatus('${order.order_id || order.id}')">
-                                ✏️ Alterar Status
-                            </button>
-                            <button class="action-btn btn-info" onclick="window.open('/order.html?orderId=${order.order_id || order.id}', '_blank')">
-                                📄 Ver Página do Pedido
-                            </button>
-                            ${customer.phone ? `
-                                <button class="action-btn btn-success" onclick="window.open('https://api.whatsapp.com/send?phone=${customer.phone}&text=Olá ${customer.name || ''}, vi seu pedido na Padaria Jardim!', '_blank')">
-                                    📱 WhatsApp
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    
-                    document.getElementById('orderModal').style.display = 'flex';
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao visualizar pedido:', error);
-                    alert('Erro ao carregar detalhes do pedido: ' + error.message);
-                } finally {
-                    this.showModalLoading(false);
-                }
-            }
-            
-            editOrderStatus(orderId) {
-                this.currentOrderId = orderId;
-                document.getElementById('editStatusModal').style.display = 'flex';
-            }
-            
-            async saveOrderStatus() {
-                if (!this.currentOrderId) return;
-                
-                const newStatus = document.getElementById('newStatusSelect').value;
-                
-                try {
-                    // Simula atualização
-                    console.log(`Atualizando pedido ${this.currentOrderId} para status ${newStatus}`);
-                    
-                    const orderIndex = this.orders.findIndex(o => 
-                        o.order_id === this.currentOrderId || o.id === this.currentOrderId
-                    );
-                    
-                    if (orderIndex > -1) {
-                        this.orders[orderIndex].status = newStatus;
-                        this.filteredOrders = [...this.orders];
-                        this.applyFilters();
-                        this.displayOrders();
-                    }
-                    
-                    this.closeEditStatusModal();
-                    alert('✅ Status atualizado com sucesso!');
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao atualizar status:', error);
-                    alert('❌ Erro ao atualizar status: ' + error.message);
-                }
-            }
-            
-            async updateOrderStatusQuick(orderId, newStatus) {
-                if (!confirm(`Deseja alterar o status do pedido para "${this.getStatusText(newStatus)}"?`)) {
-                    return;
-                }
-                
-                try {
-                    console.log(`Atualizando rapidamente pedido ${orderId} para ${newStatus}`);
-                    
-                    const orderIndex = this.orders.findIndex(o => 
-                        o.order_id === orderId || o.id === orderId
-                    );
-                    
-                    if (orderIndex > -1) {
-                        this.orders[orderIndex].status = newStatus;
-                        this.filteredOrders = [...this.orders];
-                        this.applyFilters();
-                        this.displayOrders();
-                    }
-                    
-                    alert(`✅ Status atualizado para: ${this.getStatusText(newStatus)}`);
-                    
-                } catch (error) {
-                    console.error('❌ Erro ao atualizar status:', error);
-                    alert('❌ Erro ao atualizar status: ' + error.message);
-                }
-            }
-            
-            applyFilters() {
-                const statusFilter = document.getElementById('statusFilter').value;
-                const deliveryFilter = document.getElementById('deliveryFilter').value;
-                const paymentFilter = document.getElementById('paymentFilter').value;
-                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
-                
-                this.filteredOrders = this.orders.filter(order => {
-                    if (statusFilter && order.status !== statusFilter) return false;
-                    
-                    const deliveryOption = order.delivery_option || order.deliveryOption;
-                    if (deliveryFilter && deliveryOption !== deliveryFilter) return false;
-                    
-                    const paymentMethod = order.payment_method || order.paymentMethod;
-                    if (paymentFilter) {
-                        const normalizedFilter = paymentFilter.toLowerCase();
-                        const normalizedMethod = (paymentMethod || 'pix').toLowerCase();
-                        
-                        const paymentMapping = {
-                            'pix': ['pix'],
-                            'cartao': ['cartao', 'card', 'credit', 'debit'],
-                            'dinheiro': ['dinheiro', 'cash', 'money']
-                        };
-                        
-                        const allowedMethods = paymentMapping[normalizedFilter] || [normalizedFilter];
-                        if (!allowedMethods.includes(normalizedMethod)) return false;
-                    }
-                    
-                    if (searchTerm) {
-                        const searchableText = `
-                            ${order.order_id || order.id}
-                            ${order.client_name || order.client?.name || ''}
-                            ${order.client_phone || order.client?.phone || ''}
-                        `.toLowerCase();
-                        
-                        if (!searchableText.includes(searchTerm)) return false;
-                    }
-                    
-                    if (startDate || endDate) {
-                        const orderDate = new Date(order.created_at);
-                        orderDate.setHours(0, 0, 0, 0);
-                        
-                        if (startDate) {
-                            const start = new Date(startDate);
-                            if (orderDate < start) return false;
-                        }
-                        
-                        if (endDate) {
-                            const end = new Date(endDate);
-                            end.setHours(23, 59, 59, 999);
-                            if (orderDate > end) return false;
-                        }
-                    }
-                    
-                    return true;
-                });
-                
-                this.sortOrders();
-                this.displayOrders();
-                this.updateOrderCount();
-                this.updateNoOrdersMessage();
-            }
-            
-            sortOrders() {
-                this.filteredOrders.sort((a, b) => {
-                    const aVal = a[this.currentSort.column];
-                    const bVal = b[this.currentSort.column];
-                    
-                    if (this.currentSort.column === 'created_at') {
-                        return this.currentSort.direction === 'desc' 
-                            ? new Date(bVal) - new Date(aVal)
-                            : new Date(aVal) - new Date(bVal);
-                    }
-                    
-                    if (typeof aVal === 'string' && typeof bVal === 'string') {
-                        return this.currentSort.direction === 'desc'
-                            ? bVal.localeCompare(aVal)
-                            : aVal.localeCompare(bVal);
-                    }
-                    
-                    return this.currentSort.direction === 'desc'
-                        ? (bVal || 0) - (aVal || 0)
-                        : (aVal || 0) - (bVal || 0);
-                });
-            }
-            
-            setupEventListeners() {
-                document.getElementById('refreshBtn').addEventListener('click', () => {
-                    this.loadAllData();
-                });
-                
-                document.getElementById('statusFilter').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-                
-                document.getElementById('deliveryFilter').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-                
-                document.getElementById('paymentFilter').addEventListener('change', () => {
-                    this.applyFilters();
-                });
-                
-                document.getElementById('searchInput').addEventListener('input', () => {
-                    this.applyFilters();
-                });
-                
-                document.getElementById('applyDateFilter').addEventListener('click', () => {
-                    this.applyFilters();
-                });
-                
-                document.getElementById('clearDateFilter').addEventListener('click', () => {
-                    document.getElementById('startDate').value = '';
-                    document.getElementById('endDate').value = '';
-                    this.applyFilters();
-                });
-                
-                document.querySelectorAll('th.sortable').forEach(th => {
-                    th.addEventListener('click', () => {
-                        const column = th.dataset.sort;
-                        
-                        if (this.currentSort.column === column) {
-                            this.currentSort.direction = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            this.currentSort.column = column;
-                            this.currentSort.direction = 'desc';
-                        }
-                        
-                        this.sortOrders();
-                        this.displayOrders();
-                    });
-                });
-            }
-            
-            showLoading(show) {
-                const tbody = document.getElementById('ordersBody');
-                if (show) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="9" class="loading">
-                                <div class="loading-spinner"></div>
-                                <p>Carregando pedidos...</p>
-                            </td>
-                        </tr>
-                    `;
-                }
-            }
-            
-            showModalLoading(show) {
-                const modalContent = document.getElementById('modalContent');
-                if (show) {
-                    modalContent.innerHTML = `
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <p>Carregando detalhes do pedido...</p>
-                        </div>
-                    `;
-                }
-            }
-            
-            showError(message) {
-                console.error('❌ ' + message);
-            }
-            
-            closeModal() {
-                document.getElementById('orderModal').style.display = 'none';
-            }
-            
-            closeEditStatusModal() {
-                document.getElementById('editStatusModal').style.display = 'none';
-                this.currentOrderId = null;
-            }
-            
-            updateTimestamp() {
-                const lastUpdate = document.getElementById('lastUpdate');
-                if (lastUpdate) {
-                    lastUpdate.textContent = new Date().toLocaleString('pt-BR');
-                }
-            }
-            
-            async getFallbackOrders() {
-                console.log('⚠️ Usando dados de exemplo (fallback)');
-                return [
-                    {
-                        id: '1',
-                        order_id: 'JD' + Date.now().toString().slice(-6),
-                        client_name: 'Maria Silva',
-                        client_phone: '5583999999999',
-                        total: 45.50,
-                        delivery_option: 'entrega',
-                        payment_method: 'pix',
-                        status: 'pendente',
-                        created_at: new Date().toISOString()
-                    },
-                    {
-                        id: '2',
-                        order_id: 'JD' + (Date.now() - 86400000).toString().slice(-6),
-                        client_name: 'João Santos',
-                        client_phone: '5583888888888',
-                        total: 32.00,
-                        delivery_option: 'retirada',
-                        payment_method: 'dinheiro',
-                        status: 'preparando',
-                        created_at: new Date(Date.now() - 86400000).toISOString()
-                    },
-                    {
-                        id: '3',
-                        order_id: 'JD' + (Date.now() - 172800000).toString().slice(-6),
-                        client_name: 'Ana Oliveira',
-                        client_phone: '5583777777777',
-                        total: 67.50,
-                        delivery_option: 'entrega',
-                        payment_method: 'cartao',
-                        status: 'entregue',
-                        created_at: new Date(Date.now() - 172800000).toISOString()
-                    }
-                ];
-            }
-            
-            getFallbackOrderDetails(orderId) {
-                const orders = {
-                    '1': {
-                        customer: {
-                            name: 'Maria Silva',
-                            phone: '5583999999999',
-                            address: 'Rua Exemplo, 123, Centro',
-                            street: 'Rua Exemplo',
-                            number: '123',
-                            neighborhood: 'Centro',
-                            city: 'Campina Grande'
-                        },
-                        order: {
-                            id: orderId,
-                            order_id: orderId,
-                            total: 45.50,
-                            subtotal: 45.50,
-                            delivery_option: 'entrega',
-                            payment_method: 'pix',
-                            status: 'pendente',
-                            created_at: new Date().toISOString(),
-                            observation: 'Entregar após as 18h'
-                        },
-                        items: [
-                            {
-                                product_name: 'Pão Artesanal',
-                                quantity: 2,
-                                price: 8.00
-                            },
-                            {
-                                product_name: 'Bolo de Chocolate',
-                                quantity: 1,
-                                price: 29.50
-                            }
-                        ]
-                    },
-                    '2': {
-                        customer: {
-                            name: 'João Santos',
-                            phone: '5583888888888',
-                            address: 'Retirada na loja'
-                        },
-                        order: {
-                            id: orderId,
-                            order_id: orderId,
-                            total: 32.00,
-                            subtotal: 32.00,
-                            delivery_option: 'retirada',
-                            payment_method: 'dinheiro',
-                            status: 'preparando',
-                            created_at: new Date(Date.now() - 86400000).toISOString(),
-                            observation: 'Pão bem crocante'
-                        },
-                        items: [
-                            {
-                                product_name: 'Croissant',
-                                quantity: 4,
-                                price: 5.00
-                            },
-                            {
-                                product_name: 'Café Especial',
-                                quantity: 2,
-                                price: 6.00
-                            }
-                        ]
-                    },
-                    '3': {
-                        customer: {
-                            name: 'Ana Oliveira',
-                            phone: '5583777777777',
-                            address: 'Avenida Principal, 456, Bairro Novo',
-                            street: 'Avenida Principal',
-                            number: '456',
-                            neighborhood: 'Bairro Novo',
-                            city: 'Campina Grande'
-                        },
-                        order: {
-                            id: orderId,
-                            order_id: orderId,
-                            total: 67.50,
-                            subtotal: 60.00,
-                            delivery_fee: 7.50,
-                            delivery_option: 'entrega',
-                            payment_method: 'cartao',
-                            status: 'entregue',
-                            created_at: new Date(Date.now() - 172800000).toISOString()
-                        },
-                        items: [
-                            {
-                                product_name: 'Pizza Vegetariana',
-                                quantity: 1,
-                                price: 35.00
-                            },
-                            {
-                                product_name: 'Suco Natural',
-                                quantity: 2,
-                                price: 12.50
-                            }
-                        ]
-                    }
-                };
-                
-                return orders[orderId] || orders['1'];
-            }
-        }
-        
-        function closeModal() {
-            adminPanel.closeModal();
-        }
-        
-        function closeEditStatusModal() {
-            adminPanel.closeEditStatusModal();
-        }
-        
-        function saveOrderStatus() {
-            adminPanel.saveOrderStatus();
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 DOM carregado, inicializando AdminPanel...');
-            window.adminPanel = new AdminPanel();
-        });
-    </script>
+    <footer style="text-align: center; padding: 2rem; color: var(--muted-foreground); font-size: 0.9rem;">
+        &copy; 2026 Jardim Padaria Artesanal - Painel de Controle
+    </footer>
+
+    <!-- Modal de Detalhes do Pedido -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Detalhes do Pedido</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Conteúdo do pedido será injetado aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Status -->
+    <div id="editStatusModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Alterar Status</h2>
+                <button class="modal-close" onclick="closeEditStatusModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newStatusSelect">Selecione o novo status:</label>
+                    <select id="newStatusSelect" class="filter-select" style="width: 100%; margin-top: 0.5rem;">
+                        <option value="pendente">📋 Pendente</option>
+                        <option value="preparando">👨‍🍳 Preparando</option>
+                        <option value="pronto">✅ Pronto</option>
+                        <option value="entregue">🚗 Entregue</option>
+                        <option value="cancelado">❌ Cancelado</option>
+                    </select>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="saveOrderStatus()">Salvar</button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeEditStatusModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Erro -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 style="color: var(--error);">Erro</h2>
+                <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+            </div>
+            <div id="errorContent" class="modal-body">
+                <!-- Mensagem de erro aqui -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeErrorModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationBar" class="notification-bar"></div>
+    <script src="../js/main.js"></script>
+    <script src="js/gerenciarPedidos.js"></script>
 </body>
 </html>

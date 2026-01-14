@@ -341,7 +341,7 @@ class AdminPanel {
                             👁️ Ver
                         </button>
                         <button class="action-btn btn-info" 
-                                onclick="AdminPanel.editOrderStatus('${order.order_id || order.id}')"
+                                onclick="window.editOrderStatus('${order.order_id || order.id}')"
                                 title="Alterar status do pedido">
                             ✏️ Status
                         </button>
@@ -565,7 +565,7 @@ class AdminPanel {
                 
                 <div class="modal-actions">
                     <button class="action-btn btn-primary" 
-                            onclick="AdminPanel.editOrderStatus('${order.order_id || order.id}')">
+                            onclick="window.editOrderStatus('${order.order_id || order.id}')">
                         ✏️ Alterar Status
                     </button>
                     <a href="/order.html?orderId=${order.order_id || order.id}" 
@@ -917,7 +917,7 @@ class AdminPanel {
                             <p><strong>❌ ${message}</strong></p>
                             <p style="font-size: 0.9em; margin-top: 0.5rem;">Verifique a conexão com o servidor</p>
                         </div>
-                        <button onclick="AdminPanel.loadOrders()" class="action-btn btn-primary" style="margin-top: 1.5rem;">
+                        <button onclick="window.adminPanel.loadOrders()" class="action-btn btn-primary" style="margin-top: 1.5rem;">
                             🔄 Tentar Novamente
                         </button>
                     </td>
@@ -1008,7 +1008,7 @@ window.AdminPanel = new AdminPanel();
 
 // Shortcut functions
 window.viewOrder = (orderId) => AdminPanel.viewOrder(orderId);
-window.editOrderStatus = (orderId) => AdminPanel.editOrderStatus(orderId);
+window.editOrderStatus = (orderId) => window.editOrderStatus(orderId);
 window.updateOrderStatusQuick = (orderId, status) => AdminPanel.updateOrderStatusQuick(orderId, status);
 window.closeModal = () => AdminPanel.closeModal();
 window.closeEditStatusModal = () => AdminPanel.closeEditStatusModal();
