@@ -144,38 +144,7 @@ class PagesLoader {
                 </div>
             </section>
 
-            <!-- Differentials Section -->
-            <div class="differentials-section">
-                <div class="container">
-                    <h2>Nossos Diferenciais</h2>
-                    <div class="differentials-grid">
-                        <div class="differential">
-                            <h3>O que é Fermentação Natural?</h3>
-                            <p>O fermento natural é a <strong>essência da panificação</strong>! É a forma que os antigos faziam nos primeiros países, quando não se tinha o fermento industrializado como a gente conhece.</p>
-                            <p>Ele nasce do cultivo de <strong>leveduras naturais</strong> que ao serem misturadas com farinha de trigo e água conseguem força e estrutura para fazer aquilo que precisamos: <strong>FERMENTAR!</strong></p>
-                        </div>
-                        <div class="differential">
-                            <h3>Glúten Bom!</h3>
-                            <p>O glúten é um conjunto de <strong>proteínas naturais</strong> encontradas na <strong>farinha de trigo</strong>.</p>
-                            <p>Devido ao longo processo de fermentação, o glúten presente nos <strong>nossos pães</strong> sofre <strong>deterioração natural</strong> e as proteínas simples são quebradas no processo.</p>
-                            <p>Ou seja, todo o <strong>trabalho que o nosso corpo</strong> iria realizar durante a digestão, <strong>não precisa mais!</strong> :) Por isso é tão gostoso e fácil de comer pão de fermentação natural <3</p>
-                        </div>
-                        <div class="differential">
-                            <h3>Benefícios da Fermentação Natural</h3>
-                            <ul class="benefits-list">
-                                <li>Seu sabor é incomparável ao do pão tradicional</li>
-                                <li>É um produto artesanal, sem adição alguma de produtos químicos</li>
-                                <li>Possui um índice glicêmico mais baixo do que outros pães</li>
-                                <li>Evita desconfortos abdominais e inchaço</li>
-                                <li>Possui uma série de nutrientes</li>
-                                <li>Fonte de vitaminas do complexo B</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <br>
-                <br>
-            </div>
+
 
             <!-- CTA Section -->
             <section class="cta-section">
@@ -238,6 +207,7 @@ class PagesLoader {
 
                                 <div class="text-slide">
                                     <p>Ainda somos uma micro padaria artesanal, funcionando exclusivamente por delivery, 
+                                    mais com o coração cheio de planos. Enquanto preparamos a chegada da nossa primeira filha, 
                                     seguimos alimentando também o sonho de abrir um espaço físico para acolher nossos clientes 
                                     como gostaríamos. </p>
                                 </div>
@@ -293,7 +263,6 @@ class PagesLoader {
                                     <button class="carousel-dot" data-slide="2"></button>
                                     <button class="carousel-dot" data-slide="3"></button>
                                     <button class="carousel-dot" data-slide="4"></button>
-                                    <button class="carousel-dot" data-slide="5"></button>
                                 </div>
                             </div>
                         </div>
@@ -317,6 +286,34 @@ class PagesLoader {
                             <div class="purpose-card">
                                 <h3>Experiência Sensorial</h3>
                                 <p>Ao visitar a Padaria Jardim, os clientes são envolvidos por "Delícias que florescem, aroma que espalha e arte que encanta".</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="differentials-section">
+                        <h2>Nossos Diferenciais</h2>
+                        <div class="differentials-grid">
+                            <div class="differential">
+                                <h3>O que é Fermentação Natural?</h3>
+                                <p>O fermento natural é a <strong>essência da panificação</strong>! É a forma que os antigos faziam nos primeiros países, quando não se tinha o fermento industrializado como a gente conhece.</p>
+                                <p>Ele nasce do cultivo de <strong>leveduras naturais</strong> que ao serem misturadas com farinha de trigo e água conseguem força e estrutura para fazer aquilo que precisamos: <strong>FERMENTAR!</strong></p>
+                            </div>
+                            <div class="differential">
+                                <h3>Glúten Bom!</h3>
+                                <p>O glúten é um conjunto de <strong>proteínas naturais</strong> encontradas na <strong>farinha de trigo</strong>.</p>
+                                <p>Devido ao longo processo de fermentação, o glúten presente nos <strong>nossos pães</strong> sofre <strong>deterioração natural</strong> e as proteínas simples são quebradas no processo.</p>
+                                <p>Ou seja, todo o <strong>trabalho que o nosso corpo</strong> iria realizar durante a digestão, <strong>não precisa mais!</strong> :) Por isso é tão gostoso e fácil de comer pão de fermentação natural <3</p>
+                            </div>
+                            <div class="differential">
+                                <h3>Benefícios da Fermentação Natural</h3>
+                                <ul class="benefits-list">
+                                    <li>Seu sabor é incomparável ao do pão tradicional</li>
+                                    <li>É um produto artesanal, sem adição alguma de produtos químicos</li>
+                                    <li>Possui um índice glicêmico mais baixo do que outros pães</li>
+                                    <li>Evita desconfortos abdominais e inchaço</li>
+                                    <li>Possui uma série de nutrientes</li>
+                                    <li>Fonte de vitaminas do complexo B</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -440,7 +437,7 @@ class PagesLoader {
                 </div>
 
                 <div class="footer-bottom">
-                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural.</p>
+                    <p>© 2025 Padaria Jardim — Feito com amor e fermentação natural. <a href="/admin/inicioAdmin.html" style="opacity: 0.3; text-decoration: none; color: inherit; font-size: 0.6rem;">Admin</a></p>
                 </div>
             </footer>
         `;
