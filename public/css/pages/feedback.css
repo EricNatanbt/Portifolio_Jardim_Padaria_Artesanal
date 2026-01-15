@@ -205,15 +205,22 @@
 /* ======= HEADER DA SEÇÃO ======= */
 
 .section-header {
-  text-align: center;
-  margin-bottom: 30px;
-  padding: 20px 10px;
+  width: 100% !important;
+  text-align: center !important;
+  margin: 0 auto 30px auto !important;
+  padding: 20px 10px !important;
+  display: block !important;
+  clear: both !important;
 }
 
 .section-header h2 {
-  font-size: 2rem;
-  color: var(--primary);
-  margin-bottom: 10px;
+  width: 100% !important;
+  font-size: 2rem !important;
+  color: var(--primary) !important;
+  margin: 0 auto 10px auto !important;
+  text-align: center !important;
+  display: block !important;
+  float: none !important;
 }
 
 .section-header p {

@@ -393,7 +393,6 @@ class PagesLoader {
                 <div class="container">
                     <div class="section-header">
                         <h2>O que Nossos Clientes Dizem</h2>
-                        <p>Leia os depoimentos de quem já experimentou a magia da Padaria Jardim</p>
                     </div>
 
                     <div class="container-3colunas">
@@ -457,7 +456,7 @@ class PagesLoader {
                         <div class="coluna fade-in">
                             <h3 class="col-title">Stories</h3>
                             <div class="story-container" id="storyContainer" 
-                                 data-videos="videos/1.mp4, videos/2.mp4, videos/4.mp4, videos/5 .mp4">
+                                 data-videos="videos/1.mp4, videos/2.mp4, videos/4.mp4">
                                 <button id="prevBtn" class="story-btn">◀</button>
                                 <div class="story-content" id="storyContent">
                                     <!-- Conteúdo injetado via JS -->
