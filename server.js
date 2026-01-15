@@ -133,13 +133,22 @@ app.get('/api/orders/:id', async (req, res) => {
 
         const formattedOrder = {
             id: order.id,
+            order_id: order.id,
             date: order.date,
+            created_at: order.date,
             client: order.client,
+            client_name: order.client?.name || 'Cliente',
+            client_phone: order.client?.phone || '',
             total: order.total,
-            status: order.status || 'Concluído',
+            total_amount: order.total,
+            status: order.status || 'pendente',
+            payment_method: order.client?.paymentMethod || 'pix',
+            delivery_option: order.client?.deliveryMethod || 'entrega',
+            address: order.client?.address || '',
+            observation: order.client?.observation || '',
             items: (order.cart || []).map(item => ({
                 id: item.id,
-                name: item.name || 'Produto',
+                product_name: item.name || 'Produto',
                 price: item.price || 0,
                 quantity: item.quantity || 1,
                 image: item.image || '/img/produtos/default.png',
@@ -151,6 +160,95 @@ app.get('/api/orders/:id', async (req, res) => {
     } catch (error) {
         res.status(500).json({ 
             message: 'Erro ao buscar pedido', 
+            error: error.message 
+        });
+    }
+});
+
+// GET /api/get-all-orders - Listar todos os pedidos para o admin
+app.get('/api/get-all-orders', async (req, res) => {
+    try {
+        const orders = await readOrders();
+        const formattedOrders = orders.map(order => ({
+            id: order.id,
+            order_id: order.id,
+            date: order.date,
+            created_at: order.date,
+            client_name: order.client?.name || 'Cliente',
+            client_phone: order.client?.phone || '',
+            total: order.total,
+            total_amount: order.total,
+            status: order.status || 'pendente',
+            payment_method: order.client?.paymentMethod || 'pix',
+            delivery_option: order.client?.deliveryMethod || 'entrega',
+            address: order.client?.address || '',
+            observation: order.client?.observation || '',
+            items: (order.cart || []).map(item => ({
+                product_name: item.name || 'Produto',
+                price: item.price || 0,
+                quantity: item.quantity || 1,
+                total: (item.price || 0) * (item.quantity || 1)
+            }))
+        }));
+
+        res.json({
+            success: true,
+            orders: formattedOrders
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            message: 'Erro ao buscar todos os pedidos', 
+            error: error.message 
+        });
+    }
+});
+
+// POST /api/update-order-status - Atualizar status de um pedido
+app.post('/api/update-order-status', async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        if (!orderId || !status) {
+            return res.status(400).json({ success: false, message: 'ID e status são obrigatórios.' });
+        }
+
+        const orders = await readOrders();
+        const orderIndex = orders.findIndex(o => o.id === orderId);
+
+        if (orderIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Pedido não encontrado.' });
+        }
+
+        orders[orderIndex].status = status;
+        await writeOrders(orders);
+
+        res.json({ success: true, message: 'Status atualizado com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            message: 'Erro ao atualizar status', 
+            error: error.message 
+        });
+    }
+});
+
+// DELETE /api/delete-order - Excluir um pedido
+app.delete('/api/delete-order/:id', async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const orders = await readOrders();
+        const filteredOrders = orders.filter(o => o.id !== orderId);
+
+        if (orders.length === filteredOrders.length) {
+            return res.status(404).json({ success: false, message: 'Pedido não encontrado.' });
+        }
+
+        await writeOrders(filteredOrders);
+        res.json({ success: true, message: 'Pedido excluído com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            message: 'Erro ao excluir pedido', 
             error: error.message 
         });
     }

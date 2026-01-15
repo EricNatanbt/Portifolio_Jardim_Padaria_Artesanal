@@ -3,131 +3,671 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Gerenciar Pedidos</title>
+    <title>Admin - Dashboard de Pedidos</title>
     <link rel="stylesheet" href="./css/admin-common.css">
     <link rel="stylesheet" href="./css/gerenciarPedidos.css">
     <link rel="icon" type="image/png" href="../img/logos/Logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <header class="admin-header">
         <div class="logo-section" style="display: flex; align-items: center; gap: 0.75rem;">
             <img src="../img/logos/Logo.png" alt="Logo" style="height: 2.5rem; width: 2.5rem;">
-            <h1>Gerenciar Pedidos</h1>
+            <div>
+                <h1>Dashboard de Pedidos</h1>
+                <small id="lastUpdate" style="color: rgba(255,255,255,0.8); font-size: 0.8rem;">Última atualização: --</small>
+            </div>
         </div>
         <div class="header-nav">
-            <a href="inicioAdmin.html" class="btn-back-site">⬅ Voltar ao Início</a>
+            <a href="inicioAdmin.html" class="btn-back-site">
+                <i class="fas fa-home"></i> Início Admin
+            </a>
+            <button id="exportAllBtn" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Exportar
+            </button>
         </div>
     </header>
 
     <div class="admin-container">
-        <!-- Stats Grid -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="stat-value" id="totalOrders">0</div>
-                <div class="stat-label">Total de Pedidos</div>
+        <!-- Dashboard Tabs -->
+        <div class="dashboard-tabs" id="dashboardTabs">
+            <button class="tab-btn active" data-tab="overview">
+                <i class="fas fa-tachometer-alt"></i> Visão Geral
+            </button>
+            <button class="tab-btn" data-tab="orders">
+                <i class="fas fa-list"></i> Todos os Pedidos
+            </button>
+            <button class="tab-btn" data-tab="analytics">
+                <i class="fas fa-chart-line"></i> Análises
+            </button>
+            <button class="tab-btn" data-tab="products">
+                <i class="fas fa-box-open"></i> Produtos
+            </button>
+            <button class="tab-btn" data-tab="reports">
+                <i class="fas fa-file-alt"></i> Relatórios
+            </button>
+        </div>
+
+        <!-- TAB 1: Overview -->
+        <div id="tab-overview" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card" data-stat="total">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-value" id="totalOrders">0</div>
+                    <div class="stat-label">Total de Pedidos</div>
+                    <div class="stat-subtext" id="totalValue">R$ 0,00</div>
+                </div>
+                <div class="stat-card" data-stat="pending">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value" id="pendingOrders">0</div>
+                    <div class="stat-label">Pendentes</div>
+                    <div class="stat-subtext">Aguardando</div>
+                </div>
+                <div class="stat-card" data-stat="preparing">
+                    <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+                    <div class="stat-value" id="preparingOrders">0</div>
+                    <div class="stat-label">Em Preparo</div>
+                    <div class="stat-subtext">Na cozinha</div>
+                </div>
+                <div class="stat-card" data-stat="ready">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value" id="readyOrders">0</div>
+                    <div class="stat-label">Prontos</div>
+                    <div class="stat-subtext">Para entrega</div>
+                </div>
+                <div class="stat-card" data-stat="delivered">
+                    <div class="stat-icon"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value" id="deliveredOrders">0</div>
+                    <div class="stat-label">Entregues</div>
+                    <div class="stat-subtext">Concluídos</div>
+                </div>
+                <div class="stat-card" data-stat="avg-value">
+                    <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="stat-value" id="avgOrderValue">R$ 0</div>
+                    <div class="stat-label">Ticket Médio</div>
+                    <div class="stat-subtext">Por pedido</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="pendingOrders">0</div>
-                <div class="stat-label">Pendentes</div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-pie"></i> Pedidos por Status</h3>
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-chart-line"></i> Vendas por Dia (Últimos 7 dias)</h3>
+                    <div class="chart-container">
+                        <canvas id="dailySalesChart"></canvas>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="preparingOrders">0</div>
-                <div class="stat-label">Preparando</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="readyOrders">0</div>
-                <div class="stat-label">Prontos/Entregues</div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3><i class="fas fa-bolt"></i> Ações Rápidas</h3>
+                <div class="actions-grid">
+                    <button class="action-card" id="printTodayOrders">
+                        <i class="fas fa-print"></i>
+                        <span>Imprimir Pedidos de Hoje</span>
+                    </button>
+                    <button class="action-card" id="viewPendingOrders">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Ver Pendentes Urgentes</span>
+                    </button>
+                    <button class="action-card" id="generateDailyReport">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Relatório Diário</span>
+                    </button>
+                    <button class="action-card" id="sendWhatsAppReminders">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>Lembretes WhatsApp</span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="admin-card">
-            <div class="admin-controls">
-                <button class="btn btn-primary refresh-btn" id="refreshBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                    Atualizar
-                </button>
-                
-                <div class="date-filter">
-                    <label>Filtrar por data:</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <input type="date" id="startDate" class="filter-input">
-                        <span>até</span>
-                        <input type="date" id="endDate" class="filter-input">
-                        <button id="applyDateFilter" class="btn btn-secondary">Filtrar</button>
-                        <button id="clearDateFilter" class="btn btn-ghost">Limpar</button>
+        <!-- TAB 2: Orders List -->
+        <div id="tab-orders" class="tab-content">
+            <div class="admin-card">
+                <div class="advanced-filters">
+                    <div class="filter-section">
+                        <h4><i class="fas fa-filter"></i> Filtros Avançados</h4>
+                        <div class="filter-grid">
+                            <div class="filter-group">
+                                <label><i class="fas fa-calendar"></i> Período</label>
+                                <div class="date-range">
+                                    <input type="date" id="startDate" class="filter-input">
+                                    <span>até</span>
+                                    <input type="date" id="endDate" class="filter-input">
+                                    <div class="quick-dates">
+                                        <button class="date-quick-btn" data-days="1">Hoje</button>
+                                        <button class="date-quick-btn" data-days="7">7 dias</button>
+                                        <button class="date-quick-btn" data-days="30">30 dias</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label><i class="fas fa-money-bill-wave"></i> Valor</label>
+                                <div class="range-filter">
+                                    <input type="number" id="minValue" placeholder="Mín" class="filter-input small">
+                                    <span>a</span>
+                                    <input type="number" id="maxValue" placeholder="Máx" class="filter-input small">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label><i class="fas fa-search"></i> Busca Avançada</label>
+                                <div class="search-advanced">
+                                    <input type="text" id="searchInput" class="search-input" 
+                                           placeholder="Cliente, telefone, ID, observação...">
+                                    <select id="searchField" class="filter-select small">
+                                        <option value="all">Todos os campos</option>
+                                        <option value="name">Nome do cliente</option>
+                                        <option value="phone">Telefone</option>
+                                        <option value="id">ID do pedido</option>
+                                        <option value="observation">Observação</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-actions">
+                            <button id="applyFilters" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Aplicar Filtros
+                            </button>
+                            <button id="clearFilters" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Limpar Tudo
+                            </button>
+                            <button id="saveFilterPreset" class="btn btn-ghost">
+                                <i class="fas fa-save"></i> Salvar Preset
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-sidebar">
+                        <div class="filter-group">
+                            <label><i class="fas fa-tags"></i> Status</label>
+                            <div class="status-filters">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="status-checkbox" value="pendente" checked>
+                                    <span class="status-badge status-pendente">Pendente</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="status-checkbox" value="preparando" checked>
+                                    <span class="status-badge status-preparando">Preparando</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="status-checkbox" value="pronto" checked>
+                                    <span class="status-badge status-pronto">Pronto</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="status-checkbox" value="entregue" checked>
+                                    <span class="status-badge status-entregue">Entregue</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="status-checkbox" value="cancelado">
+                                    <span class="status-badge status-cancelado">Cancelado</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label><i class="fas fa-truck"></i> Entrega</label>
+                            <div class="delivery-filters">
+                                <label class="radio-label">
+                                    <input type="radio" name="delivery" value="todos" checked>
+                                    <span>Todos</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="delivery" value="entrega">
+                                    <span><i class="fas fa-motorcycle"></i> Entrega</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="delivery" value="retirada">
+                                    <span><i class="fas fa-store"></i> Retirada</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label><i class="fas fa-credit-card"></i> Pagamento</label>
+                            <div class="payment-filters">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="payment-checkbox" value="pix" checked>
+                                    <span>PIX</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="payment-checkbox" value="cartao" checked>
+                                    <span>Cartão</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="payment-checkbox" value="dinheiro" checked>
+                                    <span>Dinheiro</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <button class="btn btn-secondary" id="exportBtn">
-                    📥 Exportar CSV
-                </button>
-            </div>
+                <div class="table-controls">
+                    <div class="table-info">
+                        <h3><i class="fas fa-list-ol"></i> Lista de Pedidos</h3>
+                        <div class="table-stats">
+                            <span id="orderCount" class="order-count">0 pedidos</span>
+                            <span id="filteredValue" class="value-total">Total: R$ 0,00</span>
+                            <span id="selectedCount" class="selected-count">0 selecionados</span>
+                        </div>
+                    </div>
+                    
+                    <div class="table-actions">
+                        <button id="refreshBtn" class="btn btn-primary refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                        
+                        <div class="batch-actions" style="display: none;" id="batchActions">
+                            <span>Ações em lote:</span>
+                            <select id="batchActionSelect" class="filter-select small">
+                                <option value="">Selecione ação...</option>
+                                <option value="status_preparando">Marcar como Preparando</option>
+                                <option value="status_pronto">Marcar como Pronto</option>
+                                <option value="status_entregue">Marcar como Entregue</option>
+                                <option value="export_selected">Exportar Selecionados</option>
+                                <option value="print_selected">Imprimir Selecionados</option>
+                            </select>
+                            <button id="applyBatchAction" class="btn btn-secondary small">Aplicar</button>
+                        </div>
+                        
+                        <div class="view-options">
+                            <button class="view-btn active" data-view="table" title="Visualização em tabela">
+                                <i class="fas fa-table"></i>
+                            </button>
+                            <button class="view-btn" data-view="cards" title="Visualização em cards">
+                                <i class="fas fa-th-large"></i>
+                            </button>
+                            <button class="view-btn" data-view="timeline" title="Linha do tempo">
+                                <i class="fas fa-stream"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="filter-controls">
-                <select id="statusFilter" class="filter-select">
-                    <option value="todos">Todos os Status</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="preparando">Preparando</option>
-                    <option value="pronto">Pronto</option>
-                    <option value="entregue">Entregue</option>
-                    <option value="cancelado">Cancelado</option>
-                </select>
+                <div class="table-responsive" id="tableContainer">
+                    <!-- Table View -->
+                    <table id="ordersTable" class="orders-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">
+                                    <input type="checkbox" id="selectAll">
+                                </th>
+                                <th class="sortable" data-sort="order_id">
+                                    <i class="fas fa-hashtag"></i> ID
+                                </th>
+                                <th class="sortable" data-sort="client_name">
+                                    <i class="fas fa-user"></i> Cliente
+                                </th>
+                                <th class="sortable" data-sort="client_phone">
+                                    <i class="fas fa-phone"></i> Telefone
+                                </th>
+                                <th class="sortable" data-sort="total">
+                                    <i class="fas fa-money-bill"></i> Total
+                                </th>
+                                <th class="sortable" data-sort="status">
+                                    <i class="fas fa-tag"></i> Status
+                                </th>
+                                <th class="sortable" data-sort="delivery_option">
+                                    <i class="fas fa-shipping-fast"></i> Entrega
+                                </th>
+                                <th class="sortable" data-sort="payment_method">
+                                    <i class="fas fa-credit-card"></i> Pagamento
+                                </th>
+                                <th class="sortable" data-sort="created_at">
+                                    <i class="fas fa-calendar"></i> Data/Hora
+                                </th>
+                                <th style="width: 120px;">
+                                    <i class="fas fa-cogs"></i> Ações
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            <!-- Pedidos serão injetados aqui -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Cards View (hidden by default) -->
+                    <div id="cardsView" class="cards-view" style="display: none;">
+                        <div class="cards-container" id="cardsContainer">
+                            <!-- Cards will be injected here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline View (hidden by default) -->
+                    <div id="timelineView" class="timeline-view" style="display: none;">
+                        <div class="timeline" id="timelineContainer">
+                            <!-- Timeline items will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-footer">
+                    <div class="pagination">
+                        <button id="prevPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="pageInfo">Página 1 de 1</span>
+                        <button id="nextPage" class="pagination-btn" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <select id="pageSize" class="filter-select small">
+                            <option value="10">10 por página</option>
+                            <option value="25" selected>25 por página</option>
+                            <option value="50">50 por página</option>
+                            <option value="100">100 por página</option>
+                        </select>
+                    </div>
+                    
+                    <div class="export-options">
+                        <button class="export-btn" data-format="csv">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </button>
+                        <button class="export-btn" data-format="excel">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                        <button class="export-btn" data-format="pdf">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="export-btn" data-format="print">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
                 
-                <select id="deliveryFilter" class="filter-select">
-                    <option value="todos">Todas as Entregas</option>
-                    <option value="entrega">Entrega</option>
-                    <option value="retirada">Retirada</option>
-                </select>
-
-                <select id="paymentFilter" class="filter-select">
-                    <option value="todos">Todos os Pagamentos</option>
-                    <option value="pix">PIX</option>
-                    <option value="cartao">Cartão</option>
-                    <option value="dinheiro">Dinheiro</option>
-                </select>
-
-                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por cliente, telefone ou ID...">
+                <div id="noOrdersMessage" class="no-orders">
+                    <i class="fas fa-inbox fa-3x"></i>
+                    <h3>Nenhum pedido encontrado</h3>
+                    <p>Tente ajustar seus filtros ou <a href="#" id="resetFiltersLink">limpar todos os filtros</a>.</p>
+                </div>
             </div>
+        </div>
 
-            <div class="table-header">
-                <h3 style="margin:0;">Pedidos Recentes</h3>
-                <span class="order-count" id="orderCount">0 pedidos encontrados</span>
+        <!-- TAB 3: Analytics -->
+        <div id="tab-analytics" class="tab-content">
+            <div class="analytics-header">
+                <h2><i class="fas fa-chart-bar"></i> Análises Avançadas</h2>
+                <div class="analytics-period">
+                    <select id="analyticsPeriod" class="filter-select">
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 3 meses</option>
+                        <option value="365">Último ano</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                    <div id="customPeriod" style="display: none; margin-left: 1rem;">
+                        <input type="date" id="analyticsStartDate" class="filter-input">
+                        <span>até</span>
+                        <input type="date" id="analyticsEndDate" class="filter-input">
+                    </div>
+                </div>
             </div>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card large">
+                    <h3><i class="fas fa-chart-line"></i> Vendas ao Longo do Tempo</h3>
+                    <div class="chart-container">
+                        <canvas id="salesTrendChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3><i class="fas fa-clock"></i> Horários de Pico</h3>
+                    <div class="chart-container">
+                        <canvas id="peakHoursChart"></canvas>
+                    </div>
+                    <div class="chart-summary" id="peakHoursSummary">
+                        <!-- Summary will be injected here -->
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3><i class="fas fa-calendar-day"></i> Melhores Dias da Semana</h3>
+                    <div class="chart-container">
+                        <canvas id="weekdayChart"></canvas>
+                    </div>
+                    <div class="chart-summary" id="weekdaySummary">
+                        <!-- Summary will be injected here -->
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3><i class="fas fa-money-bill-wave"></i> Métodos de Pagamento</h3>
+                    <div class="chart-container">
+                        <canvas id="paymentMethodsChart"></canvas>
+                    </div>
+                    <div class="chart-summary">
+                        <div id="paymentSummary">
+                            <!-- Summary will be injected here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3><i class="fas fa-truck"></i> Entregas vs Retiradas</h3>
+                    <div class="chart-container">
+                        <canvas id="deliveryChart"></canvas>
+                    </div>
+                    <div class="chart-summary">
+                        <div id="deliverySummary">
+                            <!-- Summary will be injected here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analytics-card">
+                    <h3><i class="fas fa-users"></i> Clientes Recorrentes</h3>
+                    <div class="chart-container">
+                        <canvas id="clientsChart"></canvas>
+                    </div>
+                    <div class="chart-summary">
+                        <div id="clientsSummary">
+                            <!-- Summary will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="analytics-insights">
+                <h3><i class="fas fa-lightbulb"></i> Insights Automáticos</h3>
+                <div class="insights-container" id="insightsContainer">
+                    <!-- Insights will be injected here -->
+                </div>
+            </div>
+        </div>
 
-            <div class="table-responsive">
-                <table id="ordersTable">
-                    <thead>
-                        <tr>
-                            <th class="sortable" data-sort="order_id">ID</th>
-                            <th class="sortable" data-sort="created_at">Data/Hora</th>
-                            <th class="sortable" data-sort="customer_name">Cliente</th>
-                            <th class="sortable" data-sort="total">Total</th>
-                            <th class="sortable" data-sort="status">Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersBody">
-                        <!-- Pedidos serão injetados aqui -->
-                    </tbody>
-                </table>
-                <div id="noOrdersMessage" style="display: none; text-align: center; padding: 2rem; color: var(--muted-foreground);">
-                    Nenhum pedido encontrado com os filtros selecionados.
+        <!-- TAB 4: Products -->
+        <div id="tab-products" class="tab-content">
+            <div class="products-header">
+                <h2><i class="fas fa-box-open"></i> Análise de Produtos</h2>
+                <div class="products-controls">
+                    <select id="productsPeriod" class="filter-select">
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 3 meses</option>
+                        <option value="all">Todo o período</option>
+                    </select>
+                    <button id="refreshProducts" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Atualizar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="products-grid">
+                <div class="products-card large">
+                    <h3><i class="fas fa-chart-bar"></i> Produtos Mais Vendidos</h3>
+                    <div class="chart-container">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="products-card">
+                    <h3><i class="fas fa-tags"></i> Categorias</h3>
+                    <div class="chart-container">
+                        <canvas id="categoriesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="products-table-container">
+                <h3><i class="fas fa-list"></i> Ranking de Produtos</h3>
+                <div class="table-responsive">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Posição</th>
+                                <th>Produto</th>
+                                <th>Quantidade Vendida</th>
+                                <th>Faturamento</th>
+                                <th>Ticket Médio</th>
+                                <th>Tendência</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsRankingBody">
+                            <!-- Products ranking will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="products-insights">
+                <h3><i class="fas fa-chart-pie"></i> Análise de Combinações</h3>
+                <div class="combinations-container" id="combinationsContainer">
+                    <!-- Product combinations will be injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: Reports -->
+        <div id="tab-reports" class="tab-content">
+            <div class="reports-header">
+                <h2><i class="fas fa-file-alt"></i> Relatórios e Documentos</h2>
+                <div class="reports-controls">
+                    <select id="reportType" class="filter-select">
+                        <option value="daily">Relatório Diário</option>
+                        <option value="weekly">Relatório Semanal</option>
+                        <option value="monthly">Relatório Mensal</option>
+                        <option value="custom">Período Personalizado</option>
+                    </select>
+                    <button id="generateReport" class="btn btn-primary">
+                        <i class="fas fa-cogs"></i> Gerar Relatório
+                    </button>
+                </div>
+            </div>
+            
+            <div class="reports-templates">
+                <h3><i class="fas fa-file-contract"></i> Modelos Prontos</h3>
+                <div class="templates-grid">
+                    <div class="template-card" data-template="kitchen">
+                        <div class="template-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h4>Pedidos para Cozinha</h4>
+                        <p>Lista simplificada para preparação</p>
+                        <button class="btn-template" onclick="AdminPanel.generateKitchenReport()">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="delivery">
+                        <div class="template-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h4>Rota de Entregas</h4>
+                        <p>Organizado por bairro/região</p>
+                        <button class="btn-template" onclick="AdminPanel.generateDeliveryReport()">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="financial">
+                        <div class="template-icon">
+                            <i class="fas fa-money-check-alt"></i>
+                        </div>
+                        <h4>Relatório Financeiro</h4>
+                        <p>Resumo de vendas e receitas</p>
+                        <button class="btn-template" onclick="AdminPanel.generateFinancialReport()">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="client">
+                        <div class="template-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4>Clientes Frequentes</h4>
+                        <p>Lista com histórico de compras</p>
+                        <button class="btn-template" onclick="AdminPanel.generateClientsReport()">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="products">
+                        <div class="template-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h4>Estoque e Vendas</h4>
+                        <p>Produtos mais vendidos</p>
+                        <button class="btn-template" onclick="AdminPanel.generateProductsReport()">
+                            <i class="fas fa-chart-bar"></i> Gráfico
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="custom">
+                        <div class="template-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4>Relatório Personalizado</h4>
+                        <p>Crie seu próprio relatório</p>
+                        <button class="btn-template" onclick="AdminPanel.openCustomReport()">
+                            <i class="fas fa-pen"></i> Criar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reports-history">
+                <h3><i class="fas fa-history"></i> Histórico de Relatórios</h3>
+                <div class="table-responsive">
+                    <table class="reports-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Período</th>
+                                <th>Arquivo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsHistoryBody">
+                            <!-- Reports history will be injected here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 2rem; color: var(--muted-foreground); font-size: 0.9rem;">
-        &copy; 2026 Jardim Padaria Artesanal - Painel de Controle
-    </footer>
-
-    <!-- Modal de Detalhes do Pedido -->
+    <!-- Modals -->
     <div id="orderModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content large-modal">
             <div class="modal-header">
                 <h2 id="modalTitle">Detalhes do Pedido</h2>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="modal-close" onclick="AdminPanel.closeModal()">&times;</button>
             </div>
             <div id="modalContent">
                 <!-- Conteúdo do pedido será injetado aqui -->
@@ -135,50 +675,145 @@
         </div>
     </div>
 
-    <!-- Modal de Edição de Status -->
     <div id="editStatusModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h2>Alterar Status</h2>
-                <button class="modal-close" onclick="closeEditStatusModal()">&times;</button>
+                <h2>Alterar Status do Pedido</h2>
+                <button class="modal-close" onclick="AdminPanel.closeEditStatusModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="newStatusSelect">Selecione o novo status:</label>
-                    <select id="newStatusSelect" class="filter-select" style="width: 100%; margin-top: 0.5rem;">
-                        <option value="pendente">📋 Pendente</option>
-                        <option value="preparando">👨‍🍳 Preparando</option>
-                        <option value="pronto">✅ Pronto</option>
-                        <option value="entregue">🚗 Entregue</option>
-                        <option value="cancelado">❌ Cancelado</option>
-                    </select>
-                </div>
-                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                    <button class="btn btn-primary" style="flex: 1;" onclick="saveOrderStatus()">Salvar</button>
-                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeEditStatusModal()">Cancelar</button>
+                <div id="editStatusContent">
+                    <!-- Conteúdo será injetado aqui -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Erro -->
-    <div id="errorModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
+    <div id="printModal" class="modal">
+        <div class="modal-content print-modal">
             <div class="modal-header">
-                <h2 style="color: var(--error);">Erro</h2>
-                <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+                <h2>Imprimir Documentos</h2>
+                <button class="modal-close" onclick="AdminPanel.closePrintModal()">&times;</button>
             </div>
-            <div id="errorContent" class="modal-body">
-                <!-- Mensagem de erro aqui -->
+            <div class="modal-body">
+                <div id="printContent">
+                    <!-- Conteúdo para impressão será injetado aqui -->
+                </div>
+                <div class="print-actions">
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                    <button onclick="AdminPanel.saveAsPDF()" class="btn btn-secondary">
+                        <i class="fas fa-file-pdf"></i> Salvar como PDF
+                    </button>
+                    <button onclick="AdminPanel.closePrintModal()" class="btn btn-ghost">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="closeErrorModal()">Fechar</button>
+        </div>
+    </div>
+
+    <div id="customReportModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Relatório Personalizado</h2>
+                <button class="modal-close" onclick="AdminPanel.closeCustomReportModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customReportForm">
+                    <div class="form-group">
+                        <label>Nome do Relatório:</label>
+                        <input type="text" id="reportName" class="filter-input" placeholder="Ex: Relatório de Vendas Abril 2024" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Período:</label>
+                        <div class="form-row">
+                            <input type="date" id="reportStartDate" class="filter-input" required>
+                            <span>até</span>
+                            <input type="date" id="reportEndDate" class="filter-input" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Seções do Relatório:</label>
+                        <div class="checkboxes-grid">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="summary" checked>
+                                <span>Resumo Executivo</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="sales" checked>
+                                <span>Vendas e Receitas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="products" checked>
+                                <span>Produtos Mais Vendidos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="clients" checked>
+                                <span>Clientes</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="delivery">
+                                <span>Entregas</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="payments">
+                                <span>Pagamentos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="comparison">
+                                <span>Comparação Períodos</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="sections" value="forecast">
+                                <span>Previsões</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Formato de Saída:</label>
+                        <div class="form-row">
+                            <label class="radio-label">
+                                <input type="radio" name="format" value="pdf" checked>
+                                <span>PDF</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="format" value="excel">
+                                <span>Excel</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="format" value="html">
+                                <span>HTML (Web)</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-cogs"></i> Gerar Relatório
+                        </button>
+                        <button type="button" onclick="AdminPanel.closeCustomReportModal()" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
     <div id="notificationBar" class="notification-bar"></div>
+
+    <!-- Scripts -->
     <script src="../js/main.js"></script>
     <script src="js/gerenciarPedidos.js"></script>
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@ const FeedbackPage = {
         
         setTimeout(() => {
             // 1. Captura os vídeos do HTML (atributo data-videos)
-            const container = document.getElementById('storyContainer');
+            const container = document.querySelector('#storyContainer');
             if (container && container.dataset.videos) {
                 // Transforma a string "video1.mp4, video2.mp4" em um array
                 this.stories = container.dataset.videos.split(',').map(s => s.trim());

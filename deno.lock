@@ -11,7 +11,11 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@supabase/supabase-js@^2.39.7"
+        "npm:@netlify/functions@2",
+        "npm:@supabase/supabase-js@^2.39.7",
+        "npm:body-parser@^2.2.1",
+        "npm:cors@^2.8.5",
+        "npm:express@^4.22.1"
       ]
     }
   }

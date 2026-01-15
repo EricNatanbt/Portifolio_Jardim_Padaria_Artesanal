@@ -1,6 +1,6 @@
-// service-worker.js - Versão 2.1.2 (Correção Menu Mobile)
-const CACHE_NAME = 'jardim-padaria-v2.1.2';
-const DYNAMIC_CACHE = 'jardim-dynamic-v2.1.2';
+// service-worker.js - Versão 2.1.3 (Correção de Cache e Estratégia Network First)
+const CACHE_NAME = 'jardim-padaria-v2.1.3';
+const DYNAMIC_CACHE = 'jardim-dynamic-v2.1.3';
 
 // Arquivos para cache inicial (instalação)
 const STATIC_FILES = [
@@ -166,46 +166,31 @@ self.addEventListener('fetch', event => {
         return;
     }
     
-    // 5. Para outros recursos GET, usar estratégia "Cache First, Network Fallback"
+    // 5. Para outros recursos GET (HTML, JS, CSS), usar estratégia "Network First"
+    // Isso garante que o usuário sempre veja a versão mais recente se estiver online
     event.respondWith(
-        caches.match(request).then(cachedResponse => {
-            // Se tem cache, retorna e busca atualização em background
-            if (cachedResponse) {
-                // Busca atualização em background
-                fetch(request).then(networkResponse => {
-                    if (canCacheRequest(request) && networkResponse.ok) {
-                        const responseClone = networkResponse.clone();
-                        caches.open(DYNAMIC_CACHE).then(cache => {
-                            cache.put(request, responseClone);
-                        });
-                    }
-                }).catch(() => {
-                    // Ignora erro de rede, já temos cache
+        fetch(request).then(networkResponse => {
+            // Se a rede funcionar, atualiza o cache e retorna a resposta
+            if (canCacheRequest(request) && networkResponse.ok) {
+                const responseClone = networkResponse.clone();
+                caches.open(DYNAMIC_CACHE).then(cache => {
+                    cache.put(request, responseClone);
                 });
-                
-                return cachedResponse;
             }
-            
-            // Se não tem cache, busca na rede
-            return fetch(request).then(networkResponse => {
-                // Cacheia a resposta se for apropriado
-                if (canCacheRequest(request) && networkResponse.ok) {
-                    const responseClone = networkResponse.clone();
-                    caches.open(DYNAMIC_CACHE).then(cache => {
-                        cache.put(request, responseClone);
-                    });
+            return networkResponse;
+        }).catch(() => {
+            // Se a rede falhar (offline), tenta buscar no cache
+            return caches.match(request).then(cachedResponse => {
+                if (cachedResponse) {
+                    return cachedResponse;
                 }
-                return networkResponse;
-            }).catch(error => {
-                console.error('❌ Erro de rede:', error);
-                // Para páginas HTML, retorna página offline
+                // Se não houver cache e for uma navegação, mostra página offline
                 if (request.destination === 'document' || request.mode === 'navigate') {
                     return caches.match('/offline.html') || 
                            new Response('<h1>Você está offline</h1><p>Tente novamente quando tiver conexão.</p>', {
                                headers: { 'Content-Type': 'text/html' }
                            });
                 }
-                throw error;
             });
         })
     );
