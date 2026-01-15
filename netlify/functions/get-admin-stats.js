@@ -53,7 +53,7 @@ const calculateStats = (orders) => {
                 value = parseFloat(order.value);
             }
             
-            if (!isNaN(value)) {
+            if (!isNaN(value) && status.toLowerCase() !== 'cancelado') {
                 stats.total_value += value;
             }
         });

@@ -117,29 +117,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Formatar dias
                 const diasHtml = (p.dias_disponiveis||[]).map(dia => `<span class="day-tag">${dia}</span>`).join('');
                 
-                row.innerHTML = `
-                    <td class="td-image">
-                        <div class="product-image-container">
-                            <img src="${p.imagem || p.image_url || p.image || '/img/logos/Logo.png'}" class="product-image" alt="${p.nome}">
-                        </div>
-                    </td>
-                    <td>
-                        <div class="product-name-cell">${p.nome || ''}</div>
-                        <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">ID: ${p.id?.substring(0,8) || ''}</div>
-                    </td>
-                    <td><span class="category-badge">${p.categoria || '-'}</span></td>
-                    <td><span class="price-tag">R$ ${price.toFixed(2).replace('.',',')}</span></td>
-                    <td><div class="days-list">${diasHtml}</div></td>
-                    <td style="text-align:right;">
-                        <button class="btn-edit" data-id="${p.id}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            Editar
-                        </button>
-                        <button class="btn-delete" data-id="${p.id}">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                            Excluir
-                        </button>
-                    </td>`;
+               row.innerHTML = `
+    <td class="td-image">
+        <div class="product-image-container">
+            <img src="${p.imagem || p.image_url || p.image || '/img/logos/Logo.png'}" class="product-image" alt="${p.nome}">
+        </div>
+    </td>
+    <td>
+        <div class="product-name-cell">${p.nome || ''}</div>
+        <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">ID: ${p.id?.substring(0,8) || ''}</div>
+    </td>
+    <td><span class="category-badge">${p.categoria || '-'}</span></td>
+    <td><span class="price-tag">R$ ${price.toFixed(2).replace('.',',')}</span></td>
+    <td><div class="days-list">${diasHtml}</div></td>
+    <td style="text-align:right; white-space: nowrap;">
+        <button class="btn-edit" data-id="${p.id}" title="Editar produto">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Editar</span>
+        </button>
+        <button class="btn-delete" data-id="${p.id}" title="Excluir produto">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            <span>Excluir</span>
+        </button>
+    </td>`;
                 
                 row.querySelector('.btn-edit').onclick = () => this.openEdit(p.id);
                 row.querySelector('.btn-delete').onclick = () => this.deleteProduct(p.id);

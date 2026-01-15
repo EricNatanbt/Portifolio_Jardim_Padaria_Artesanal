@@ -8,6 +8,8 @@ class AdminPanel {
         this.currentPage = 1;
         this.pageSize = 25;
         this.totalPages = 1;
+        this.currentPrintOrder = null; 
+        this.productCombinations = [];
         this.charts = {};
         this.selectedOrders = new Set();
         this.apiBase = window.location.origin + '/api';
@@ -18,24 +20,128 @@ class AdminPanel {
         this.init();
     }
     
-    async init() {
-        console.log('🚀 Inicializando AdminPanel Enhanced...');
-        
-        // Configura abas
-        this.setupTabs();
-        
-        // Configura listeners
-        this.setupEventListeners();
-        
-        // Carrega dados
-        await this.loadAllData();
-        
-        // Atualiza timestamp
-        this.updateTimestamp();
-        
-        console.log('✅ AdminPanel Enhanced inicializado');
-    }
+async init() {
+    console.log('🚀 Inicializando AdminPanel Enhanced...');
     
+    // Adiciona estilos do modal
+    this.addModalStyles();
+    
+    // Configura abas
+    this.setupTabs();
+    
+    // Configura listeners
+    this.setupEventListeners();
+    
+    // Configura eventos globais dos modais
+    this.setupGlobalModalEvents(); // Adicione esta linha
+    
+    // Carrega dados
+    await this.loadAllData();
+    
+    // Atualiza timestamp
+    this.updateTimestamp();
+    
+    console.log('✅ AdminPanel Enhanced inicializado');
+}
+
+analyzeProductCombinations() {
+    const combinations = {};
+    
+    // Percorre todos os pedidos
+    this.orders.forEach(order => {
+        if (order.items && order.items.length > 1 && order.status !== 'cancelado') {
+            const itemNames = order.items
+                .map(item => item.product_name || item.name || 'Produto')
+                .sort(); // Ordena para garantir combinação única
+            
+            // Gera todas as combinações de 2 produtos
+            for (let i = 0; i < itemNames.length; i++) {
+                for (let j = i + 1; j < itemNames.length; j++) {
+                    const combination = `${itemNames[i]} + ${itemNames[j]}`;
+                    const combinationKey = `${itemNames[i]}|${itemNames[j]}`; // Chave única
+                    
+                    if (!combinations[combinationKey]) {
+                        combinations[combinationKey] = {
+                            product1: itemNames[i],
+                            product2: itemNames[j],
+                            displayName: combination,
+                            frequency: 0,
+                            orders: [],
+                            totalRevenue: 0,
+                            avgOrderValue: 0
+                        };
+                    }
+                    
+                    combinations[combinationKey].frequency++;
+                    combinations[combinationKey].orders.push(order.order_id || order.id);
+                    
+                    // Calcula receita desta combinação neste pedido
+                    const orderItemsTotal = order.items.reduce((sum, item) => {
+                        const quantity = item.quantity || 1;
+                        const price = parseFloat(item.price || 0);
+                        return sum + (parseFloat(item.total) || (quantity * price));
+                    }, 0);
+                    
+                    combinations[combinationKey].totalRevenue += orderItemsTotal;
+                }
+            }
+        }
+    });
+    
+    // Converte para array e calcula valores médios
+    this.productCombinations = Object.values(combinations)
+        .map(comb => ({
+            ...comb,
+            avgOrderValue: comb.frequency > 0 ? comb.totalRevenue / comb.frequency : 0,
+            orderCount: comb.orders.length
+        }))
+        .sort((a, b) => b.frequency - a.frequency) // Ordena por frequência
+        .slice(0, 10); // Limita às 10 combinações mais frequentes
+    
+    console.log('📊 Análise de combinações concluída:', this.productCombinations.length, 'combinações');
+}
+
+
+setupGlobalModalEvents() {
+    // Fechar modal com ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('printOrderModal')?.style.display === 'flex') {
+                this.closePrintModal();
+            }
+            if (document.getElementById('orderModal')?.style.display === 'flex') {
+                this.closeModal();
+            }
+            if (document.getElementById('editStatusModal')?.style.display === 'flex') {
+                this.closeEditStatusModal();
+            }
+            if (document.getElementById('reportViewerModal')?.style.display === 'flex') {
+                this.closeReportViewer();
+            }
+        }
+    });
+    
+    // Fechar modal ao clicar no overlay
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('admin-modal')) {
+            const modalId = e.target.id;
+            switch(modalId) {
+                case 'printOrderModal':
+                    this.closePrintModal();
+                    break;
+                case 'orderModal':
+                    this.closeModal();
+                    break;
+                case 'editStatusModal':
+                    this.closeEditStatusModal();
+                    break;
+                case 'reportViewerModal':
+                    this.closeReportViewer();
+                    break;
+            }
+        }
+    });
+}
     setupTabs() {
         const tabs = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -216,6 +322,200 @@ class AdminPanel {
         
         return orders;
     }
+
+    renderProductCombinations() {
+    const container = document.getElementById('combinationsContainer');
+    if (!container) return;
+    
+    if (this.productCombinations.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--muted-foreground);">
+                <i class="fas fa-chart-pie fa-2x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>Nenhuma combinação frequente encontrada.</p>
+                <p style="font-size: 0.9rem;">Os clientes geralmente compram apenas um item por pedido.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Encontra a combinação mais frequente para referência
+    const maxFrequency = Math.max(...this.productCombinations.map(c => c.frequency));
+    
+    container.innerHTML = this.productCombinations.map((combination, index) => {
+        // Calcula porcentagem em relação à combinação mais frequente
+        const percentage = maxFrequency > 0 ? (combination.frequency / maxFrequency) * 100 : 0;
+        
+        // Cor baseada na posição (ranking)
+        let badgeColor = '#3498db'; // Azul padrão
+        let badgeText = 'Frequente';
+        
+        if (index === 0) {
+            badgeColor = '#e74c3c'; // Vermelho para o primeiro
+            badgeText = 'Top 1';
+        } else if (index === 1) {
+            badgeColor = '#f39c12'; // Laranja para o segundo
+            badgeText = 'Top 2';
+        } else if (index === 2) {
+            badgeColor = '#2ecc71'; // Verde para o terceiro
+            badgeText = 'Top 3';
+        } else if (percentage > 50) {
+            badgeColor = '#9b59b6'; // Roxo para altas frequências
+            badgeText = 'Popular';
+        }
+        
+        return `
+            <div class="combination-item" style="
+                background: white;
+                border-radius: 10px;
+                border: 1px solid var(--border);
+                padding: 1.25rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                transition: transform 0.2s ease;
+                position: relative;
+                overflow: hidden;
+            ">
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: ${percentage}%;
+                    height: 4px;
+                    background: ${badgeColor};
+                    transition: width 0.3s ease;
+                "></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span style="
+                                background: ${badgeColor};
+                                color: white;
+                                padding: 0.25rem 0.75rem;
+                                border-radius: 1rem;
+                                font-size: 0.75rem;
+                                font-weight: 600;
+                            ">${badgeText}</span>
+                            <span style="font-size: 0.85rem; color: var(--muted-foreground);">
+                                #${index + 1}
+                            </span>
+                        </div>
+                        <h4 style="margin: 0; color: var(--primary); font-size: 1rem;">
+                            ${combination.displayName}
+                        </h4>
+                    </div>
+                    <div style="
+                        background: ${badgeColor}15;
+                        color: ${badgeColor};
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-weight: 700;
+                        font-size: 1.1rem;
+                    ">
+                        ${combination.frequency}
+                    </div>
+                </div>
+                
+                <div style="
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.75rem;
+                    margin-top: 1rem;
+                    font-size: 0.85rem;
+                ">
+                    <div style="
+                        background: var(--accent-light);
+                        padding: 0.75rem;
+                        border-radius: 6px;
+                        border: 1px solid var(--accent);
+                    ">
+                        <div style="font-weight: 600; color: var(--muted-foreground); margin-bottom: 0.25rem;">
+                            Frequência
+                        </div>
+                        <div style="font-weight: 700; color: var(--primary);">
+                            ${combination.frequency} pedido${combination.frequency !== 1 ? 's' : ''}
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        background: var(--accent-light);
+                        padding: 0.75rem;
+                        border-radius: 6px;
+                        border: 1px solid var(--accent);
+                    ">
+                        <div style="font-weight: 600; color: var(--muted-foreground); margin-bottom: 0.25rem;">
+                            Receita Total
+                        </div>
+                        <div style="font-weight: 700; color: var(--primary);">
+                            R$ ${combination.totalRevenue.toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <div style="
+                        background: var(--accent-light);
+                        padding: 0.75rem;
+                        border-radius: 6px;
+                        border: 1px solid var(--accent);
+                        grid-column: 1 / -1;
+                    ">
+                        <div style="font-weight: 600; color: var(--muted-foreground); margin-bottom: 0.25rem;">
+                            Ticket Médio
+                        </div>
+                        <div style="font-weight: 700; color: var(--primary);">
+                            R$ ${combination.avgOrderValue.toFixed(2)} por pedido
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--muted-foreground);">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Comprados juntos em ${combination.orderCount} pedido${combination.orderCount !== 1 ? 's' : ''} diferentes</span>
+                    </div>
+                </div>
+                
+                ${combination.orders.length > 0 ? `
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <div style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">
+                        <i class="fas fa-hashtag"></i> Pedidos mais recentes:
+                    </div>
+                    <div style="
+                        display: flex;
+                        gap: 0.5rem;
+                        flex-wrap: wrap;
+                    ">
+                        ${combination.orders.slice(0, 3).map(orderId => `
+                            <span style="
+                                background: var(--accent-light);
+                                padding: 0.25rem 0.5rem;
+                                border-radius: 4px;
+                                font-size: 0.75rem;
+                                border: 1px solid var(--accent);
+                            ">${orderId}</span>
+                        `).join('')}
+                        ${combination.orders.length > 3 ? `
+                            <span style="
+                                background: var(--accent-light);
+                                padding: 0.25rem 0.5rem;
+                                border-radius: 4px;
+                                font-size: 0.75rem;
+                                border: 1px solid var(--accent);
+                                color: var(--muted-foreground);
+                            ">+${combination.orders.length - 3} mais</span>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+
+    this.generateCombinationsInsights();
+    this.updateCombinationsChart();
+}
     
     async processOrdersData() {
         try {
@@ -239,6 +539,8 @@ class AdminPanel {
             
             // Inicializa filteredOrders com todos os pedidos
             this.filteredOrders = [...this.orders];
+
+              this.analyzeProducts(); // Já chama analyzeProductCombinations internamente
             
             console.log(`📊 ${this.orders.length} pedidos processados`);
             
@@ -252,7 +554,10 @@ class AdminPanel {
         // Análise de produtos mais vendidos
         const productSales = {};
         
-        this.orders.forEach(order => {
+        // Filtra apenas pedidos que não foram cancelados para a análise de vendas
+        const validOrders = this.orders.filter(order => order.status !== 'cancelado');
+        
+        validOrders.forEach(order => {
             if (order.items && Array.isArray(order.items)) {
                 order.items.forEach(item => {
                     const productName = item.product_name || 'Produto sem nome';
@@ -269,7 +574,8 @@ class AdminPanel {
                     
                     const quantity = parseInt(item.quantity) || 1;
                     const price = parseFloat(item.price || 0);
-                    const total = quantity * price;
+                    // Usa o total do item se disponível, senão calcula
+                    const total = parseFloat(item.total) || (quantity * price);
                     
                     productSales[key].quantity += quantity;
                     productSales[key].revenue += total;
@@ -279,16 +585,19 @@ class AdminPanel {
         });
         
         // Converte para array e ordena
-        this.productAnalysis = Object.values(productSales)
-            .map(p => ({
-                ...p,
-                orderCount: p.orders.size,
-                avgOrderValue: p.orderCount > 0 ? p.revenue / p.orderCount : 0
-            }))
-            .sort((a, b) => b.revenue - a.revenue);
-        
-        console.log('📊 Análise de produtos concluída:', this.productAnalysis.length, 'produtos');
-    }
+this.productAnalysis = Object.values(productSales)
+        .map(p => ({
+            ...p,
+            orderCount: p.orders.size,
+            avgOrderValue: p.orderCount > 0 ? p.revenue / p.orderCount : 0
+        }))
+        .sort((a, b) => b.revenue - a.revenue);
+    
+    console.log('📊 Análise de produtos concluída:', this.productAnalysis.length, 'produtos');
+    
+    // ADICIONE ESTA LINHA:
+    this.analyzeProductCombinations(); // Analisa combinações após produtos
+}
     
     updateStats() {
         const stats = this.calculateLocalStats();
@@ -318,12 +627,13 @@ class AdminPanel {
             }
             
             const value = parseFloat(order.total || order.total_amount || 0);
-            if (!isNaN(value)) {
+            if (!isNaN(value) && status !== 'cancelado') {
                 stats.total_value += value;
             }
         });
         
-        stats.avg_ticket = stats.total > 0 ? stats.total_value / stats.total : 0;
+        const nonCancelledOrders = stats.total - stats.cancelado;
+        stats.avg_ticket = nonCancelledOrders > 0 ? stats.total_value / nonCancelledOrders : 0;
         
         return stats;
     }
@@ -434,7 +744,7 @@ class AdminPanel {
         const dailySales = last7Days.map(date => {
             const dayOrders = this.orders.filter(order => {
                 const orderDate = new Date(order.created_at).toISOString().split('T')[0];
-                return orderDate === date;
+                return orderDate === date && order.status !== 'cancelado';
             });
             
             return dayOrders.reduce((sum, order) => {
@@ -480,94 +790,127 @@ class AdminPanel {
     
     // TAB: Todos os Pedidos
     setupOrdersTab() {
-        console.log('📋 Configurando aba de Pedidos');
-        
-        // Aplica filtros iniciais
-        this.applyFilters();
-        
-        // Configura visualizações
-        this.setupViewOptions();
-        
-        // Configura paginação
-        this.setupPagination();
-        
-        // Configura seleção
-        this.setupSelection();
-    }
+    console.log('📋 Configurando aba de Pedidos');
     
-    setupViewOptions() {
-        const viewButtons = document.querySelectorAll('.view-btn');
-        const views = ['table', 'cards', 'timeline'];
-        
-        viewButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active class from all buttons
-                viewButtons.forEach(b => b.classList.remove('active'));
-                // Add active class to clicked button
-                btn.classList.add('active');
-                
-                // Hide all views
-                views.forEach(view => {
-                    const viewElement = document.getElementById(`${view}View`);
-                    if (viewElement) {
-                        viewElement.style.display = 'none';
-                    }
-                });
-                
-                // Show selected view
-                const selectedView = btn.dataset.view;
-                const selectedViewElement = document.getElementById(`${selectedView}View`);
-                if (selectedViewElement) {
-                    selectedViewElement.style.display = 'block';
-                }
-                
-                // Update content for selected view
-                if (selectedView === 'cards') {
-                    this.displayOrdersAsCards();
-                } else if (selectedView === 'timeline') {
-                    this.displayOrdersAsTimeline();
-                } else {
-                    this.displayOrders();
-                }
-            });
+    // Se já foi configurado, apenas atualiza a visualização
+    if (this.ordersTabInitialized) {
+        this.displayCurrentView();
+        return;
+    }
+
+    // Aplica filtros iniciais
+    this.applyFilters();
+    
+    // Configura visualizações (apenas uma vez)
+    this.setupViewOptions();
+    
+    // Configura paginação
+    this.setupPagination();
+    
+    // Configura seleção
+    this.setupSelection();
+
+    this.ordersTabInitialized = true;
+}
+    
+   setupViewOptions() {
+    const viewButtons = document.querySelectorAll('.view-btn');
+    const views = ['table', 'cards', 'timeline'];
+    
+    // Sincroniza a visibilidade inicial com o botão ativo
+    const activeBtn = Array.from(viewButtons).find(btn => btn.classList.contains('active'));
+    if (activeBtn) {
+        const activeView = activeBtn.dataset.view;
+        views.forEach(view => {
+            const viewElement = document.getElementById(`${view}View`) || (view === 'table' ? document.getElementById('ordersTable') : null);
+            if (viewElement) {
+                viewElement.style.display = (view === activeView) ? (view === 'table' ? 'table' : 'block') : 'none';
+            }
         });
     }
     
+    // Remove event listeners existentes primeiro (para evitar duplicação)
+    viewButtons.forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+    });
+    
+    // Seleciona os novos botões
+    const newViewButtons = document.querySelectorAll('.view-btn');
+    
+    newViewButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // Remove active class from all buttons
+            newViewButtons.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            btn.classList.add('active');
+            
+            // Hide all views
+            views.forEach(view => {
+                const viewElement = document.getElementById(`${view}View`);
+                if (viewElement) {
+                    viewElement.style.display = 'none';
+                }
+            });
+            
+            // Show selected view
+            const selectedView = btn.dataset.view;
+            const selectedViewElement = document.getElementById(`${selectedView}View`);
+            if (selectedViewElement) {
+                selectedViewElement.style.display = 'block';
+            }
+            
+            // Update content for selected view
+            this.displayCurrentView();
+        });
+    });
+}
+
+    
     setupPagination() {
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-        const pageSizeSelect = document.getElementById('pageSize');
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (this.currentPage > 1) {
-                    this.currentPage--;
-                    this.displayCurrentView();
-                    this.updatePaginationInfo();
-                }
-            });
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                if (this.currentPage < this.totalPages) {
-                    this.currentPage++;
-                    this.displayCurrentView();
-                    this.updatePaginationInfo();
-                }
-            });
-        }
-        
-        if (pageSizeSelect) {
-            pageSizeSelect.addEventListener('change', () => {
-                this.pageSize = parseInt(pageSizeSelect.value);
-                this.currentPage = 1;
-                this.calculateTotalPages();
-                this.displayCurrentView();
-                this.updatePaginationInfo();
-            });
-        }
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    const pageSizeSelect = document.getElementById('pageSize');
+    
+    // Remove event listeners existentes
+    const newPrevBtn = prevBtn.cloneNode(true);
+    const newNextBtn = nextBtn.cloneNode(true);
+    const newPageSizeSelect = pageSizeSelect.cloneNode(true);
+    
+    if (prevBtn && nextBtn && pageSizeSelect) {
+        prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+        nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+        pageSizeSelect.parentNode.replaceChild(newPageSizeSelect, pageSizeSelect);
     }
+    
+    // Adiciona novos event listeners
+    document.getElementById('prevPage').addEventListener('click', () => {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.displayCurrentView();
+            this.updatePaginationInfo();
+        }
+    });
+    
+    document.getElementById('nextPage').addEventListener('click', () => {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+            this.displayCurrentView();
+            this.updatePaginationInfo();
+        }
+    });
+    
+    document.getElementById('pageSize').addEventListener('change', () => {
+        this.pageSize = parseInt(document.getElementById('pageSize').value);
+        this.currentPage = 1;
+        this.calculateTotalPages();
+        this.displayCurrentView();
+        this.updatePaginationInfo();
+    });
+}
+
     
     calculateTotalPages() {
         this.totalPages = Math.ceil(this.filteredOrders.length / this.pageSize);
@@ -730,22 +1073,34 @@ class AdminPanel {
     }
     
     displayCurrentView() {
-        const activeView = document.querySelector('.view-btn.active')?.dataset.view || 'table';
-        
-        switch(activeView) {
-            case 'table':
-                this.displayOrders();
-                break;
-            case 'cards':
-                this.displayOrdersAsCards();
-                break;
-            case 'timeline':
-                this.displayOrdersAsTimeline();
-                break;
-        }
-        
-        this.updateNoOrdersMessage();
+    const activeView = document.querySelector('.view-btn.active')?.dataset.view || 'cards';
+    
+    // Limpa os containers antes de adicionar novos elementos
+    const containers = {
+        table: document.getElementById('ordersBody'),
+        cards: document.getElementById('cardsContainer'),
+        timeline: document.getElementById('timelineContainer')
+    };
+    
+    // Limpa todos os containers primeiro
+    Object.values(containers).forEach(container => {
+        if (container) container.innerHTML = '';
+    });
+    
+    switch(activeView) {
+        case 'table':
+            this.displayOrders();
+            break;
+        case 'cards':
+            this.displayOrdersAsCards();
+            break;
+        case 'timeline':
+            this.displayOrdersAsTimeline();
+            break;
     }
+    
+    this.updateNoOrdersMessage();
+}
     
     displayOrders() {
         const tbody = document.getElementById('ordersBody');
@@ -768,6 +1123,48 @@ class AdminPanel {
         });
     }
     
+    createOrderModal() {
+        const modal = document.createElement('div');
+        modal.id = 'orderModal';
+        modal.className = 'admin-modal';
+        modal.innerHTML = `
+            <div class="modal-container">
+                <div id="modalContent" class="modal-content"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Adiciona evento para fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeModal();
+        });
+        
+        return modal;
+    }
+
+    createEditStatusModal() {
+        const modal = document.createElement('div');
+        modal.id = 'editStatusModal';
+        modal.className = 'admin-modal';
+        modal.innerHTML = `
+            <div class="modal-container">
+                <div class="modal-header">
+                    <h2><i class="fas fa-edit"></i> Alterar Status</h2>
+                    <span class="modal-close" onclick="window.AdminPanel.closeEditStatusModal()">&times;</span>
+                </div>
+                <div id="editStatusContent" class="modal-content"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Adiciona evento para fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) this.closeEditStatusModal();
+        });
+        
+        return modal;
+    }
+
     createOrderRow(order) {
         const row = document.createElement('tr');
         const orderId = order.order_id || order.id;
@@ -785,18 +1182,18 @@ class AdminPanel {
         }
         
         row.innerHTML = `
-            <td>
+            <td data-label="Selecionar">
                 <input type="checkbox" class="order-select" 
                        data-order-id="${orderId}"
                        ${isSelected ? 'checked' : ''}
                        onchange="window.AdminPanel.toggleOrderSelection('${orderId}', this.checked)">
             </td>
-            <td>
+            <td data-label="ID Pedido">
                 <a href="#" class="order-id-link" title="Ver detalhes do pedido" onclick="window.AdminPanel.openOrderDetails('${orderId}'); return false;">
                     <strong>${orderId}</strong>
                 </a>
             </td>
-            <td>
+            <td data-label="Cliente">
                 <div class="customer-cell">
                     <strong>${order.client_name || 'N/A'}</strong>
                     ${order.client_phone ? `
@@ -805,185 +1202,667 @@ class AdminPanel {
                     </small>` : ''}
                 </div>
             </td>
-            <td>
+            <td data-label="Telefone">
                 <span class="phone-number" title="${order.client_phone || ''}">
                     ${this.formatPhone(order.client_phone)}
                 </span>
             </td>
-            <td>
+            <td data-label="Valor">
                 <strong class="order-value">R$ ${total.toFixed(2)}</strong>
             </td>
-            <td>
+            <td data-label="Status">
                 <span class="status-badge status-${order.status || 'pendente'}">
                     ${this.getStatusText(order.status || 'pendente')}
                 </span>
             </td>
-            <td>
+            <td data-label="Entrega">
                 ${deliveryOption === 'retirada' ? 
                     '<span class="delivery-type" title="Retirada na Loja"><i class="fas fa-store"></i> Retirada</span>' : 
                     '<span class="delivery-type" title="Entrega em Domicílio"><i class="fas fa-motorcycle"></i> Entrega</span>'}
             </td>
-            <td>
+            <td data-label="Pagamento">
                 ${paymentMethod === 'pix' ? '<span title="Pagamento via Pix"><i class="fas fa-qrcode"></i> Pix</span>' : 
                   paymentMethod === 'cartao' ? '<span title="Pagamento com Cartão"><i class="far fa-credit-card"></i> Cartão</span>' : 
                   '<span title="Pagamento em Dinheiro"><i class="fas fa-money-bill-wave"></i> Dinheiro</span>'}
             </td>
-            <td>
+            <td data-label="Data/Hora">
                 <span class="date-time" title="${date.toLocaleString('pt-BR')}">
                     <i class="far fa-calendar"></i> ${formattedDate}
                     <br><i class="far fa-clock"></i> ${formattedTime}
                 </span>
             </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="action-btn btn-primary" title="Ver detalhes do pedido" onclick="window.AdminPanel.openOrderDetails('${orderId}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn btn-info" title="Alterar status do pedido" onclick="window.AdminPanel.openEditStatus('${orderId}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    ${order.client_phone ? `
-                    <button class="action-btn btn-success" title="Abrir WhatsApp" 
-                            onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    ` : ''}
-                </div>
-            </td>
+            <td data-label="Ações">
+    <div class="btn-group">
+        <button class="action-btn btn-primary" 
+                title="Ver detalhes do pedido" 
+                onclick="window.AdminPanel.openOrderDetails('${orderId}')">
+            <i class="fas fa-eye"></i>
+        </button>
+        <button class="action-btn btn-ghost" 
+                title="Ver página do cliente" 
+                onclick="window.open('../order.html?orderId=${orderId}', '_blank')">
+            <i class="fas fa-external-link-alt"></i>
+        </button>
+        <button class="action-btn btn-info" 
+                title="Alterar status do pedido" 
+                onclick="window.AdminPanel.openEditStatus('${orderId}')">
+            <i class="fas fa-edit"></i>
+        </button>
+        ${order.client_phone ? `
+        <button class="action-btn btn-success" 
+                title="Enviar mensagem no WhatsApp" 
+                onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')">
+            <i class="fab fa-whatsapp"></i>
+        </button>
+        ` : ''}
+    </div>
+</td>
         `;
         
         return row;
     }
 
     async openOrderDetails(orderId) {
-        try {
-            this.showLoading(true);
-            const response = await fetch(`${this.apiBase}/orders/${orderId}`);
-            if (!response.ok) throw new Error('Pedido não encontrado');
-            
-            const order = await response.json();
-            const modal = document.getElementById('orderModal');
-            const content = document.getElementById('modalContent');
-            
-            if (modal && content) {
-                const date = new Date(order.created_at);
-                content.innerHTML = `
-                    <div class="order-details-grid">
-                        <div class="details-section">
-                            <h3><i class="fas fa-user"></i> Cliente</h3>
-                            <p><strong>Nome:</strong> ${order.client_name}</p>
-                            <p><strong>Telefone:</strong> ${this.formatPhone(order.client_phone)}</p>
-                            <p><strong>Endereço:</strong> ${order.address || 'Retirada na loja'}</p>
-                        </div>
-                        <div class="details-section">
-                            <h3><i class="fas fa-info-circle"></i> Pedido</h3>
-                            <p><strong>ID:</strong> ${order.order_id}</p>
-                            <p><strong>Data:</strong> ${date.toLocaleString('pt-BR')}</p>
-                            <p><strong>Status:</strong> <span class="status-badge status-${order.status}">${this.getStatusText(order.status)}</span></p>
-                            <p><strong>Pagamento:</strong> ${order.payment_method}</p>
-                        </div>
-                    </div>
-                    <div class="order-items-section">
-                        <h3><i class="fas fa-shopping-basket"></i> Itens</h3>
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th>Produto</th>
-                                    <th>Qtd</th>
-                                    <th>Preço</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${order.items.map(item => `
-                                    <tr>
-                                        <td>${item.product_name}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>R$ ${parseFloat(item.price).toFixed(2)}</td>
-                                        <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
-                                    <td><strong>R$ ${parseFloat(order.total_amount).toFixed(2)}</strong></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    ${order.observation ? `
-                    <div class="order-obs-section">
-                        <h3><i class="fas fa-comment"></i> Observação</h3>
-                        <p>${order.observation}</p>
-                    </div>
-                    ` : ''}
-                    <div class="modal-footer">
-                        <button class="btn btn-info" onclick="window.AdminPanel.openEditStatus('${orderId}')">Alterar Status</button>
-                        <button class="btn btn-danger" onclick="window.AdminPanel.deleteOrder('${orderId}')">Excluir Pedido</button>
-                    </div>
-                `;
-                modal.style.display = 'flex';
-            }
-        } catch (error) {
-            this.showError('Erro ao carregar detalhes: ' + error.message);
-        } finally {
-            this.showLoading(false);
-        }
-    }
-
-    openEditStatus(orderId) {
-        const order = this.orders.find(o => (o.order_id || o.id) === orderId);
-        if (!order) return;
-
-        const modal = document.getElementById('editStatusModal');
-        const content = document.getElementById('editStatusContent');
+    try {
+        this.showLoading(true);
         
-        if (modal && content) {
-            content.innerHTML = `
-                <p>Alterar status do pedido <strong>${orderId}</strong></p>
-                <div class="status-options">
-                    ${['pendente', 'preparando', 'pronto', 'entregue', 'cancelado'].map(s => `
-                        <label class="status-option">
-                            <input type="radio" name="newStatus" value="${s}" ${order.status === s ? 'checked' : ''}>
-                            <span class="status-badge status-${s}">${this.getStatusText(s)}</span>
-                        </label>
+        console.log(`🔍 Buscando detalhes do pedido: ${orderId}`);
+        
+        // Primeiro, tenta buscar da API
+        const apiBase = window.location.origin;
+        let order = null;
+        let apiError = null;
+        
+        try {
+            // Tenta buscar do novo endpoint get-order
+            const response = await fetch(`${apiBase}/api/get-order/${orderId}`);
+            
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success && result.orderData) {
+                    order = this.formatOrderForDetails(result.orderData, orderId);
+                    console.log('✅ Pedido encontrado na API:', orderId);
+                }
+            } else {
+                apiError = 'API não respondeu com sucesso';
+            }
+        } catch (fetchError) {
+            apiError = fetchError.message;
+            console.log('⚠️ API falhou, buscando localmente:', apiError);
+        }
+        
+        // Se a API falhou, busca nos dados locais
+        if (!order) {
+            order = this.orders.find(o => (o.order_id || o.id) === orderId);
+            if (order) {
+                console.log('✅ Pedido encontrado localmente:', orderId);
+            }
+        }
+        
+        if (!order) {
+            this.showError('Pedido não encontrado');
+            return;
+        }
+
+        // Criar ou atualizar o modal
+        let modal = document.getElementById('orderModal');
+        if (!modal) {
+            modal = this.createOrderModal();
+        }
+        
+        const content = document.getElementById('modalContent');
+        if (!content) {
+            this.showError('Erro ao carregar modal');
+            return;
+        }
+        
+        // Formatar a data
+        const date = new Date(order.created_at);
+        const formattedDate = date.toLocaleDateString('pt-BR');
+        const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        
+        // Formatar itens
+        let itemsHtml = '';
+        if (order.items && order.items.length > 0) {
+            itemsHtml = `
+                <h3><i class="fas fa-shopping-basket"></i> Itens do Pedido</h3>
+                <div class="order-items-container">
+                    ${order.items.map(item => `
+                        <div class="order-item">
+                            <div class="item-name">${item.product_name || item.name || 'Produto'}</div>
+                            <div class="item-quantity">${item.quantity}x</div>
+                            <div class="item-price">R$ ${parseFloat(item.price || 0).toFixed(2)}</div>
+                            <div class="item-total">R$ ${parseFloat(item.total || (item.price * item.quantity) || 0).toFixed(2)}</div>
+                        </div>
                     `).join('')}
                 </div>
-                <div class="modal-footer" style="margin-top: 1.5rem;">
-                    <button class="btn btn-primary" onclick="window.AdminPanel.updateOrderStatus('${orderId}')">Salvar Alteração</button>
+                <div class="order-items-summary">
+                    <div>Subtotal: <strong>R$ ${parseFloat(order.subtotal || order.total_numeric || 0).toFixed(2)}</strong></div>
+                    ${order.delivery_fee > 0 ? `<div>Taxa de entrega: <strong>R$ ${parseFloat(order.delivery_fee).toFixed(2)}</strong></div>` : ''}
+                    <div class="order-total">Total: <strong>R$ ${parseFloat(order.total_numeric || order.total || 0).toFixed(2)}</strong></div>
                 </div>
             `;
-            modal.style.display = 'flex';
+        }
+        
+        // Formatar cliente e endereço
+        const address = order.address || (order.client ? order.client.address : '') || '';
+        const clientPhone = order.client_phone || (order.client ? order.client.phone : '') || '';
+        
+        content.innerHTML = `
+            <div class="modal-header">
+                <h2><i class="fas fa-receipt"></i> Pedido ${order.order_id || order.id}</h2>
+                <span class="modal-close" onclick="window.AdminPanel.closeModal()">&times;</span>
+            </div>
+            
+            <div class="order-details-grid">
+                <div class="details-section">
+                    <h3><i class="fas fa-user"></i> Cliente</h3>
+                    <div class="detail-row">
+                        <strong>Nome:</strong> ${order.client_name || (order.client ? order.client.name : 'N/A')}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Telefone:</strong> ${this.formatPhone(clientPhone)}
+                        ${clientPhone ? `<button class="btn-whatsapp-small" onclick="window.open('https://api.whatsapp.com/send?phone=55${clientPhone.replace(/\D/g, '')}', '_blank')">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>` : ''}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Entrega:</strong> 
+                        ${order.delivery_option === 'retirada' ? 
+                            '<span class="status-badge status-entregue"><i class="fas fa-store"></i> Retirada na loja</span>' : 
+                            `<span class="status-badge status-preparando"><i class="fas fa-truck"></i> Entrega</span>`
+                        }
+                    </div>
+                </div>
+                
+                <div class="details-section">
+                    <h3><i class="fas fa-info-circle"></i> Informações do Pedido</h3>
+                    <div class="detail-row">
+                        <strong>Status:</strong> 
+                        <span class="status-badge status-${order.status || 'pendente'}">
+                            ${this.getStatusText(order.status || 'pendente')}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <strong>Pagamento:</strong> 
+                        ${this.formatPaymentMethod(order.payment_method || 'pix')}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Data:</strong> ${formattedDate} às ${formattedTime}
+                    </div>
+                </div>
+            </div>
+            
+            ${address && order.delivery_option !== 'retirada' ? `
+            <div class="details-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h3>
+                <div class="address-details">
+                    ${address}
+                    ${order.client && order.client.neighborhood ? `<br><small>Bairro: ${order.client.neighborhood}</small>` : ''}
+                    ${order.client && order.client.city ? `<br><small>Cidade: ${order.client.city}</small>` : ''}
+                </div>
+            </div>
+            ` : ''}
+            
+            ${itemsHtml}
+            
+            ${order.observation ? `
+            <div class="details-section">
+                <h3><i class="fas fa-comment"></i> Observações</h3>
+                <div class="order-observation">
+                    <p>${order.observation}</p>
+                </div>
+            </div>
+            ` : ''}
+            
+<div class="modal-footer">
+    <div class="modal-actions">
+        <div class="modal-action-btn" onclick="window.AdminPanel.openEditStatus('${orderId}')">
+            <i class="fas fa-exchange-alt"></i>
+            <div class="action-title">Alterar Status</div>
+            <div class="action-desc">Atualize o status do pedido</div>
+        </div>
+        
+        ${order.client_phone ? `
+        <div class="modal-action-btn" onclick="window.open('https://api.whatsapp.com/send?phone=${clientPhone}', '_blank')">
+            <i class="fab fa-whatsapp"></i>
+            <div class="action-title">Contato</div>
+            <div class="action-desc">Enviar mensagem</div>
+        </div>
+        ` : ''}
+        
+        <div class="modal-action-btn" onclick="window.open('../order.html?orderId=${orderId}', '_blank')">
+            <i class="fas fa-external-link-alt"></i>
+            <div class="action-title">Página do Cliente</div>
+            <div class="action-desc">Abrir em nova aba</div>
+        </div>
+        
+        <div class="modal-action-btn" onclick="window.AdminPanel.openPrintOrder('${orderId}')">
+            <i class="fas fa-print"></i>
+            <div class="action-title">Imprimir</div>
+            <div class="action-desc">Gerar cópia física</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+        <button class="btn btn-danger" onclick="window.AdminPanel.deleteOrder('${orderId}')">
+            <i class="fas fa-trash"></i> Excluir Pedido
+        </button>
+    </div>
+</div>
+        `;
+        
+        modal.style.display = 'flex';
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar detalhes:', error);
+        this.showError('Erro ao carregar detalhes: ' + error.message);
+    } finally {
+        this.showLoading(false);
+    }
+}
+createActionButton(config) {
+    const button = document.createElement('button');
+    button.className = `action-btn ${config.className || ''}`;
+    button.innerHTML = config.icon ? `<i class="${config.icon}"></i>` : '';
+    button.title = config.title || '';
+    
+    if (config.text) {
+        button.classList.add('with-text');
+        button.innerHTML += `<span>${config.text}</span>`;
+    }
+    
+    if (config.onClick) {
+        button.addEventListener('click', config.onClick);
+    }
+    
+    if (config.href) {
+        button.addEventListener('click', () => window.open(config.href, '_blank'));
+    }
+    
+    return button;
+}
+
+// 2. Adicionar método auxiliar para formatar pedido
+formatOrderForDetails(orderData, orderId) {
+    if (!orderData) return null;
+    
+    const customer = orderData.customer || orderData.client || {};
+    const order = orderData.order || {};
+    
+    return {
+        id: orderId,
+        order_id: orderId,
+        client_name: customer.name || customer.full_name || '',
+        client_phone: customer.phone || '',
+        address: customer.address || order.address || '',
+        total_numeric: parseFloat(order.total || 0),
+        total: parseFloat(order.total || 0).toFixed(2),
+        subtotal: parseFloat(order.subtotal || order.total || 0),
+        delivery_fee: parseFloat(order.delivery_fee || order.deliveryFee || 0),
+        payment_method: order.payment_method || order.paymentMethod || 'pix',
+        delivery_option: order.delivery_option || order.deliveryOption || 'entrega',
+        status: order.status || 'pendente',
+        observation: order.observation || customer.observation || '',
+        created_at: order.created_at || new Date().toISOString(),
+        items: orderData.items || [],
+        client: customer
+    };
+}
+
+// 3. Adicionar método para formatar método de pagamento
+formatPaymentMethod(method) {
+    const methods = {
+        'pix': '<span class="payment-badge pix"><i class="fas fa-qrcode"></i> PIX</span>',
+        'cartao': '<span class="payment-badge cartao"><i class="far fa-credit-card"></i> Cartão</span>',
+        'dinheiro': '<span class="payment-badge dinheiro"><i class="fas fa-money-bill-wave"></i> Dinheiro</span>'
+    };
+    
+    return methods[method.toLowerCase()] || method;
+}
+
+    openEditStatus(orderId) {
+    const order = this.orders.find(o => (o.order_id || o.id) === orderId);
+    if (!order) return;
+
+    let modal = document.getElementById('editStatusModal');
+    if (!modal) {
+        modal = this.createEditStatusModal();
+    }
+    
+    const content = document.getElementById('editStatusContent');
+    
+    const statusOptions = [
+        { value: 'pendente', label: 'Pendente', icon: 'fas fa-clock', color: '#E67E22', desc: 'Aguardando processamento' },
+        { value: 'preparando', label: 'Preparando', icon: 'fas fa-utensils', color: '#1976D2', desc: 'Em preparação na cozinha' },
+        { value: 'pronto', label: 'Pronto', icon: 'fas fa-check-circle', color: '#2E7D32', desc: 'Pronto para entrega/retirada' },
+        { value: 'entregue', label: 'Entregue', icon: 'fas fa-truck', color: '#1B5E20', desc: 'Pedido entregue ao cliente' },
+        { value: 'cancelado', label: 'Cancelado', icon: 'fas fa-times-circle', color: '#C62828', desc: 'Pedido cancelado' }
+    ];
+    
+    content.innerHTML = `
+        <div class="modal-header">
+            <h2><i class="fas fa-exchange-alt"></i> Alterar Status do Pedido</h2>
+            <span class="modal-close" onclick="window.AdminPanel.closeEditStatusModal()">&times;</span>
+        </div>
+        
+        <div style="padding: 1.5rem;">
+            <div style="background: var(--accent-light); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div>
+                        <strong>Pedido:</strong> ${orderId}<br>
+                        <strong>Cliente:</strong> ${order.client_name || 'N/A'}
+                    </div>
+                    <div style="margin-left: auto;">
+                        <span class="status-badge status-${order.status || 'pendente'}">
+                            ${this.getStatusText(order.status || 'pendente')}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem; color: var(--primary);">Selecione o novo status:</h3>
+            
+            <div class="status-options-grid">
+                ${statusOptions.map(option => `
+                    <label class="status-option-card ${order.status === option.value ? 'selected' : ''}">
+                        <input type="radio" name="newStatus" value="${option.value}" 
+                               ${order.status === option.value ? 'checked' : ''}>
+                        <div class="status-option-content">
+                            <div class="status-option-icon" style="color: ${option.color};">
+                                <i class="${option.icon}"></i>
+                            </div>
+                            <div class="status-option-text">
+                                <div class="status-option-label">${option.label}</div>
+                                <div class="status-option-desc">${option.desc}</div>
+                            </div>
+                            ${order.status === option.value ? 
+                                '<div class="status-current"><i class="fas fa-check-circle"></i> Atual</div>' : ''}
+                        </div>
+                    </label>
+                `).join('')}
+            </div>
+            
+            <div class="modal-footer" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="window.AdminPanel.closeEditStatusModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn btn-primary" onclick="window.AdminPanel.updateOrderStatus('${orderId}')">
+                    <i class="fas fa-save"></i> Salvar Alteração
+                </button>
+            </div>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    
+    // Adiciona interatividade às opções
+    content.querySelectorAll('.status-option-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (!e.target.matches('input')) {
+                const radio = card.querySelector('input[type="radio"]');
+                radio.checked = true;
+                content.querySelectorAll('.status-option-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+            }
+        });
+    });
+}
+
+    updateOrderStatusLocally(orderId, newStatus) {
+        const order = this.orders.find(o => (o.order_id || o.id) === orderId);
+        if (order) {
+            order.status = newStatus;
+            // Também atualiza em filteredOrders se necessário
+            const filteredOrder = this.filteredOrders.find(o => (o.order_id || o.id) === orderId);
+            if (filteredOrder) filteredOrder.status = newStatus;
         }
     }
 
     async updateOrderStatus(orderId) {
         const selectedStatus = document.querySelector('input[name="newStatus"]:checked')?.value;
-        if (!selectedStatus) return;
-
-        try {
-            this.showLoading(true);
-            const response = await fetch(`${this.apiBase}/update-order-status`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId, status: selectedStatus })
-            });
-
-            if (response.ok) {
-                this.showSuccess('Status atualizado com sucesso!');
-                this.closeEditStatusModal();
-                this.closeModal();
-                await this.loadAllData();
-            } else {
-                throw new Error('Erro ao atualizar status');
-            }
-        } catch (error) {
-            this.showError(error.message);
-        } finally {
-            this.showLoading(false);
-        }
+    if (!selectedStatus) {
+        this.showError('Selecione um status');
+        return;
     }
+
+    try {
+        this.showLoading(true);
+        
+        console.log(`🔄 Atualizando status do pedido ${orderId} para ${selectedStatus}`);
+        
+        const apiBase = window.location.origin;
+        const response = await fetch(`${apiBase}/.netlify/functions/update-order-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                orderId, 
+                status: selectedStatus 
+            })
+        });
+
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            this.showSuccess('✅ Status atualizado com sucesso!');
+            
+            // Atualiza localmente
+            this.updateOrderStatusLocally(orderId, selectedStatus);
+            
+            // Fecha os modais
+            this.closeEditStatusModal();
+            this.closeModal();
+            
+            // Atualiza a interface sem recarregar tudo
+            this.updateStats();
+            this.updateCharts();
+            this.displayCurrentView();
+            
+        } else {
+            throw new Error(result.message || 'Erro ao atualizar status');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro ao atualizar status:', error);
+        this.showError('Erro ao atualizar status: ' + error.message);
+    } finally {
+        this.showLoading(false);
+    }
+}
+
+addModalStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .modal-content h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .modal-close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--muted-foreground);
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--primary);
+        }
+        
+        .order-details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .details-section {
+            background: var(--accent-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .details-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .detail-row {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .detail-row strong {
+            min-width: 80px;
+            color: var(--muted-foreground);
+        }
+        
+        .btn-whatsapp-small {
+            padding: 0.25rem 0.75rem;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        
+        .btn-whatsapp-small:hover {
+            background: #128C7E;
+        }
+        
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .payment-badge.pix {
+            background: linear-gradient(135deg, #32BCAD, #006AFF);
+            color: white;
+        }
+        
+        .payment-badge.cartao {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+        }
+        
+        .payment-badge.dinheiro {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .order-items-container {
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .order-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            align-items: center;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-items-summary {
+            background: var(--accent-light);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: right;
+        }
+        
+        .order-total {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 2px solid var(--border);
+        }
+        
+        .address-details {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-top: 0.5rem;
+        }
+        
+        .order-observation {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        
+        .modal-footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border);
+        }
+        
+        .footer-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .order-details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .footer-actions {
+                flex-direction: column;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 
     async deleteOrder(orderId) {
         if (!confirm(`Tem certeza que deseja excluir o pedido ${orderId}? Esta ação não pode ser desfeita.`)) {
@@ -1066,20 +1945,21 @@ class AdminPanel {
                         ${this.getStatusText(order.status || 'pendente')}
                     </span>
                 </div>
-                <div class="order-card-actions">
-                    <button class="action-btn btn-primary small" title="Ver detalhes" onclick="window.AdminPanel.openOrderDetails('${order.order_id || order.id}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn btn-info small" title="Alterar status" onclick="window.AdminPanel.openEditStatus('${order.order_id || order.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    ${order.client_phone ? `
-                    <button class="action-btn btn-success small" title="WhatsApp"
-                            onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                    ` : ''}
-                </div>
+               <div class="order-card-actions">
+    <button class="action-btn btn-primary small with-text" 
+            onclick="window.AdminPanel.openOrderDetails('${order.order_id || order.id}')" title="Ver Detalhes">
+        <i class="fas fa-eye"></i> Ver
+    </button>
+    <button class="action-btn btn-info small with-text" 
+            onclick="window.AdminPanel.openEditStatus('${order.order_id || order.id}')" title="Editar Status">
+        <i class="fas fa-edit"></i> Status
+    </button>
+    <button class="action-btn btn-success small" 
+            onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')"
+            title="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </button>
+</div>
                 <div class="order-card-time">
                     <small><i class="fas fa-clock"></i> ${formattedDate} ${formattedTime}</small>
                 </div>
@@ -1089,6 +1969,157 @@ class AdminPanel {
         });
     }
     
+    createReportViewerModal() {
+    const modal = document.createElement('div');
+    modal.id = 'reportViewerModal';
+    modal.className = 'admin-modal report-viewer-modal';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt"></i> Visualizar Relatório</h2>
+                <span class="modal-close" onclick="window.AdminPanel.closeReportViewer()">&times;</span>
+            </div>
+            <div id="reportViewerContent" class="report-viewer-content">
+                <!-- Conteúdo será injetado aqui -->
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) this.closeReportViewer();
+    });
+    
+    return modal;
+}
+loadReportsHistory() {
+    const tbody = document.getElementById('reportsHistoryBody');
+    if (!tbody) {
+        console.error('Elemento reportsHistoryBody não encontrado');
+        return;
+    }
+
+    let reports = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+
+    // Fallback com exemplos se não houver histórico
+    if (reports.length === 0) {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+
+        reports = [
+            {
+                id: 'rpt-1',
+                name: 'Relatório Diário',
+                type: 'daily',
+                period: today.toLocaleDateString('pt-BR'),
+                format: 'pdf',
+                date: today.toISOString()
+            },
+            {
+                id: 'rpt-2',
+                name: 'Relatório Semanal',
+                type: 'weekly',
+                period: `${lastWeek.toLocaleDateString('pt-BR')} - ${yesterday.toLocaleDateString('pt-BR')}`,
+                format: 'pdf',
+                date: yesterday.toISOString()
+            },
+            {
+                id: 'rpt-3',
+                name: 'Relatório Financeiro',
+                type: 'financial',
+                period: today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+                format: 'xlsx',
+                date: today.toISOString()
+            }
+        ];
+        localStorage.setItem('admin_reports_history', JSON.stringify(reports));
+    }
+
+    tbody.innerHTML = reports.map((report) => `
+        <tr>
+            <td><strong>${report.name || 'Relatório'}</strong></td>
+            <td>
+                <span class="report-type-badge report-type-${report.type || 'custom'}">
+                    ${report.type || 'custom'}
+                </span>
+            </td>
+            <td>${report.period || '-'}</td>
+            <td style="text-transform: uppercase;">
+                <i class="fas fa-file-${report.format === 'pdf' ? 'pdf' : report.format === 'xlsx' ? 'excel' : 'alt'}"></i>
+                ${report.format || 'pdf'}
+            </td>
+            <td>${new Date(report.date).toLocaleDateString('pt-BR')}</td>
+            <td>
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="action-btn btn-primary small btn-view-report" 
+                            data-report-id="${report.id}"
+                            title="Visualizar">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn btn-info small btn-download-report" 
+                            data-report-type="${report.type}" 
+                            data-report-format="${report.format}"
+                            title="Baixar">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+
+    this.setupReportsHistoryEvents(reports);
+}
+
+closeReportViewer() {
+    const modal = document.getElementById('reportViewerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+downloadReport(type, format) {
+    const reportNames = {
+        'daily': 'Relatório Diário',
+        'weekly': 'Relatório Semanal',
+        'monthly': 'Relatório Mensal',
+        'financial': 'Relatório Financeiro',
+        'products': 'Relatório de Produtos',
+        'Relatório Diário': 'Relatório Diário',
+        'Relatório Semanal': 'Relatório Semanal',
+        'Relatório Financeiro': 'Relatório Financeiro',
+        'Relatório de Produtos': 'Relatório de Produtos'
+    };
+    
+    const reportName = reportNames[type] || type || 'Relatório';
+    
+    if (format === 'pdf') {
+        this.exportToPDF(this.orders, reportName);
+    } else if (format === 'xlsx') {
+        this.exportToExcel(this.orders, reportName);
+    } else {
+        this.exportToCSV(this.orders, reportName);
+    }
+    
+    this.showSuccess(`📥 ${reportName} baixado com sucesso!`);
+}
+
+
+// Adicione também no final do arquivo, nos métodos estáticos:
+static viewReport(reportData) {
+    if (window.AdminPanel) {
+        window.AdminPanel.viewReport(reportData);
+    }
+}
+
+static closeReportViewer() {
+    if (window.AdminPanel) {
+        window.AdminPanel.closeReportViewer();
+    }
+}
+
     displayOrdersAsTimeline() {
         const container = document.getElementById('timelineContainer');
         if (!container) return;
@@ -1625,11 +2656,12 @@ class AdminPanel {
         }
         
         // 3. Insight sobre ticket médio
-        const totalRevenue = this.orders.reduce((sum, order) => {
+        const nonCancelledOrders = this.orders.filter(o => o.status !== 'cancelado');
+        const totalRevenue = nonCancelledOrders.reduce((sum, order) => {
             return sum + parseFloat(order.total || order.total_amount || 0);
         }, 0);
         
-        const avgTicket = totalRevenue / this.orders.length;
+        const avgTicket = nonCancelledOrders.length > 0 ? totalRevenue / nonCancelledOrders.length : 0;
         insights.push({
             type: 'info',
             title: '💰 Ticket Médio',
@@ -1683,28 +2715,275 @@ class AdminPanel {
     }
     
     updateProductsAnalysis() {
-        const tbody = document.getElementById('productsRankingBody');
-        if (!tbody) return;
+    const tbody = document.getElementById('productsRankingBody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    this.productAnalysis.slice(0, 10).forEach((product, index) => {
+        const row = document.createElement('tr');
         
-        tbody.innerHTML = '';
+        row.innerHTML = `
+            <td><strong>#${index + 1}</strong></td>
+            <td><strong>${product.name}</strong><br>
+                <small>${product.orderCount} pedidos</small></td>
+            <td>${product.quantity} unidades</td>
+            <td><strong>R$ ${product.revenue.toFixed(2)}</strong></td>
+            <td>R$ ${product.avgOrderValue.toFixed(2)}</td>
+            <td>
+                ${index < 3 ? 
+                    '<span style="color: #27ae60;"><i class="fas fa-chart-line"></i> Alta</span>' : 
+                  index < 7 ? 
+                    '<span style="color: #f39c12;"><i class="fas fa-minus"></i> Estável</span>' : 
+                    '<span style="color: #e74c3c;"><i class="fas fa-chart-line"></i> Baixa</span>'}
+            </td>
+        `;
         
-        this.productAnalysis.slice(0, 10).forEach((product, index) => {
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td><strong>#${index + 1}</strong></td>
-                <td><strong>${product.name}</strong><br>
-                    <small>${product.orderCount} pedidos</small></td>
-                <td>${product.quantity} unidades</td>
-                <td><strong>R$ ${product.revenue.toFixed(2)}</strong></td>
-                <td>R$ ${product.avgOrderValue.toFixed(2)}</td>
-                <td>${index < 3 ? '📈 Alta' : index < 7 ? '➡️ Estável' : '📉 Baixa'}</td>
-            `;
-            
-            tbody.appendChild(row);
+        tbody.appendChild(row);
+    });
+    
+    // ADICIONE ESTA LINHA para renderizar combinações:
+    this.renderProductCombinations();
+}
+
+// Método para criar gráfico de combinações
+updateCombinationsChart() {
+    const ctx = document.getElementById('combinationsChart');
+    if (!ctx) return;
+    
+    if (this.productCombinations.length === 0) {
+        // Remove o gráfico se existir
+        if (this.charts.combinations) {
+            this.charts.combinations.destroy();
+            delete this.charts.combinations;
+        }
+        return;
+    }
+    
+    // Limita a 8 combinações para o gráfico
+    const topCombinations = this.productCombinations.slice(0, 8);
+    
+    if (this.charts.combinations) {
+        this.charts.combinations.destroy();
+    }
+    
+    // Cria um novo canvas se não existir
+    let canvas = ctx;
+    if (ctx.tagName !== 'CANVAS') {
+        canvas = document.createElement('canvas');
+        canvas.id = 'combinationsChart';
+        ctx.parentNode.appendChild(canvas);
+        ctx.parentNode.removeChild(ctx);
+    }
+    
+    this.charts.combinations = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: topCombinations.map(c => {
+                // Abrevia nomes longos
+                const name = c.displayName;
+                return name.length > 30 ? name.substring(0, 27) + '...' : name;
+            }),
+            datasets: [{
+                label: 'Frequência de Combinação',
+                data: topCombinations.map(c => c.frequency),
+                backgroundColor: [
+                    'rgba(231, 76, 60, 0.7)',   // Vermelho
+                    'rgba(243, 156, 18, 0.7)',  // Laranja
+                    'rgba(46, 204, 113, 0.7)',  // Verde
+                    'rgba(52, 152, 219, 0.7)',  // Azul
+                    'rgba(155, 89, 182, 0.7)',  // Roxo
+                    'rgba(241, 196, 15, 0.7)',  // Amarelo
+                    'rgba(230, 126, 34, 0.7)',  // Laranja escuro
+                    'rgba(149, 165, 166, 0.7)'  // Cinza
+                ],
+                borderColor: [
+                    'rgb(231, 76, 60)',
+                    'rgb(243, 156, 18)',
+                    'rgb(46, 204, 113)',
+                    'rgb(52, 152, 219)',
+                    'rgb(155, 89, 182)',
+                    'rgb(241, 196, 15)',
+                    'rgb(230, 126, 34)',
+                    'rgb(149, 165, 166)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const combination = topCombinations[context.dataIndex];
+                            return [
+                                `Frequência: ${combination.frequency} pedidos`,
+                                `Receita: R$ ${combination.totalRevenue.toFixed(2)}`,
+                                `Ticket médio: R$ ${combination.avgOrderValue.toFixed(2)}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Número de Pedidos'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Atualize o método updateProductsCharts para incluir o gráfico de combinações:
+updateProductsCharts() {
+    this.updateTopProductsChart();
+    this.updateCategoriesChart();
+    this.updateCombinationsChart(); // Adicione esta linha
+}
+    
+generateCombinationsInsights() {
+    const container = document.getElementById('combinationsInsights');
+    if (!container || this.productCombinations.length === 0) return;
+    
+    const insights = [];
+    
+    // 1. Insight sobre a combinação mais frequente
+    const topCombination = this.productCombinations[0];
+    if (topCombination) {
+        insights.push({
+            type: 'success',
+            icon: 'fas fa-crown',
+            title: 'Combinação Campeã',
+            message: `${topCombination.displayName} é a combinação mais vendida, aparecendo em ${topCombination.frequency} pedidos.`,
+            suggestion: 'Considere criar um combo promocional com estes produtos.'
         });
     }
     
+    // 2. Insight sobre receita de combinações
+    const totalCombinationRevenue = this.productCombinations.reduce((sum, c) => sum + c.totalRevenue, 0);
+    const totalProductRevenue = this.productAnalysis.reduce((sum, p) => sum + p.revenue, 0);
+    const revenuePercentage = totalProductRevenue > 0 ? (totalCombinationRevenue / totalProductRevenue) * 100 : 0;
+    
+    if (revenuePercentage > 20) {
+        insights.push({
+            type: 'info',
+            icon: 'fas fa-money-bill-wave',
+            title: 'Receita Significativa',
+            message: `${revenuePercentage.toFixed(1)}% da receita vem de combinações de produtos.`,
+            suggestion: 'Incentive mais combinações com descontos progressivos.'
+        });
+    }
+    
+    // 3. Insight sobre produtos que combinam com vários outros
+    const productConnections = {};
+    this.productCombinations.forEach(comb => {
+        productConnections[comb.product1] = (productConnections[comb.product1] || 0) + 1;
+        productConnections[comb.product2] = (productConnections[comb.product2] || 0) + 1;
+    });
+    
+    const mostConnectedProduct = Object.entries(productConnections)
+        .sort((a, b) => b[1] - a[1])[0];
+    
+    if (mostConnectedProduct && mostConnectedProduct[1] >= 3) {
+        insights.push({
+            type: 'warning',
+            icon: 'fas fa-link',
+            title: 'Produto Versátil',
+            message: `${mostConnectedProduct[0]} combina com ${mostConnectedProduct[1]} outros produtos diferentes.`,
+            suggestion: 'Use este produto como carro-chefe para combos variados.'
+        });
+    }
+    
+    // 4. Insight sobre frequência média
+    const avgFrequency = this.productCombinations.reduce((sum, c) => sum + c.frequency, 0) / this.productCombinations.length;
+    
+    if (avgFrequency >= 5) {
+        insights.push({
+            type: 'primary',
+            icon: 'fas fa-chart-line',
+            title: 'Clientes Combinam Muito',
+            message: `Cada combinação aparece em média ${avgFrequency.toFixed(1)} vezes.`,
+            suggestion: 'Os clientes já estão habituados a combinar produtos.'
+        });
+    } else {
+        insights.push({
+            type: 'secondary',
+            icon: 'fas fa-exclamation-circle',
+            title: 'Oportunidade de Crescimento',
+            message: `As combinações ainda são pouco exploradas (média de ${avgFrequency.toFixed(1)} ocorrências).`,
+            suggestion: 'Crie sugestões de combinação durante o checkout.'
+        });
+    }
+    
+    // Renderiza os insights
+    container.innerHTML = insights.map(insight => `
+        <div style="
+            background: ${insight.type === 'success' ? '#d4edda' : 
+                         insight.type === 'warning' ? '#fff3cd' : 
+                         insight.type === 'info' ? '#d1ecf1' : '#e2e3e5'};
+            border-left: 4px solid ${insight.type === 'success' ? '#28a745' : 
+                                   insight.type === 'warning' ? '#ffc107' : 
+                                   insight.type === 'info' ? '#17a2b8' : '#6c757d'};
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        ">
+            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                <div style="
+                    background: white;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: ${insight.type === 'success' ? '#28a745' : 
+                            insight.type === 'warning' ? '#ffc107' : 
+                            insight.type === 'info' ? '#17a2b8' : '#6c757d'};
+                    flex-shrink: 0;
+                ">
+                    <i class="${insight.icon}"></i>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.25rem;">
+                        ${insight.title}
+                    </div>
+                    <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        ${insight.message}
+                    </div>
+                    <div style="
+                        font-size: 0.8rem;
+                        color: var(--muted-foreground);
+                        background: rgba(255,255,255,0.7);
+                        padding: 0.5rem;
+                        border-radius: 4px;
+                        border-left: 2px solid ${insight.type === 'success' ? '#28a745' : 
+                                            insight.type === 'warning' ? '#ffc107' : 
+                                            insight.type === 'info' ? '#17a2b8' : '#6c757d'};
+                    ">
+                        <strong>Sugestão:</strong> ${insight.suggestion}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
     updateProductsCharts() {
         this.updateTopProductsChart();
         this.updateCategoriesChart();
@@ -1752,30 +3031,34 @@ class AdminPanel {
         const ctx = document.getElementById('categoriesChart');
         if (!ctx) return;
         
-        // Categorias simuladas baseadas no nome do produto
+        // Categorias baseadas no menu
         const categories = {
             'Pães': 0,
-            'Bolos': 0,
-            'Salgados': 0,
+            'Ciabattas': 0,
+            'Focaccias': 0,
             'Doces': 0,
-            'Bebidas': 0,
-            'Outros': 0
+            'Pronta-Entrega': 0
         };
         
         this.productAnalysis.forEach(product => {
             const name = product.name.toLowerCase();
-            if (name.includes('pão')) {
+            if (name.includes('pão') || name.includes('baguete') || name.includes('italiano')) {
                 categories['Pães'] += product.quantity;
-            } else if (name.includes('bolo')) {
-                categories['Bolos'] += product.quantity;
-            } else if (name.includes('salgado') || name.includes('torta')) {
-                categories['Salgados'] += product.quantity;
-            } else if (name.includes('doce') || name.includes('brigadeiro')) {
+            } else if (name.includes('ciabatta')) {
+                categories['Ciabattas'] += product.quantity;
+            } else if (name.includes('focaccia')) {
+                categories['Focaccias'] += product.quantity;
+            } else if (name.includes('doce') || name.includes('roll') || name.includes('sonho') || name.includes('brioche')) {
                 categories['Doces'] += product.quantity;
-            } else if (name.includes('café') || name.includes('suco')) {
-                categories['Bebidas'] += product.quantity;
-            } else {
-                categories['Outros'] += product.quantity;
+            } else if (name.includes('muffin')) {
+                categories['Pronta-Entrega'] += product.quantity;
+            }
+        });
+
+        // Remove categorias que não possuem produtos na análise
+        Object.keys(categories).forEach(key => {
+            if (categories[key] === 0) {
+                delete categories[key];
             }
         });
         
@@ -1840,131 +3123,474 @@ class AdminPanel {
     }
     
     // TAB: Relatórios
-    setupReportsTab() {
-        console.log('📄 Configurando aba de Relatórios');
-        
-        // Configura botões de relatórios
-        this.setupReportButtons();
-        
-        // Carrega histórico de relatórios
-        this.loadReportsHistory();
-    }
+setupReportsTab() {
+    console.log('📄 Configurando aba de Relatórios');
     
-    setupReportButtons() {
-        // Botão gerar relatório
-        const generateBtn = document.getElementById('generateReport');
-        if (generateBtn) {
-            generateBtn.addEventListener('click', () => {
-                this.generateReport();
-            });
-        }
+    // Configura botões de relatórios
+    this.setupReportButtons();
+    
+    // Carrega histórico de relatórios
+    this.loadReportsHistory();
+    
+    // Configura formulário personalizado
+    this.setupCustomReportForm();
+}
+    
+setupCustomReportForm() {
+    const form = document.getElementById('customReportForm');
+    if (form) {
+        // Remove listener anterior
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
         
-        // Botões de templates
-        const templateButtons = document.querySelectorAll('.btn-template');
-        templateButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const template = btn.closest('.template-card').dataset.template;
-                this.generateTemplateReport(template);
+        newForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const startDate = document.getElementById('customStartDate')?.value;
+            const endDate = document.getElementById('customEndDate')?.value;
+            const format = document.getElementById('customFormat')?.value || 'pdf';
+            
+            if (!startDate || !endDate) {
+                this.showError('Selecione as datas inicial e final');
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (start > end) {
+                this.showError('A data inicial não pode ser maior que a final');
+                return;
+            }
+            
+            // Filtra pedidos
+            const filteredOrders = this.orders.filter(o => {
+                const orderDate = new Date(o.created_at);
+                return orderDate >= start && orderDate <= end;
             });
+            
+            if (filteredOrders.length === 0) {
+                this.showError('Nenhum pedido encontrado no período');
+                return;
+            }
+            
+            const reportName = `Relatório Personalizado - ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
+            
+            if (format === 'pdf') {
+                this.exportToPDF(filteredOrders, reportName);
+            } else if (format === 'xlsx') {
+                this.exportToExcel(filteredOrders, reportName);
+            } else {
+                this.exportToCSV(filteredOrders, reportName);
+            }
+            
+            this.addToReportsHistory(reportName, format, `${start.toLocaleDateString('pt-BR')} - ${end.toLocaleDateString('pt-BR')}`);
+            this.closeCustomReport();
+            this.showSuccess(`📄 ${reportName} gerado!`);
         });
     }
+    
+    // Define datas padrão
+    const today = new Date();
+    const lastWeek = new Date();
+    lastWeek.setDate(today.getDate() - 7);
+    
+    const startDateInput = document.getElementById('customStartDate');
+    const endDateInput = document.getElementById('customEndDate');
+    
+    if (startDateInput && !startDateInput.value) {
+        startDateInput.value = lastWeek.toISOString().split('T')[0];
+    }
+    if (endDateInput && !endDateInput.value) {
+        endDateInput.value = today.toISOString().split('T')[0];
+    }
+}
+
+ setupReportButtons() {
+    // Botão gerar relatório principal
+    const generateBtn = document.getElementById('generateReport');
+    if (generateBtn) {
+        // Remove listener anterior
+        const newBtn = generateBtn.cloneNode(true);
+        generateBtn.parentNode.replaceChild(newBtn, generateBtn);
+        
+        newBtn.addEventListener('click', () => {
+            this.generateReport();
+        });
+    }
+    
+    // Botões de templates - CORRIGIDO
+    const templateButtons = document.querySelectorAll('.btn-template');
+    templateButtons.forEach(btn => {
+        // Remove listeners anteriores
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        // Adiciona novo listener
+        newBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const template = newBtn.dataset.template || newBtn.getAttribute('data-template');
+            
+            if (template === 'custom') {
+                this.openCustomReport();
+            } else if (template) {
+                this.generateTemplateReport(template);
+            }
+        });
+    });
+    
+    // Botão atualizar histórico
+    const refreshBtn = document.getElementById('refreshReports');
+    if (refreshBtn) {
+        refreshBtn.onclick = () => {
+            this.loadReportsHistory();
+            this.showSuccess('✅ Histórico atualizado');
+        };
+    }
+}
     
     generateReport() {
-        const reportType = document.getElementById('reportType').value;
-        let reportName = '';
-        
-        switch(reportType) {
-            case 'daily':
-                reportName = 'Relatório Diário';
-                break;
-            case 'weekly':
-                reportName = 'Relatório Semanal';
-                break;
-            case 'monthly':
-                reportName = 'Relatório Mensal';
-                break;
-            default:
-                reportName = 'Relatório Personalizado';
-        }
-        
-        this.showSuccess(`📄 ${reportName} gerado com sucesso`);
-        this.addToReportsHistory(reportName);
+    const reportType = document.getElementById('reportType').value;
+    let reportName = '';
+    let days = 1;
+    let periodText = '';
+    
+    const today = new Date();
+    
+    switch(reportType) {
+        case 'daily':
+            reportName = 'Relatório Diário';
+            days = 1;
+            periodText = today.toLocaleDateString('pt-BR');
+            break;
+        case 'weekly':
+            reportName = 'Relatório Semanal';
+            days = 7;
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 6);
+            periodText = `${weekAgo.toLocaleDateString('pt-BR')} - ${today.toLocaleDateString('pt-BR')}`;
+            break;
+        case 'monthly':
+            reportName = 'Relatório Mensal';
+            days = 30;
+            const monthName = today.toLocaleDateString('pt-BR', { month: 'long' });
+            periodText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            break;
+        default:
+            // Para custom, abre o formulário
+            this.openCustomReport();
+            return;
     }
+    
+    // Filtra pedidos do período
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    
+    const filteredOrders = this.orders.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate >= startDate && orderDate <= today;
+    });
+    
+    if (filteredOrders.length === 0) {
+        this.showError(`Nenhum pedido encontrado para ${reportName.toLowerCase()}`);
+        return;
+    }
+    
+    // Gera o relatório
+    this.exportToPDF(filteredOrders, `${reportName} - ${periodText}`);
+    
+    // Adiciona ao histórico
+    this.addToReportsHistory(reportName, 'pdf', periodText);
+}
     
     generateTemplateReport(template) {
-        const templateNames = {
-            'kitchen': 'Pedidos para Cozinha',
-            'delivery': 'Rota de Entregas',
-            'financial': 'Relatório Financeiro',
-            'client': 'Clientes Frequentes',
-            'products': 'Estoque e Vendas',
-            'custom': 'Relatório Personalizado'
-        };
-        
-        const reportName = templateNames[template] || 'Relatório';
-        this.showSuccess(`📄 ${reportName} preparado para impressão`);
-        this.addToReportsHistory(reportName);
+    const templateNames = {
+        'daily': 'Relatório Diário',
+        'weekly': 'Relatório Semanal',
+        'monthly': 'Relatório Mensal',
+        'financial': 'Relatório Financeiro',
+        'products': 'Relatório de Produtos'
+    };
+    
+    const reportName = templateNames[template] || 'Relatório';
+    
+    switch(template) {
+        case 'daily':
+            this.generateDailyReport();
+            break;
+        case 'weekly':
+            this.generateWeeklyReport();
+            break;
+        case 'monthly':
+            this.generateMonthlyReport();
+            break;
+        case 'financial':
+            this.exportToExcel(this.orders, 'Relatorio_Financeiro');
+            break;
+        case 'products':
+            this.generateProductsReport();
+            break;
+        default:
+            this.showSuccess(`📄 ${reportName} gerado`);
     }
+    
+    this.addToReportsHistory(reportName, template === 'financial' ? 'xlsx' : 'pdf');
+}
+
+generateDailyReport() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayOrders = this.orders.filter(o => o.created_at.startsWith(today));
+    
+    if (todayOrders.length === 0) {
+        this.showError('Nenhum pedido encontrado para hoje');
+        return;
+    }
+    
+    this.exportToPDF(todayOrders, `relatorio_diario_${today}`);
+    this.showSuccess(`Relatório diário gerado: ${todayOrders.length} pedidos`);
+}
+
+generateWeeklyReport() {
+    const today = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(today.getDate() - 7);
+    
+    const weekOrders = this.orders.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate >= weekAgo && orderDate <= today;
+    });
+    
+    if (weekOrders.length === 0) {
+        this.showError('Nenhum pedido encontrado na última semana');
+        return;
+    }
+    
+    this.exportToPDF(weekOrders, 'relatorio_semanal');
+    this.showSuccess(`Relatório semanal gerado: ${weekOrders.length} pedidos`);
+}
+
+generateMonthlyReport() {
+    const today = new Date();
+    const monthAgo = new Date();
+    monthAgo.setDate(today.getDate() - 30);
+    
+    const monthOrders = this.orders.filter(o => {
+        const orderDate = new Date(o.created_at);
+        return orderDate >= monthAgo && orderDate <= today;
+    });
+    
+    if (monthOrders.length === 0) {
+        this.showError('Nenhum pedido encontrado no último mês');
+        return;
+    }
+    
+    this.exportToPDF(monthOrders, 'relatorio_mensal');
+    this.showSuccess(`Relatório mensal gerado: ${monthOrders.length} pedidos`);
+}
+
+    handleCustomReportSubmit(form) {
+    const formData = new FormData(form);
+    const name = formData.get('reportName') || 'Relatório Personalizado';
+    const startDate = new Date(formData.get('reportStartDate'));
+    const endDate = new Date(formData.get('reportEndDate'));
+    const format = formData.get('format');
+    
+    // Valida datas
+    if (startDate > endDate) {
+        this.showError('A data inicial não pode ser maior que a data final');
+        return;
+    }
+    
+    // Filtra pedidos pelo período
+    const filteredOrders = this.orders.filter(o => {
+        const date = new Date(o.created_at);
+        return date >= startDate && date <= endDate;
+    });
+    
+    if (filteredOrders.length === 0) {
+        this.showError('Nenhum pedido encontrado para o período selecionado');
+        return;
+    }
+    
+    // Aplica filtros adicionais
+    let finalOrders = filteredOrders;
+    if (!formData.get('includeCancelled')) {
+        finalOrders = finalOrders.filter(o => o.status !== 'cancelado');
+    }
+    
+    // Gera o relatório
+    if (format === 'pdf') {
+        this.exportToPDF(finalOrders, name);
+    } else if (format === 'excel') {
+        this.exportToExcel(finalOrders, name);
+    } else if (format === 'csv') {
+        this.exportToCSV(finalOrders, name);
+    }
+    
+    // Adiciona ao histórico
+    this.addToReportsHistory(name, format, `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`);
+    
+    // Fecha a seção personalizada
+    this.closeCustomReport();
+    
+    this.showSuccess(`📄 ${name} gerado com sucesso!`);
+}
     
     loadReportsHistory() {
-        const tbody = document.getElementById('reportsHistoryBody');
-        if (!tbody) return;
+    const tbody = document.getElementById('reportsHistoryBody');
+    if (!tbody) return;
+    
+    // Tenta carregar do localStorage
+    let reports = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+    
+    // Se não houver histórico, cria exemplos
+    if (reports.length === 0) {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
         
-        // Dados de exemplo para histórico
-        const reports = [
-            { date: '2024-01-15', type: 'Diário', period: 'Hoje', file: 'relatorio_diario_2024-01-15.pdf' },
-            { date: '2024-01-14', type: 'Semanal', period: '08-14/01', file: 'relatorio_semanal_2024-01-14.pdf' },
-            { date: '2024-01-10', type: 'Financeiro', period: 'Janeiro', file: 'financeiro_janeiro_2024.xlsx' },
-            { date: '2024-01-05', type: 'Produtos', period: 'Dezembro', file: 'produtos_dezembro_2023.pdf' }
+        reports = [
+            {
+                id: '1',
+                date: today.toISOString().split('T')[0],
+                type: 'Relatório Diário',
+                period: today.toLocaleDateString('pt-BR'),
+                file: `relatorio_diario_${today.toISOString().split('T')[0]}.pdf`,
+                format: 'pdf'
+            },
+            {
+                id: '2',
+                date: yesterday.toISOString().split('T')[0],
+                type: 'Relatório Semanal',
+                period: `${lastWeek.toLocaleDateString('pt-BR')} - ${yesterday.toLocaleDateString('pt-BR')}`,
+                file: 'relatorio_semanal.pdf',
+                format: 'pdf'
+            },
+            {
+                id: '3',
+                date: new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0],
+                type: 'Relatório Financeiro',
+                period: today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+                file: 'relatorio_financeiro.xlsx',
+                format: 'xlsx'
+            },
+            {
+                id: '4',
+                date: new Date(today.getFullYear(), today.getMonth() - 1, 15).toISOString().split('T')[0],
+                type: 'Relatório de Produtos',
+                period: 'Análise Mensal',
+                file: 'relatorio_produtos.pdf',
+                format: 'pdf'
+            }
         ];
         
-        tbody.innerHTML = '';
-        
-        reports.forEach(report => {
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${report.date}</td>
-                <td>${report.type}</td>
-                <td>${report.period}</td>
-                <td>${report.file}</td>
-                <td>
-                    <button class="action-btn btn-primary small" title="Baixar">
-                        <i class="fas fa-download"></i>
-                    </button>
-                    <button class="action-btn btn-info small" title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-            `;
-            
-            tbody.appendChild(row);
-        });
+        localStorage.setItem('admin_reports_history', JSON.stringify(reports));
     }
     
-    addToReportsHistory(reportName) {
-        const tbody = document.getElementById('reportsHistoryBody');
-        if (!tbody) return;
-        
-        const today = new Date().toISOString().split('T')[0];
+    tbody.innerHTML = '';
+    
+    reports.forEach(report => {
         const row = document.createElement('tr');
         
+        const reportDate = new Date(report.date);
+        
         row.innerHTML = `
-            <td>${today}</td>
-            <td>${reportName}</td>
-            <td>Hoje</td>
-            <td>${reportName.toLowerCase().replace(/ /g, '_')}_${today}.pdf</td>
+            <td>${reportDate.toLocaleDateString('pt-BR')}</td>
             <td>
-                <button class="action-btn btn-primary small" title="Baixar">
-                    <i class="fas fa-download"></i>
-                </button>
+                <span class="report-type-badge report-type-${report.type.toLowerCase().includes('diário') ? 'daily' : 
+                                                         report.type.toLowerCase().includes('semanal') ? 'weekly' : 
+                                                         report.type.toLowerCase().includes('mensal') ? 'monthly' : 
+                                                         report.type.toLowerCase().includes('financeiro') ? 'financial' : 
+                                                         report.type.toLowerCase().includes('produtos') ? 'products' : 'custom'}">
+                    ${report.type}
+                </span>
+            </td>
+            <td>${report.period}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-file-${report.format === 'pdf' ? 'pdf' : 
+                                           report.format === 'xlsx' ? 'excel' : 
+                                           'alt'}"></i>
+                    <span>${report.file}</span>
+                </div>
+            </td>
+            <td>
+                <div style="display: flex; gap: 0.25rem;">
+                    <button class="action-btn btn-primary small btn-view-report" 
+                            title="Visualizar relatório"
+                            data-report-id="${report.id}">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn btn-info small btn-download-report" 
+                            title="Baixar relatório"
+                            data-report-type="${report.type}" 
+                            data-report-format="${report.format}">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
             </td>
         `;
         
-        // Adiciona no início da tabela
-        tbody.insertBefore(row, tbody.firstChild);
-    }
+        tbody.appendChild(row);
+    });
+    
+    // Adiciona event listeners
+    this.setupReportsHistoryEvents(reports);
+}
+
+setupReportsHistoryEvents(reports) {
+    document.querySelectorAll('.btn-view-report').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const id = e.currentTarget.dataset.reportId;
+            const report = reports.find(r => r.id === id);
+            if (report) {
+                this.showSuccess(`📄 Visualizando: ${report.name}`);
+                // Aqui você pode adicionar lógica para abrir um modal com preview
+            }
+        };
+    });
+
+    document.querySelectorAll('.btn-download-report').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const type = e.currentTarget.dataset.reportType;
+            const format = e.currentTarget.dataset.reportFormat;
+            this.downloadReport(type, format);
+        };
+    });
+}
+    
+    addToReportsHistory(reportName, format = 'pdf', period = 'Hoje') {
+    const tbody = document.getElementById('reportsHistoryBody');
+    if (!tbody) return;
+    
+    const today = new Date();
+    const fileName = `${reportName.toLowerCase().replace(/ /g, '_')}_${today.toISOString().split('T')[0]}.${format}`;
+    
+    const newReport = {
+        id: `rpt-${Date.now()}`,
+        name: reportName,
+        type: reportName.toLowerCase().includes('diário') ? 'daily' : 
+              reportName.toLowerCase().includes('semanal') ? 'weekly' : 
+              reportName.toLowerCase().includes('mensal') ? 'monthly' : 
+              reportName.toLowerCase().includes('financeiro') ? 'financial' : 
+              reportName.toLowerCase().includes('produtos') ? 'products' : 'custom',
+        period: period,
+        format: format,
+        date: today.toISOString()
+    };
+
+    // Salva no localStorage
+    let history = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+    history.unshift(newReport);
+    localStorage.setItem('admin_reports_history', JSON.stringify(history.slice(0, 20)));
+
+    // Recarrega o histórico
+    this.loadReportsHistory();
+}
     
     // Métodos de utilidade
     getStatusText(status) {
@@ -2021,21 +3647,182 @@ class AdminPanel {
             return;
         }
 
-        let csv = 'ID,Data,Cliente,Telefone,Total,Status,Pagamento,Entrega\n';
-        orders.forEach(o => {
-            csv += `${o.order_id || o.id},${o.created_at},${o.client_name},${o.client_phone},${o.total_numeric},${o.status},${o.payment_method},${o.delivery_option}\n`;
+        try {
+            const data = orders.map(o => ({
+                'ID Pedido': o.order_id || o.id,
+                'Data': new Date(o.created_at).toLocaleString('pt-BR'),
+                'Cliente': o.client_name,
+                'Telefone': o.client_phone,
+                'Total (R$)': parseFloat(o.total_numeric || 0).toFixed(2),
+                'Status': this.getStatusText(o.status),
+                'Pagamento': o.payment_method,
+                'Entrega': o.delivery_option,
+                'Endereço': o.address || 'N/A'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
+            
+            // Ajusta largura das colunas
+            const wscols = [
+                {wch: 15}, {wch: 20}, {wch: 25}, {wch: 15}, {wch: 12}, {wch: 12}, {wch: 15}, {wch: 12}, {wch: 40}
+            ];
+            worksheet['!cols'] = wscols;
+
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+            this.showSuccess(`Arquivo ${filename}.xlsx exportado com sucesso!`);
+        } catch (error) {
+            console.error('Erro ao exportar Excel:', error);
+            // Fallback para CSV se XLSX falhar
+            let csv = 'ID,Data,Cliente,Telefone,Total,Status,Pagamento,Entrega\n';
+            orders.forEach(o => {
+                csv += `${o.order_id || o.id},${o.created_at},${o.client_name},${o.client_phone},${o.total_numeric},${o.status},${o.payment_method},${o.delivery_option}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${filename}.csv`;
+            link.click();
+        }
+    }
+
+    exportToPDF(orders, filename) {
+        if (orders.length === 0) {
+            this.showError('Não há dados para exportar');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Título
+        doc.setFontSize(18);
+        doc.text('Jardim Padaria Artesanal - Relatório de Pedidos', 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+        doc.text(`Total de pedidos: ${orders.length}`, 14, 36);
+
+        const tableData = orders.map(o => [
+            o.order_id || o.id,
+            new Date(o.created_at).toLocaleDateString('pt-BR'),
+            o.client_name,
+            `R$ ${parseFloat(o.total_numeric || 0).toFixed(2)}`,
+            this.getStatusText(o.status)
+        ]);
+
+        doc.autoTable({
+            startY: 45,
+            head: [['ID', 'Data', 'Cliente', 'Total', 'Status']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { fillColor: [28, 61, 45] }
         });
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `${filename}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        this.showSuccess(`Arquivo ${filename}.csv exportado com sucesso!`);
+        doc.save(`${filename}.pdf`);
+        this.showSuccess(`Relatório ${filename}.pdf gerado com sucesso!`);
+    }
+
+    generateDeliveryPDF() {
+        const pendingOrders = this.orders.filter(o => o.delivery_option === 'entrega' && o.status !== 'cancelado');
+        if (pendingOrders.length === 0) {
+            this.showError('Não há entregas pendentes');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18);
+        doc.text('Rota de Entregas', 14, 22);
+        
+        const tableData = pendingOrders.map(o => [
+            o.order_id || o.id,
+            o.client_name,
+            o.client_phone,
+            o.address || 'Endereço não informado'
+        ]);
+
+        doc.autoTable({
+            startY: 30,
+            head: [['ID', 'Cliente', 'Telefone', 'Endereço']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillColor: [28, 61, 45] }
+        });
+
+        doc.save('rota_entregas.pdf');
+        this.showSuccess('Rota de entregas gerada com sucesso!');
+    }
+
+    generateClientsPDF() {
+        const clientMap = {};
+        this.orders.forEach(o => {
+            if (!clientMap[o.client_name]) {
+                clientMap[o.client_name] = { name: o.client_name, phone: o.client_phone, count: 0, total: 0 };
+            }
+            clientMap[o.client_name].count++;
+            clientMap[o.client_name].total += parseFloat(o.total_numeric || 0);
+        });
+
+        const clients = Object.values(clientMap).sort((a, b) => b.total - a.total);
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text('Relatório de Clientes Frequentes', 14, 22);
+        
+        const tableData = clients.map(c => [
+            c.name,
+            c.phone,
+            c.count,
+            `R$ ${c.total.toFixed(2)}`
+        ]);
+
+        doc.autoTable({
+            startY: 30,
+            head: [['Cliente', 'Telefone', 'Pedidos', 'Total Gasto']],
+            body: tableData,
+            headStyles: { fillColor: [28, 61, 45] }
+        });
+
+        doc.save('clientes_frequentes.pdf');
+    }
+
+    generateProductsPDF() {
+        const productMap = {};
+        this.orders.forEach(o => {
+            if (o.items) {
+                o.items.forEach(item => {
+                    if (!productMap[item.product_name]) {
+                        productMap[item.product_name] = { name: item.product_name, qty: 0, total: 0 };
+                    }
+                    productMap[item.product_name].qty += parseInt(item.quantity || 0);
+                    productMap[item.product_name].total += parseFloat(item.total || 0);
+                });
+            }
+        });
+
+        const products = Object.values(productMap).sort((a, b) => b.qty - a.qty);
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text('Relatório de Vendas por Produto', 14, 22);
+        
+        const tableData = products.map(p => [
+            p.name,
+            p.qty,
+            `R$ ${p.total.toFixed(2)}`
+        ]);
+
+        doc.autoTable({
+            startY: 30,
+            head: [['Produto', 'Qtd Vendida', 'Faturamento']],
+            body: tableData,
+            headStyles: { fillColor: [28, 61, 45] }
+        });
+
+        doc.save('vendas_produtos.pdf');
     }
 
     showInfo(message) {
@@ -2152,9 +3939,6 @@ class AdminPanel {
     
     // Event Listeners
     setupEventListeners() {
-        // Configura abas
-        this.setupTabs();
-        
         // Botão de refresh
         const refreshBtn = document.getElementById('refreshBtn');
         if (refreshBtn) {
@@ -2178,7 +3962,8 @@ class AdminPanel {
             generateDailyReportBtn.addEventListener('click', () => {
                 const today = new Date().toISOString().split('T')[0];
                 const todayOrders = this.orders.filter(o => o.created_at.startsWith(today));
-                this.exportToExcel(todayOrders, `relatorio_diario_${today}`);
+                this.exportToPDF(todayOrders, `relatorio_diario_${today}`);
+                this.addToReportsHistory('Relatório Diário', 'pdf');
             });
         }
 
@@ -2419,10 +4204,46 @@ class AdminPanel {
             return;
         }
         
-        this.showSuccess(`📋 Relatório para cozinha gerado: ${todayOrders.length} pedidos`);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
         
-        // Abre modal de impressão (simulação)
-        this.showNotification('Relatório pronto para impressão. Use Ctrl+P para imprimir.', 'info');
+        doc.setFontSize(18);
+        doc.text('Pedidos para Cozinha - ' + new Date().toLocaleDateString('pt-BR'), 14, 22);
+        
+        let yPos = 35;
+        todayOrders.forEach((order, index) => {
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Pedido: ${order.order_id || order.id} - ${order.client_name}`, 14, yPos);
+            yPos += 7;
+            
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            if (order.items) {
+                order.items.forEach(item => {
+                    doc.text(`• ${item.quantity}x ${item.product_name}`, 20, yPos);
+                    yPos += 6;
+                });
+            }
+            
+            if (order.observation) {
+                doc.setFont(undefined, 'italic');
+                doc.text(`Obs: ${order.observation}`, 20, yPos);
+                yPos += 6;
+            }
+            
+            yPos += 5;
+            doc.line(14, yPos, 196, yPos);
+            yPos += 10;
+        });
+
+        doc.save(`cozinha_${today}.pdf`);
+        this.showSuccess(`📋 Relatório para cozinha gerado: ${todayOrders.length} pedidos`);
     }
     
     // Métodos estáticos para acesso global
@@ -2430,6 +4251,20 @@ class AdminPanel {
         console.log('Ação de insight:', action);
         // Implementar ações específicas se necessário
     }
+
+    // Adicione no final do arquivo, nos métodos estáticos:
+    static openPrintOrder(orderId) {
+    
+    if (window.AdminPanel) {
+        window.AdminPanel.openPrintOrder(orderId);
+    }
+}
+
+static closePrintModal() {
+    if (window.AdminPanel && typeof window.AdminPanel.closePrintModal === 'function') {
+        window.AdminPanel.closePrintModal();
+    }
+}
     
     static generateKitchenReport() {
         if (window.AdminPanel) {
@@ -2439,34 +4274,57 @@ class AdminPanel {
     
     static generateDeliveryReport() {
         if (window.AdminPanel) {
-            window.AdminPanel.showSuccess('🚚 Relatório de entregas gerado');
+            window.AdminPanel.generateDeliveryPDF();
         }
     }
     
     static generateFinancialReport() {
         if (window.AdminPanel) {
-            window.AdminPanel.showSuccess('💰 Relatório financeiro gerado');
+            window.AdminPanel.exportToExcel(window.AdminPanel.orders, 'Relatorio_Financeiro');
         }
     }
     
     static generateClientsReport() {
         if (window.AdminPanel) {
-            window.AdminPanel.showSuccess('👥 Relatório de clientes gerado');
+            window.AdminPanel.generateClientsPDF();
         }
     }
     
     static generateProductsReport() {
         if (window.AdminPanel) {
-            window.AdminPanel.showSuccess('📦 Relatório de produtos gerado');
+            window.AdminPanel.generateProductsPDF();
         }
     }
     
-    static openCustomReport() {
-        const modal = document.getElementById('customReportModal');
-        if (modal) {
-            modal.style.display = 'flex';
-        }
+openCustomReport() {
+    const section = document.getElementById('customReportSection');
+    if (section) {
+        section.style.display = 'block';
+        
+        // Rola para a seção
+        section.scrollIntoView({ behavior: 'smooth' });
     }
+}
+
+closeCustomReport() {
+    const section = document.getElementById('customReportSection');
+    if (section) {
+        section.style.display = 'none';
+    }
+}
+
+// Métodos estáticos para acesso global
+static openCustomReport() {
+    if (window.AdminPanel) {
+        window.AdminPanel.openCustomReport();
+    }
+}
+
+static closeCustomReport() {
+    if (window.AdminPanel) {
+        window.AdminPanel.closeCustomReport();
+    }
+}
     
     static closeCustomReportModal() {
         const modal = document.getElementById('customReportModal');
@@ -2474,22 +4332,917 @@ class AdminPanel {
             modal.style.display = 'none';
         }
     }
+
+    exportToCSV(orders, filename) {
+    if (orders.length === 0) {
+        this.showError('Não há dados para exportar');
+        return;
+    }
+
+    try {
+        // Cabeçalhos do CSV
+        let csv = 'ID Pedido,Data,Cliente,Telefone,Total,Status,Pagamento,Entrega,Endereço\n';
+        
+        // Adiciona cada pedido
+        orders.forEach(order => {
+            const date = new Date(order.created_at);
+            const row = [
+                `"${order.order_id || order.id}"`,
+                `"${date.toLocaleString('pt-BR')}"`,
+                `"${order.client_name || ''}"`,
+                `"${order.client_phone || ''}"`,
+                `"${parseFloat(order.total_numeric || 0).toFixed(2)}"`,
+                `"${this.getStatusText(order.status || 'pendente')}"`,
+                `"${order.payment_method || ''}"`,
+                `"${order.delivery_option || ''}"`,
+                `"${order.address || ''}"`
+            ].join(',');
+            
+            csv += row + '\n';
+        });
+
+        // Cria blob e faz download
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${filename}.csv`;
+        link.click();
+        
+        this.showSuccess(`Arquivo ${filename}.csv exportado com sucesso!`);
+    } catch (error) {
+        console.error('Erro ao exportar CSV:', error);
+        this.showError('Erro ao exportar CSV: ' + error.message);
+    }
+}
+
+createPrintModal() {
+    const modal = document.createElement('div');
+    modal.id = 'printOrderModal';
+    modal.className = 'admin-modal print-order-modal';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-print"></i> Imprimir Pedido</h2>
+                <span class="modal-close" id="closePrintModalBtn">&times;</span>
+            </div>
+            <div id="printOrderContent" class="print-order-content">
+                <!-- Conteúdo do pedido para impressão será injetado aqui -->
+            </div>
+            <div class="print-actions">
+                <button class="btn btn-primary" id="printActionBtn">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn btn-secondary" id="downloadPDFBtn">
+                    <i class="fas fa-download"></i> Salvar como PDF
+                </button>
+                <button class="btn btn-ghost" id="cancelPrintBtn">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
     
-    static closePrintModal() {
-        const modal = document.getElementById('printModal');
-        if (modal) {
-            modal.style.display = 'none';
+    // Evento único para todo o modal
+    modal.addEventListener('click', (e) => {
+        // Fechar modal
+        if (e.target === modal || 
+            e.target.id === 'closePrintModalBtn' || 
+            e.target.id === 'cancelPrintBtn') {
+            e.stopPropagation();
+            this.closePrintModal();
+            return;
         }
+        
+        // Botão de imprimir
+        if (e.target.id === 'printActionBtn' || e.target.closest('#printActionBtn')) {
+            e.stopPropagation();
+            window.print();
+            return;
+        }
+        
+        // Botão de download PDF
+        if (e.target.id === 'downloadPDFBtn' || e.target.closest('#downloadPDFBtn')) {
+            e.stopPropagation();
+            this.downloadPrintPDF();
+            return;
+        }
+        
+        // Se clicar no container do modal (não no conteúdo), fecha
+        if (e.target.classList.contains('modal-container')) {
+            e.stopPropagation();
+            this.closePrintModal();
+        }
+    });
+    
+    // Adiciona também evento de tecla ESC
+    const handleEscape = (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            this.closePrintModal();
+        }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    
+    // Guarda a referência para remover depois
+    modal._escapeHandler = handleEscape;
+    
+    return modal;
+}
+
+openPrintOrder(orderId) {
+    const order = this.orders.find(o => (o.order_id || o.id) === orderId);
+    if (!order) {
+        this.showError('Pedido não encontrado');
+        return;
     }
     
-    static closeEditStatusModal() {
+    let modal = document.getElementById('printOrderModal');
+    if (!modal) {
+        modal = this.createPrintModal();
+    }
+    
+    const content = document.getElementById('printOrderContent');
+    if (!content) {
+        this.showError('Erro ao carregar modal de impressão');
+        return;
+    }
+    
+    const orderDate = new Date(order.created_at);
+    const formattedDate = orderDate.toLocaleDateString('pt-BR');
+    const formattedTime = orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    
+    // Calcular total dos itens
+    let itemsTotal = 0;
+    let itemsHtml = '';
+    
+    if (order.items && order.items.length > 0) {
+        itemsHtml = `
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unit.</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${order.items.map(item => {
+                        const quantity = item.quantity || 1;
+                        const price = parseFloat(item.price || 0);
+                        const total = parseFloat(item.total) || (quantity * price);
+                        itemsTotal += total;
+                        
+                        return `
+                            <tr>
+                                <td>${item.product_name || item.name || 'Produto'}</td>
+                                <td>${quantity}</td>
+                                <td>R$ ${price.toFixed(2)}</td>
+                                <td>R$ ${total.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right;"><strong>Subtotal:</strong></td>
+                        <td><strong>R$ ${itemsTotal.toFixed(2)}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+    }
+    
+    // Calcular taxas e total final
+    const deliveryFee = order.delivery_option === 'entrega' ? 5.00 : 0;
+    const orderTotal = itemsTotal + deliveryFee;
+    
+    content.innerHTML = `
+        <div class="print-header">
+            <h2>Jardim Padaria Artesanal</h2>
+            <p>Comprovação de Pedido</p>
+            <div class="print-subheader">
+                <div>
+                    <strong>Data:</strong> ${formattedDate}
+                </div>
+                <div>
+                    <strong>Hora:</strong> ${formattedTime}
+                </div>
+                <div>
+                    <strong>Pedido:</strong> ${order.order_id || order.id}
+                </div>
+            </div>
+        </div>
+        
+        <div class="print-body">
+            <div class="print-grid">
+                <div class="print-section">
+                    <h3><i class="fas fa-user"></i> Informações do Cliente</h3>
+                    <div class="print-item">
+                        <span class="print-label">Nome:</span>
+                        <span class="print-value">${order.client_name || 'Não informado'}</span>
+                    </div>
+                    <div class="print-item">
+                        <span class="print-label">Telefone:</span>
+                        <span class="print-value">${this.formatPhone(order.client_phone) || 'Não informado'}</span>
+                    </div>
+                </div>
+                
+                <div class="print-section">
+                    <h3><i class="fas fa-info-circle"></i> Detalhes do Pedido</h3>
+                    <div class="print-item">
+                        <span class="print-label">Status:</span>
+                        <span class="print-value">
+                            <span class="status-badge status-${order.status || 'pendente'}">
+                                ${this.getStatusText(order.status || 'pendente')}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="print-item">
+                        <span class="print-label">Tipo de Entrega:</span>
+                        <span class="print-value">
+                            ${order.delivery_option === 'retirada' ? 
+                                '<i class="fas fa-store"></i> Retirada na loja' : 
+                                '<i class="fas fa-truck"></i> Entrega em domicílio'}
+                        </span>
+                    </div>
+                    <div class="print-item">
+                        <span class="print-label">Forma de Pagamento:</span>
+                        <span class="print-value">
+                            ${order.payment_method === 'pix' ? 'PIX' : 
+                              order.payment_method === 'cartao' ? 'Cartão de Crédito/Débito' : 
+                              'Dinheiro'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            ${order.delivery_option === 'entrega' && order.address ? `
+            <div class="print-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h3>
+                <div class="print-item">
+                    <span class="print-value">${order.address}</span>
+                </div>
+                ${order.client && order.client.neighborhood ? `
+                <div class="print-item">
+                    <span class="print-label">Bairro:</span>
+                    <span class="print-value">${order.client.neighborhood}</span>
+                </div>
+                ` : ''}
+                ${order.client && order.client.city ? `
+                <div class="print-item">
+                    <span class="print-label">Cidade:</span>
+                    <span class="print-value">${order.client.city}</span>
+                </div>
+                ` : ''}
+            </div>
+            ` : ''}
+            
+            <div class="print-section">
+                <h3><i class="fas fa-shopping-basket"></i> Itens do Pedido</h3>
+                ${itemsHtml || '<p>Nenhum item encontrado</p>'}
+            </div>
+            
+            <div class="print-summary">
+                <h3><i class="fas fa-calculator"></i> Resumo Financeiro</h3>
+                <div class="print-grid">
+                    <div class="print-item">
+                        <span class="print-label">Subtotal dos Itens:</span>
+                        <span class="print-value">R$ ${itemsTotal.toFixed(2)}</span>
+                    </div>
+                    ${deliveryFee > 0 ? `
+                    <div class="print-item">
+                        <span class="print-label">Taxa de Entrega:</span>
+                        <span class="print-value">R$ ${deliveryFee.toFixed(2)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="print-item">
+                        <span class="print-label">Total do Pedido:</span>
+                        <span class="print-value" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+                            R$ ${orderTotal.toFixed(2)}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            ${order.observation ? `
+            <div class="print-section">
+                <h3><i class="fas fa-comment"></i> Observações</h3>
+                <div class="print-item">
+                    <span class="print-value" style="font-style: italic;">${order.observation}</span>
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="qr-code-container">
+                <div class="qr-code">
+                    <i class="fas fa-qrcode" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+                <div class="qr-code-text">
+                    Código do pedido: ${order.order_id || order.id}
+                </div>
+            </div>
+        </div>
+        
+        <div class="print-footer">
+            <p><strong>Jardim Padaria Artesanal</strong></p>
+            <p>Horário de Funcionamento: Segunda a Sábado, 7h às 19h</p>
+            <p>Telefone: (11) 99999-9999 | Email: contato@jardimpadaria.com</p>
+            <p>Documento gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+        </div>
+    `;
+    modal.style.display = 'flex';
+    
+    // Bloqueia o scroll da página
+    document.body.style.overflow = 'hidden';
+    
+    this.currentPrintOrder = order;
+    
+    // Foca no modal para eventos de teclado funcionarem
+    modal.focus();
+}
+
+// No método openPrintOrder, atualize a geração do conteúdo:
+renderPrintContent(order) {
+    const orderDate = new Date(order.created_at);
+    const formattedDate = orderDate.toLocaleDateString('pt-BR');
+    const formattedTime = orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    
+    // Calcular total dos itens
+    let itemsTotal = 0;
+    let itemsHtml = '';
+    
+    if (order.items && order.items.length > 0) {
+        itemsHtml = order.items.map(item => {
+            const quantity = item.quantity || 1;
+            const price = parseFloat(item.price || 0);
+            const total = parseFloat(item.total) || (quantity * price);
+            itemsTotal += total;
+            
+            return `
+                <tr>
+                    <td>${item.product_name || item.name || 'Produto'}</td>
+                    <td style="text-align: center;">${quantity}</td>
+                    <td style="text-align: right;">R$ ${price.toFixed(2)}</td>
+                    <td style="text-align: right;">R$ ${total.toFixed(2)}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    // Calcular taxas e total final
+    const deliveryFee = order.delivery_option === 'entrega' ? 5.00 : 0;
+    const orderTotal = itemsTotal + deliveryFee;
+    
+    // Divide o conteúdo em páginas se tiver muitos itens
+    const itemsPerPage = 15; // Itens por página
+    const totalPages = Math.ceil(order.items?.length / itemsPerPage) || 1;
+    
+    let pagesHtml = '';
+    
+    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        const startIdx = (pageNum - 1) * itemsPerPage;
+        const endIdx = pageNum * itemsPerPage;
+        const pageItems = order.items?.slice(startIdx, endIdx) || [];
+        
+        // Calcular subtotal da página
+        let pageSubtotal = pageItems.reduce((sum, item) => {
+            const quantity = item.quantity || 1;
+            const price = parseFloat(item.price || 0);
+            return sum + (parseFloat(item.total) || (quantity * price));
+        }, 0);
+        
+        pagesHtml += `
+            <div class="print-page" data-page="${pageNum}" ${pageNum > 1 ? 'style="page-break-before: always;"' : ''}>
+                ${pageNum === 1 ? `
+                <div class="print-header">
+                    <h2>Jardim Padaria Artesanal</h2>
+                    <p>Comprovação de Pedido</p>
+                    <div class="print-subheader">
+                        <div>
+                            <strong>Data:</strong> ${formattedDate}
+                        </div>
+                        <div>
+                            <strong>Hora:</strong> ${formattedTime}
+                        </div>
+                        <div>
+                            <strong>Pedido:</strong> ${order.order_id || order.id}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="print-body">
+                    <div class="print-grid">
+                        <div class="print-section">
+                            <h3><i class="fas fa-user"></i> Informações do Cliente</h3>
+                            <div class="print-item">
+                                <span class="print-label">Nome:</span>
+                                <span class="print-value">${order.client_name || 'Não informado'}</span>
+                            </div>
+                            <div class="print-item">
+                                <span class="print-label">Telefone:</span>
+                                <span class="print-value">${this.formatPhone(order.client_phone) || 'Não informado'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="print-section">
+                            <h3><i class="fas fa-info-circle"></i> Detalhes do Pedido</h3>
+                            <div class="print-item">
+                                <span class="print-label">Status:</span>
+                                <span class="print-value">
+                                    <span class="status-badge status-${order.status || 'pendente'}">
+                                        ${this.getStatusText(order.status || 'pendente')}
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="print-item">
+                                <span class="print-label">Tipo de Entrega:</span>
+                                <span class="print-value">
+                                    ${order.delivery_option === 'retirada' ? 
+                                        '<i class="fas fa-store"></i> Retirada na loja' : 
+                                        '<i class="fas fa-truck"></i> Entrega em domicílio'}
+                                </span>
+                            </div>
+                            <div class="print-item">
+                                <span class="print-label">Forma de Pagamento:</span>
+                                <span class="print-value">
+                                    ${order.payment_method === 'pix' ? 'PIX' : 
+                                      order.payment_method === 'cartao' ? 'Cartão de Crédito/Débito' : 
+                                      'Dinheiro'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${order.delivery_option === 'entrega' && order.address ? `
+                    <div class="print-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h3>
+                        <div class="print-item">
+                            <span class="print-value">${order.address}</span>
+                        </div>
+                        ${order.client && order.client.neighborhood ? `
+                        <div class="print-item">
+                            <span class="print-label">Bairro:</span>
+                            <span class="print-value">${order.client.neighborhood}</span>
+                        </div>
+                        ` : ''}
+                        ${order.client && order.client.city ? `
+                        <div class="print-item">
+                            <span class="print-label">Cidade:</span>
+                            <span class="print-value">${order.client.city}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                ` : ''}
+                
+                <div class="print-section">
+                    <h3><i class="fas fa-shopping-basket"></i> Itens do Pedido ${totalPages > 1 ? `(Página ${pageNum} de ${totalPages})` : ''}</h3>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="width: 60px;">Qtd</th>
+                                <th style="width: 100px;">Preço Unit.</th>
+                                <th style="width: 100px;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pageItems.map(item => {
+                                const quantity = item.quantity || 1;
+                                const price = parseFloat(item.price || 0);
+                                const total = parseFloat(item.total) || (quantity * price);
+                                
+                                return `
+                                    <tr>
+                                        <td>${item.product_name || item.name || 'Produto'}</td>
+                                        <td style="text-align: center;">${quantity}</td>
+                                        <td style="text-align: right;">R$ ${price.toFixed(2)}</td>
+                                        <td style="text-align: right;">R$ ${total.toFixed(2)}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                        ${pageNum === totalPages ? `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right;"><strong>Subtotal:</strong></td>
+                                <td style="text-align: right;"><strong>R$ ${itemsTotal.toFixed(2)}</strong></td>
+                            </tr>
+                            ${deliveryFee > 0 ? `
+                            <tr>
+                                <td colspan="3" style="text-align: right;"><strong>Taxa de Entrega:</strong></td>
+                                <td style="text-align: right;"><strong>R$ ${deliveryFee.toFixed(2)}</strong></td>
+                            </tr>
+                            ` : ''}
+                            <tr style="font-weight: 700; background: var(--accent-light);">
+                                <td colspan="3" style="text-align: right;"><strong>Total do Pedido:</strong></td>
+                                <td style="text-align: right; font-size: 1.1em; color: var(--primary);">
+                                    <strong>R$ ${orderTotal.toFixed(2)}</strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        ` : `
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" style="text-align: right;"><strong>Subtotal (Página ${pageNum}):</strong></td>
+                                <td style="text-align: right;"><strong>R$ ${pageSubtotal.toFixed(2)}</strong></td>
+                            </tr>
+                        </tfoot>
+                        `}
+                    </table>
+                </div>
+                
+                ${pageNum === totalPages ? `
+                <div class="print-summary">
+                    <h3><i class="fas fa-calculator"></i> Resumo Financeiro</h3>
+                    <div class="print-grid">
+                        <div class="print-item">
+                            <span class="print-label">Subtotal dos Itens:</span>
+                            <span class="print-value">R$ ${itemsTotal.toFixed(2)}</span>
+                        </div>
+                        ${deliveryFee > 0 ? `
+                        <div class="print-item">
+                            <span class="print-label">Taxa de Entrega:</span>
+                            <span class="print-value">R$ ${deliveryFee.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        <div class="print-item">
+                            <span class="print-label">Total do Pedido:</span>
+                            <span class="print-value" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">
+                                R$ ${orderTotal.toFixed(2)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                ${order.observation ? `
+                <div class="print-section">
+                    <h3><i class="fas fa-comment"></i> Observações</h3>
+                    <div class="print-item">
+                        <span class="print-value" style="font-style: italic;">${order.observation}</span>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="qr-code-container">
+                    <div class="qr-code">
+                        <i class="fas fa-qrcode" style="font-size: 2rem; color: var(--primary);"></i>
+                    </div>
+                    <div class="qr-code-text">
+                        Código do pedido: ${order.order_id || order.id}
+                    </div>
+                </div>
+                
+                <div class="print-footer">
+                    <p><strong>Jardim Padaria Artesanal</strong></p>
+                    <p>Horário de Funcionamento: Segunda a Sábado, 7h às 19h</p>
+                    <p>Telefone: (11) 99999-9999 | Email: contato@jardimpadaria.com</p>
+                    <p>Página ${pageNum} de ${totalPages} | Documento gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+                ` : ''}
+            </div>
+        </div>
+        `;
+    }
+    
+    return pagesHtml;
+}
+
+closePrintModal() {
+    const modal = document.getElementById('printOrderModal');
+    if (modal) {
+        modal.style.display = 'none';
+        
+        // Remove o evento ESC
+        if (modal._escapeHandler) {
+            document.removeEventListener('keydown', modal._escapeHandler);
+            delete modal._escapeHandler;
+        }
+        
+        // Restaura o scroll da página
+        document.body.style.overflow = 'auto';
+    }
+    this.currentPrintOrder = null;
+}
+
+downloadPrintPDF() {
+    if (!this.currentPrintOrder) {
+        this.showError('Nenhum pedido selecionado para exportar');
+        return;
+    }
+    
+    this.exportOrderToPDF(this.currentPrintOrder);
+}
+
+exportOrderToPDF(order) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configurações da página
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 15;
+        let yPos = 20;
+        let currentPage = 1;
+        
+        // Função para adicionar nova página
+        const addNewPage = () => {
+            doc.addPage();
+            currentPage++;
+            yPos = 20;
+            addPageHeader();
+        };
+        
+        // Função para verificar se precisa de nova página
+        const checkNewPage = (spaceNeeded = 10) => {
+            if (yPos + spaceNeeded > pageHeight - margin) {
+                addNewPage();
+                return true;
+            }
+            return false;
+        };
+        
+        // Função para adicionar cabeçalho em cada página
+        const addPageHeader = () => {
+            doc.setFontSize(12);
+            doc.setTextColor(28, 61, 45);
+            doc.text('Jardim Padaria Artesanal', pageWidth / 2, 10, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Pedido: ${order.order_id || order.id}`, margin, 15);
+            doc.text(`Página ${currentPage}`, pageWidth - margin, 15, { align: 'right' });
+            
+            // Linha divisória
+            doc.setDrawColor(200);
+            doc.setLineWidth(0.3);
+            doc.line(margin, 18, pageWidth - margin, 18);
+        };
+        
+        // Cabeçalho da primeira página
+        addPageHeader();
+        yPos = 25;
+        
+        // Título principal
+        doc.setFontSize(16);
+        doc.setTextColor(28, 61, 45);
+        doc.text('COMPROVANTE DE PEDIDO', pageWidth / 2, yPos, { align: 'center' });
+        
+        yPos += 10;
+        
+        // Informações básicas
+        doc.setFontSize(10);
+        doc.setTextColor(0);
+        
+        const orderDate = new Date(order.created_at);
+        doc.text(`Data: ${orderDate.toLocaleDateString('pt-BR')}`, margin, yPos);
+        doc.text(`Hora: ${orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`, pageWidth - margin, yPos, { align: 'right' });
+        
+        yPos += 8;
+        doc.text(`Status: ${this.getStatusText(order.status || 'pendente')}`, margin, yPos);
+        
+        yPos += 15;
+        
+        // Informações do cliente
+        doc.setFont(undefined, 'bold');
+        doc.text('CLIENTE:', margin, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(order.client_name || 'Não informado', margin + 20, yPos);
+        
+        yPos += 6;
+        doc.setFont(undefined, 'bold');
+        doc.text('TELEFONE:', margin, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(this.formatPhone(order.client_phone) || 'Não informado', margin + 25, yPos);
+        
+        yPos += 6;
+        doc.setFont(undefined, 'bold');
+        doc.text('ENTREGA:', margin, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(order.delivery_option === 'retirada' ? 'Retirada na loja' : 'Entrega em domicílio', margin + 25, yPos);
+        
+        yPos += 6;
+        doc.setFont(undefined, 'bold');
+        doc.text('PAGAMENTO:', margin, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(order.payment_method === 'pix' ? 'PIX' : 
+                order.payment_method === 'cartao' ? 'Cartão' : 'Dinheiro', margin + 30, yPos);
+        
+        yPos += 10;
+        
+        // Endereço (se for entrega)
+        if (order.delivery_option === 'entrega' && order.address) {
+            checkNewPage(15);
+            
+            doc.setFont(undefined, 'bold');
+            doc.text('ENDEREÇO DE ENTREGA:', margin, yPos);
+            doc.setFont(undefined, 'normal');
+            
+            yPos += 6;
+            
+            // Divide o endereço em linhas se for muito longo
+            const addressLines = doc.splitTextToSize(order.address, pageWidth - (margin * 2) - 10);
+            addressLines.forEach(line => {
+                checkNewPage(6);
+                doc.text(line, margin + 5, yPos);
+                yPos += 5;
+            });
+            
+            yPos += 5;
+        }
+        
+        yPos += 5;
+        checkNewPage();
+        
+        // Itens do pedido
+        doc.setFont(undefined, 'bold');
+        doc.text('ITENS DO PEDIDO:', margin, yPos);
+        yPos += 8;
+        
+        let itemsTotal = 0;
+        const itemHeight = 6; // Altura estimada por linha de item
+        
+        if (order.items && order.items.length > 0) {
+            // Cabeçalho da tabela
+            checkNewPage(15);
+            
+            doc.setFontSize(9);
+            doc.setTextColor(255);
+            doc.setFillColor(28, 61, 45);
+            doc.rect(margin, yPos, pageWidth - (margin * 2), 6, 'F');
+            
+            doc.text('Item', margin + 2, yPos + 4);
+            doc.text('Qtd', pageWidth - 50, yPos + 4, { align: 'right' });
+            doc.text('Unit.', pageWidth - 30, yPos + 4, { align: 'right' });
+            doc.text('Total', pageWidth - margin - 2, yPos + 4, { align: 'right' });
+            
+            yPos += 8;
+            doc.setTextColor(0);
+            
+            // Processa cada item
+            order.items.forEach((item, index) => {
+                const quantity = item.quantity || 1;
+                const price = parseFloat(item.price || 0);
+                const total = parseFloat(item.total) || (quantity * price);
+                itemsTotal += total;
+                
+                // Divide o nome do item se for muito longo
+                const itemName = item.product_name || item.name || 'Produto';
+                const maxNameWidth = pageWidth - (margin * 2) - 60; // 60px para as colunas à direita
+                
+                const nameLines = doc.splitTextToSize(itemName, maxNameWidth);
+                
+                // Verifica espaço para todas as linhas do item
+                const spaceNeeded = (nameLines.length * 5) + 2;
+                if (checkNewPage(spaceNeeded)) {
+                    // Adiciona cabeçalho da tabela na nova página
+                    doc.setFontSize(9);
+                    doc.setTextColor(255);
+                    doc.setFillColor(28, 61, 45);
+                    doc.rect(margin, yPos, pageWidth - (margin * 2), 6, 'F');
+                    
+                    doc.text('Item', margin + 2, yPos + 4);
+                    doc.text('Qtd', pageWidth - 50, yPos + 4, { align: 'right' });
+                    doc.text('Unit.', pageWidth - 30, yPos + 4, { align: 'right' });
+                    doc.text('Total', pageWidth - margin - 2, yPos + 4, { align: 'right' });
+                    
+                    yPos += 8;
+                    doc.setTextColor(0);
+                }
+                
+                // Nome do item (pode ser múltiplas linhas)
+                nameLines.forEach((line, lineIndex) => {
+                    doc.text(line, margin + 2, yPos);
+                    
+                    // Apenas na primeira linha, mostra quantidade, preço e total
+                    if (lineIndex === 0) {
+                        doc.text(`${quantity}`, pageWidth - 50, yPos, { align: 'right' });
+                        doc.text(`R$ ${price.toFixed(2)}`, pageWidth - 30, yPos, { align: 'right' });
+                        doc.text(`R$ ${total.toFixed(2)}`, pageWidth - margin - 2, yPos, { align: 'right' });
+                    }
+                    
+                    yPos += 5;
+                });
+                
+                yPos += 2; // Espaço entre itens
+            });
+        }
+        
+        yPos += 5;
+        checkNewPage(20);
+        
+        // Linha divisória
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.3);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        
+        yPos += 10;
+        
+        // Resumo financeiro
+        const deliveryFee = order.delivery_option === 'entrega' ? 5.00 : 0;
+        const orderTotal = itemsTotal + deliveryFee;
+        
+        doc.setFont(undefined, 'bold');
+        doc.text('Subtotal:', pageWidth - 60, yPos, { align: 'right' });
+        doc.text(`R$ ${itemsTotal.toFixed(2)}`, pageWidth - margin - 2, yPos, { align: 'right' });
+        
+        yPos += 7;
+        
+        if (deliveryFee > 0) {
+            doc.text('Taxa de Entrega:', pageWidth - 60, yPos, { align: 'right' });
+            doc.text(`R$ ${deliveryFee.toFixed(2)}`, pageWidth - margin - 2, yPos, { align: 'right' });
+            yPos += 7;
+        }
+        
+        doc.setFontSize(11);
+        doc.setTextColor(28, 61, 45);
+        doc.text('TOTAL DO PEDIDO:', pageWidth - 60, yPos, { align: 'right' });
+        doc.text(`R$ ${orderTotal.toFixed(2)}`, pageWidth - margin - 2, yPos, { align: 'right' });
+        
+        yPos += 15;
+        checkNewPage(30);
+        
+        // Observações
+        if (order.observation) {
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.setFont(undefined, 'italic');
+            
+            doc.text('OBSERVAÇÕES:', margin, yPos);
+            yPos += 5;
+            
+            // Divide observações em múltiplas linhas se necessário
+            const observationLines = doc.splitTextToSize(order.observation, pageWidth - (margin * 2));
+            
+            observationLines.forEach(line => {
+                checkNewPage(6);
+                doc.text(line, margin, yPos);
+                yPos += 5;
+            });
+            
+            yPos += 5;
+        }
+        
+        // Informações da empresa (em todas as páginas)
+        const addCompanyInfo = () => {
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.setFont(undefined, 'normal');
+            
+            const footerY = pageHeight - 15;
+            
+            doc.text('Jardim Padaria Artesanal', pageWidth / 2, footerY - 12, { align: 'center' });
+            doc.text('Horário: Segunda a Sábado, 7h às 19h', pageWidth / 2, footerY - 8, { align: 'center' });
+            doc.text('Telefone: (11) 99999-9999 | Email: contato@jardimpadaria.com', pageWidth / 2, footerY - 4, { align: 'center' });
+            doc.text(`Documento gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, footerY, { align: 'center' });
+        };
+        
+        // Adiciona informações da empresa em todas as páginas
+        for (let i = 1; i <= currentPage; i++) {
+            doc.setPage(i);
+            addCompanyInfo();
+        }
+        
+        // Salvar PDF
+        const fileName = `Pedido_${order.order_id || order.id}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+        doc.save(fileName);
+        
+        this.showSuccess(`PDF do pedido gerado com sucesso! (${currentPage} página${currentPage > 1 ? 's' : ''})`);
+        
+    } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        this.showError('Erro ao gerar PDF: ' + error.message);
+    }
+}
+    
+closePrintModal() {
+    const modal = document.getElementById('printOrderModal');
+    if (modal) {
+        modal.style.display = 'none';
+        
+        // Remove o evento ESC
+        if (modal._escapeHandler) {
+            document.removeEventListener('keydown', modal._escapeHandler);
+            delete modal._escapeHandler;
+        }
+        
+        // Restaura o scroll da página
+        document.body.style.overflow = 'auto';
+    }
+    this.currentPrintOrder = null;
+}
+    
+    closeEditStatusModal() {
         const modal = document.getElementById('editStatusModal');
         if (modal) {
             modal.style.display = 'none';
         }
     }
     
-    static closeModal() {
+    closeModal() {
         const modal = document.getElementById('orderModal');
         if (modal) {
             modal.style.display = 'none';

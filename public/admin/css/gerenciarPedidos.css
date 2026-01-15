@@ -1026,3 +1026,1526 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Adicione estas classes ao final do arquivo */
+
+/* Estilos para o modal de status */
+.status-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.status-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--accent-light);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.status-option:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+}
+
+.status-option input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
+
+.status-option .status-badge {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Responsividade para modais */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 1rem;
+        margin: 1rem;
+    }
+    
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-actions {
+        flex-direction: column;
+    }
+    
+    .footer-actions button {
+        width: 100%;
+    }
+}
+/* ============================================
+   MODAIS - Estilos Adicionais
+   ============================================ */
+.admin-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+}
+
+.modal-container {
+    background: white;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    position: relative;
+    animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 1.5rem;
+}
+
+.modal-close {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--primary);
+}
+
+.modal-content {
+    padding: 1.5rem;
+}
+
+.btn-whatsapp-small {
+    background: #25D366;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-whatsapp-small:hover {
+    background: #128C7E;
+}
+
+.status-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.status-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.status-option:hover {
+    background: #f9f9f9;
+}
+
+.status-option input {
+    margin: 0;
+}
+
+
+/* Botões de Ação Aprimorados */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.action-btn::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.action-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 8px);
+}
+
+.action-btn.btn-primary {
+    background: linear-gradient(135deg, var(--primary), #2a5a42);
+    color: white;
+}
+
+.action-btn.btn-primary:hover {
+    background: linear-gradient(135deg, #2a5a42, var(--primary));
+}
+
+.action-btn.btn-ghost {
+    background: white;
+    color: var(--primary);
+    border: 1px solid var(--border);
+}
+
+.action-btn.btn-ghost:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.action-btn.btn-info {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.action-btn.btn-info:hover {
+    background: linear-gradient(135deg, #2980b9, #3498db);
+}
+
+.action-btn.btn-success {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white;
+}
+
+.action-btn.btn-success:hover {
+    background: linear-gradient(135deg, #128C7E, #25D366);
+}
+
+.action-btn.btn-danger {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.action-btn.btn-danger:hover {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+}
+
+.action-btn.btn-warning {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+}
+
+.action-btn.btn-warning:hover {
+    background: linear-gradient(135deg, #e67e22, #f39c12);
+}
+
+.action-btn.small {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+/* Botões com texto (para cards) */
+.action-btn.with-text {
+    width: auto;
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.action-btn.with-text i {
+    font-size: 0.9rem;
+}
+
+/* Grupo de botões aprimorado */
+.btn-group {
+    display: flex;
+    gap: 0.25rem;
+    background: white;
+    padding: 0.25rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.btn-group .action-btn {
+    box-shadow: none;
+    border-radius: 6px;
+}
+
+.btn-group .action-btn:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Cards de ação */
+.action-card-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+    color: var(--primary);
+}
+
+.action-card-btn:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.action-card-btn i {
+    width: 20px;
+    color: var(--secondary);
+}
+
+.action-card-btn .action-text {
+    flex: 1;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.action-card-btn .action-hint {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    opacity: 0.8;
+}
+
+/* Estilos para o modal de ações */
+.modal-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.modal-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    gap: 0.75rem;
+}
+
+.modal-action-btn:hover {
+    border-color: var(--primary);
+    background: var(--accent-light);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(28, 61, 45, 0.15);
+}
+
+.modal-action-btn i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.modal-action-btn .action-title {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.modal-action-btn .action-desc {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+}
+
+.status-options-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.status-option-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.status-option-card:hover {
+    border-color: var(--primary);
+    background: var(--accent-light);
+    transform: translateY(-2px);
+}
+
+.status-option-card.selected {
+    border-color: var(--primary);
+    background: var(--accent-light);
+    box-shadow: 0 0 0 2px rgba(28, 61, 45, 0.1);
+}
+
+.status-option-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.status-option-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.status-option-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 61, 45, 0.05);
+    border-radius: 10px;
+}
+
+.status-option-text {
+    flex: 1;
+}
+
+.status-option-label {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.status-option-desc {
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+.status-current {
+    color: var(--secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Modal de Visualização de Relatórios */
+.report-viewer-modal .modal-container {
+    max-width: 1000px;
+    width: 95%;
+}
+
+.report-viewer-content {
+    padding: 0;
+    height: calc(90vh - 70px);
+    display: flex;
+    flex-direction: column;
+}
+
+.report-toolbar {
+    padding: 1rem 1.5rem;
+    background: var(--accent-light);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.report-info {
+    flex: 1;
+}
+
+.report-info h3 {
+    margin: 0 0 0.25rem 0;
+    color: var(--primary);
+}
+
+.report-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+}
+
+.report-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.report-viewer {
+    flex: 1;
+    overflow: auto;
+    padding: 1.5rem;
+}
+
+.report-preview {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.report-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border);
+}
+
+.report-header h2 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.report-body {
+    margin-bottom: 2rem;
+}
+
+.report-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.report-summary-card {
+    background: var(--accent-light);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.report-table th {
+    background: var(--primary);
+    color: white;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.report-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.report-table tr:hover {
+    background: var(--accent-light);
+}
+
+.report-footer {
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+}
+
+.report-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--muted-foreground);
+}
+
+.report-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted-foreground);
+}
+
+.report-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--border);
+}
+
+/* Badges para tipos de relatório */
+.report-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.report-type-daily {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.report-type-weekly {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.report-type-monthly {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+}
+
+.report-type-financial {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+}
+
+.report-type-products {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.report-viewer-modal {
+    animation: fadeIn 0.3s ease;
+}
+
+.report-viewer-modal .modal-container {
+    animation: slideInUp 0.3s ease;
+}
+/* Estilos para Impressão de Pedidos */
+.print-order-modal .modal-container {
+    max-width: 800px;
+    width: 95%;
+}
+
+.print-order-content {
+    padding: 0;
+}
+
+.print-header {
+    background: var(--primary);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+}
+
+.print-header h2 {
+    margin: 0;
+    color: white;
+}
+
+.print-subheader {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.print-body {
+    padding: 2rem;
+    background: white;
+}
+
+.print-section {
+    margin-bottom: 2rem;
+    page-break-inside: avoid;
+}
+
+.print-section h3 {
+    color: var(--primary);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.print-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.print-item {
+    margin-bottom: 0.75rem;
+}
+
+.print-label {
+    font-weight: 600;
+    color: var(--muted-foreground);
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.print-value {
+    font-size: 1rem;
+    color: var(--primary);
+}
+
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+}
+
+.print-table th {
+    background: #f8f9fa;
+    color: var(--primary);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+
+.print-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.print-table tfoot td {
+    font-weight: 700;
+    background: #f8f9fa;
+    border-top: 2px solid var(--border);
+}
+
+.print-summary {
+    background: var(--accent-light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 2rem 0;
+}
+
+.print-total {
+    text-align: right;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    padding-top: 1rem;
+    border-top: 2px solid var(--border);
+    margin-top: 2rem;
+}
+
+.print-footer {
+    text-align: center;
+    padding: 1.5rem;
+    border-top: 2px solid var(--border);
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.print-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-top: 1px solid var(--border);
+}
+
+.print-qrcode {
+    text-align: center;
+    margin: 2rem 0;
+    padding: 1rem;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+}
+
+.qr-placeholder {
+    width: 150px;
+    height: 150px;
+    background: #f0f0f0;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    border-radius: 8px;
+}
+
+/* Estilos específicos para impressão */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .print-order-modal,
+    .print-order-modal * {
+        visibility: visible;
+    }
+    
+    .print-order-modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    
+    .modal-container {
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .modal-header,
+    .print-actions,
+    .modal-close {
+        display: none !important;
+    }
+    
+    .print-body {
+        padding: 0;
+    }
+    
+    .print-header {
+        background: none;
+        color: black;
+        padding: 1rem 0;
+    }
+    
+    .print-header h2 {
+        color: black;
+    }
+    
+    .print-footer {
+        background: none;
+        border-top: 1px solid #ccc;
+    }
+    
+    .print-table {
+        page-break-inside: avoid;
+    }
+    
+    .print-section {
+        page-break-inside: avoid;
+    }
+}
+
+/* QR Code styles */
+.qr-code-container {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+.qr-code {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.qr-code::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 5px,
+            rgba(28, 61, 45, 0.1) 5px,
+            rgba(28, 61, 45, 0.1) 10px
+        );
+}
+
+.qr-code-text {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    margin-top: 0.5rem;
+}
+
+/* Adicione ao CSS existente */
+.modal-close, #closePrintModal {
+    font-size: 2rem;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+    line-height: 1;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-close:hover, #closePrintModal:hover {
+    background: rgba(0,0,0,0.1);
+    color: var(--primary);
+}
+
+/* Garante que o modal fique sobre tudo */
+.admin-modal {
+    z-index: 9999;
+}
+
+.modal-container {
+    position: relative;
+    z-index: 10000;
+}
+
+/* Estilo para o botão de fechar dentro do modal de impressão */
+.print-order-modal .modal-header {
+    position: relative;
+}
+
+.print-order-modal .modal-close {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+/* Adicione ao CSS existente */
+.print-page {
+    min-height: 100vh;
+    position: relative;
+    background: white;
+}
+
+/* Estilos específicos para impressão com múltiplas páginas */
+@media print {
+    .print-page {
+        page-break-inside: avoid;
+        page-break-after: always;
+        margin: 0;
+        padding: 0;
+        min-height: auto;
+        height: 100vh;
+        position: relative;
+    }
+    
+    .print-page:last-child {
+        page-break-after: auto;
+    }
+    
+    .print-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        z-index: 100;
+        padding: 1rem 0;
+        border-bottom: 2px solid #000;
+    }
+    
+    .print-body {
+        margin-top: 120px; /* Espaço para o cabeçalho fixo */
+    }
+    
+    .print-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        z-index: 100;
+        padding: 0.5rem 0;
+        border-top: 1px solid #ccc;
+    }
+    
+    /* Esconde elementos desnecessários na impressão */
+    .print-actions,
+    .modal-header,
+    .modal-close,
+    .action-buttons,
+    .btn-group {
+        display: none !important;
+    }
+    
+    /* Ajusta cores para impressão preto e branco */
+    .print-header h2,
+    .print-section h3,
+    .print-value {
+        color: #000 !important;
+    }
+    
+    .status-badge {
+        background: none !important;
+        border: 1px solid #000 !important;
+        color: #000 !important;
+    }
+    
+    /* Remove sombras e gradientes para melhor impressão */
+    .print-summary,
+    .qr-code {
+        background: #f0f0f0 !important;
+        border: 1px solid #ccc !important;
+    }
+}
+
+/* Para visualização no modal antes de imprimir */
+.print-modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.print-page-counter {
+    position: sticky;
+    top: 0;
+    background: var(--accent-light);
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.print-navigation {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.print-navigation-btn {
+    padding: 0.25rem 0.75rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.print-navigation-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Estilos para impressão que mostra tudo com scroll vertical */
+@media print {
+    body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+    
+    .admin-modal,
+    .print-order-modal {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        background: white !important;
+        display: block !important;
+        overflow: visible !important;
+        z-index: 999999 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .modal-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+    }
+    
+    .print-order-content {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+    
+    /* Esconde elementos não necessários na impressão */
+    .modal-header,
+    .print-actions,
+    .modal-close,
+    .print-page-counter,
+    .print-navigation,
+    .action-buttons,
+    .btn-group {
+        display: none !important;
+    }
+    
+    /* Ajusta o conteúdo para impressão */
+    .print-header {
+        background: white !important;
+        color: black !important;
+        padding: 2rem !important;
+        border-bottom: 2px solid black !important;
+        position: relative !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .print-body {
+        padding: 2rem !important;
+        page-break-inside: auto !important;
+    }
+    
+    .print-section {
+        page-break-inside: avoid !important;
+        page-break-before: auto !important;
+    }
+    
+    .print-table {
+        page-break-inside: auto !important;
+    }
+    
+    .print-table tr {
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+    }
+    
+    .print-table td,
+    .print-table th {
+        padding: 0.75rem !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    /* Remove cores e efeitos visuais para economizar tinta */
+    .status-badge {
+        background: none !important;
+        border: 1px solid black !important;
+        color: black !important;
+        font-weight: bold !important;
+    }
+    
+    .print-summary {
+        background: #f5f5f5 !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .qr-code {
+        background: #f0f0f0 !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    /* Remove sombras e gradientes */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    
+    /* Ajusta fontes para legibilidade */
+    body, .print-order-content {
+        font-family: "Arial", "Helvetica", sans-serif !important;
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+    }
+    
+    h1, h2, h3, h4 {
+        page-break-after: avoid !important;
+    }
+    
+    /* Garante que links apareçam com URL */
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+    
+    /* Remove elementos decorativos */
+    .fa, .fas, .fab, .far {
+        display: inline-block !important;
+        font-family: "Arial", "Helvetica", sans-serif !important;
+    }
+    
+    .fa-print:before { content: "[Imprimir] "; }
+    .fa-download:before { content: "[Baixar] "; }
+    .fa-times:before { content: "[Fechar] "; }
+    .fa-eye:before { content: "[Ver] "; }
+    .fa-edit:before { content: "[Editar] "; }
+    .fa-whatsapp:before { content: "[WhatsApp] "; }
+    .fa-user:before { content: "[Cliente] "; }
+    .fa-info-circle:before { content: "[Info] "; }
+    .fa-map-marker-alt:before { content: "[Endereço] "; }
+    .fa-shopping-basket:before { content: "[Itens] "; }
+    .fa-calculator:before { content: "[Resumo] "; }
+    .fa-comment:before { content: "[Obs] "; }
+    .fa-qrcode:before { content: "[QR] "; }
+    .fa-store:before { content: "[Loja] "; }
+    .fa-truck:before { content: "[Entrega] "; }
+}
+
+/* Para visualização no navegador */
+.print-scroll-container {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+}
+
+/* Header fixo na visualização */
+.print-preview-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1rem;
+}
+
+/* Indicador de página na impressão */
+.print-page-indicator {
+    display: none;
+}
+
+@media print {
+    .print-page-indicator {
+        display: block;
+        text-align: center;
+        font-size: 10pt;
+        color: #666;
+        margin: 1rem 0;
+        page-break-before: always;
+    }
+    
+    /* Adiciona número de página */
+    @page {
+        margin: 2cm;
+        @bottom-center {
+            content: "Página " counter(page) " de " counter(pages);
+            font-size: 10pt;
+            color: #666;
+        }
+        @top-center {
+            content: "Jardim Padaria - Comprovante de Pedido";
+            font-size: 10pt;
+            color: #666;
+        }
+    }
+}
+
+/* Adicione ao final do gerenciarPedidos.css */
+.combinations-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.combination-item {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.combination-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.combination-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--secondary);
+    transition: width 0.3s ease;
+}
+
+.combination-item:nth-child(1)::before { background: #e74c3c; }
+.combination-item:nth-child(2)::before { background: #f39c12; }
+.combination-item:nth-child(3)::before { background: #2ecc71; }
+.combination-item:nth-child(4)::before { background: #3498db; }
+.combination-item:nth-child(5)::before { background: #9b59b6; }
+.combination-item:nth-child(6)::before { background: #1abc9c; }
+.combination-item:nth-child(7)::before { background: #d35400; }
+.combination-item:nth-child(8)::before { background: #34495e; }
+.combination-item:nth-child(9)::before { background: #16a085; }
+.combination-item:nth-child(10)::before { background: #8e44ad; }
+
+.combination-frequency {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.combination-products {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.combination-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.combination-stat {
+    background: var(--accent-light);
+    padding: 0.5rem;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid var(--accent);
+}
+
+.combination-stat-label {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.25rem;
+}
+
+.combination-stat-value {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+
+.combination-orders {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.combination-orders-label {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.5rem;
+}
+
+.combination-order-tags {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+
+.combination-order-tag {
+    background: var(--accent-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    border: 1px solid var(--accent);
+}
+
+.no-combinations {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--muted-foreground);
+    grid-column: 1 / -1;
+}
+
+.no-combinations i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    .combinations-container {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .combinations-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Adicione ao CSS existente */
+.report-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.report-type-daily {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.report-type-weekly {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.report-type-monthly {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+}
+
+.report-type-financial {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: white;
+}
+
+.report-type-products {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+.report-type-custom {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white;
+}
+
+/* Estilo para os botões de template */
+.btn-template {
+    padding: 0.5rem 1.5rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-template:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.2);
+}
+
+/* Cores específicas para cada tipo de template */
+.btn-template-daily { background: #3498db; }
+.btn-template-weekly { background: #2ecc71; }
+.btn-template-monthly { background: #9b59b6; }
+.btn-template-financial { background: #f39c12; }
+.btn-template-products { background: #e74c3c; }
+.btn-template-custom { background: #95a5a6; }
+
+.btn-template-daily:hover { background: #2980b9; }
+.btn-template-weekly:hover { background: #27ae60; }
+.btn-template-monthly:hover { background: #8e44ad; }
+.btn-template-financial:hover { background: #e67e22; }
+.btn-template-products:hover { background: #c0392b; }
+.btn-template-custom:hover { background: #7f8c8d; }

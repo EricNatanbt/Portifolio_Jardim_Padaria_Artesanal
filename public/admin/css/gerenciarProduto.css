@@ -203,3 +203,100 @@ tr:hover .product-image {
     .modal-content { padding: 1.5rem; }
     .form-group.half { width: 100%; }
 }
+
+/* ============================================
+   BOTÕES DE AÇÃO - Editar e Excluir
+   ============================================ */
+
+.btn-edit, .btn-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    margin-left: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Botão Editar */
+.btn-edit {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-edit:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Botão Excluir */
+.btn-delete {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-delete:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+}
+
+/* Container dos botões na tabela */
+td:last-child {
+    white-space: nowrap;
+}
+
+/* Adicionar efeito de hover na linha da tabela */
+tr:hover .btn-edit,
+tr:hover .btn-delete {
+    opacity: 1;
+}
+
+/* Para telas menores */
+@media (max-width: 768px) {
+    .btn-edit, .btn-delete {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        margin-left: 4px;
+    }
+    
+    /* Em telas muito pequenas, mostrar ícones apenas */
+    @media (max-width: 480px) {
+        .btn-edit span, 
+        .btn-delete span {
+            display: none;
+        }
+        
+        .btn-edit, .btn-delete {
+            padding: 8px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
+        }
+        
+        .btn-edit svg, 
+        .btn-delete svg {
+            margin: 0;
+        }
+    }
+}

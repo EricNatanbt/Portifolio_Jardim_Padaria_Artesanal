@@ -225,3 +225,50 @@ input:focus, select:focus, textarea:focus {
         padding: 1.5rem;
     }
 }
+
+.btn-ghost {
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+}
+
+.action-btn.btn-primary { background-color: var(--primary); }
+.action-btn.btn-info { background-color: #1976D2; }
+.action-btn.btn-success { background-color: #2E7D32; }
+.action-btn.btn-ghost { 
+    background-color: transparent; 
+    color: var(--primary); 
+    border: 1px solid var(--border); 
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.action-btn.btn-ghost:hover {
+    background-color: var(--accent-light);
+}

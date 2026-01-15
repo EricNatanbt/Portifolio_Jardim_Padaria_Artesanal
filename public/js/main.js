@@ -84,7 +84,6 @@ if ('serviceWorker' in navigator) {
 
 async function initializeApp() {
     console.log('🚀 Inicializando aplicação Jardim Padaria...');
-    console.log('📅 Simulação: Hoje é QUARTA-FEIRA');
 
     // 1. Inicializa navegação primeiro (não depende de imports)
     initializeNavigation();
@@ -538,34 +537,23 @@ function showNotification(message, duration = 3000, type = 'info', important = f
 }
 
 function getCurrentDayName() {
-    // SIMULAÇÃO: Sempre retorna "quarta" para teste
-    // Para voltar ao normal, descomente as linhas abaixo e apague o return "quarta";
-
-    // const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
-    // const date = new Date();
-    // const dayName = days[date.getDay()];
-    // console.log(`📅 Dia atual: ${dayName}`);
-    // return dayName;
-
-    console.log('📅 [SIMULAÇÃO] Hoje é QUARTA-FEIRA');
-    return "quarta";
+    const days = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+    const date = new Date();
+    const dayName = days[date.getDay()];
+    console.log(`📅 Dia atual: ${dayName}`);
+    return dayName;
 }
 
 function getTodayIndex() {
-    // SIMULAÇÃO: Sempre retorna índice da quarta (0)
-    // Para voltar ao normal, descomente as linhas abaixo:
-
-    // const hoje = new Date();
-    // const diaSemana = hoje.getDay();
-    // const diaParaIndice = {
-    //     3: 0, // quarta
-    //     4: 1, // quinta
-    //     5: 2, // sexta
-    //     6: 3  // sábado
-    // };
-    // return diaParaIndice[diaSemana] !== undefined ? diaParaIndice[diaSemana] : -1;
-
-    return 0; // Índice da quarta-feira
+    const hoje = new Date();
+    const diaSemana = hoje.getDay();
+    const diaParaIndice = {
+        3: 0, // quarta
+        4: 1, // quinta
+        5: 2, // sexta
+        6: 3  // sábado
+    };
+    return diaParaIndice[diaSemana] !== undefined ? diaParaIndice[diaSemana] : -1;
 }
 
 function getDayNameInPortuguese(dayIndex) {
@@ -579,9 +567,6 @@ function getProductIcon(category) {
         "Ciabattas": "🥪",
         "Focaccias": "🍕",
         "Doces": "🧁",
-        "Bolos": "🎂",
-        "Mini Bolos": "🧁",
-        "Chocolate": "🍫",
         "Pronta-Entrega": "📦"
     };
     return categoryIcons[category] || "✨";

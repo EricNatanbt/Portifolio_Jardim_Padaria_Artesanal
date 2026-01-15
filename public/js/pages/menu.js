@@ -7,6 +7,7 @@ const MenuPage = {
     initialize() {
         this.menuInstance = new MenuInstance();
         this.menuInstance.initialize();
+        window.MenuPage = this;
     },
 
     previousDay() {
@@ -70,6 +71,8 @@ class MenuInstance {
         const isMostrandoHoje = dayIndex === hojeIndex && hojeIndex !== -1;
 
         if (dayIndex >= 0 && dayIndex < this.dias.length) {
+            // Se não for o dia atual, mas o dia atual for um dia de fornada, avisar que não pode comprar
+            const avisoNaoPodeComprar = !isMostrandoHoje && hojeIndex !== -1;
             const dia = this.dias[dayIndex];
             const produtosDoDia = await this.getProductsForDay(dia);
 
@@ -97,6 +100,14 @@ class MenuInstance {
                     </div>
                 `;
                 return;
+            }
+
+            // Adicionar aviso se não for o dia atual
+            if (!isMostrandoHoje && hojeIndex !== -1) {
+                const avisoDiv = document.createElement('div');
+                avisoDiv.className = 'aviso-dia-diferente';
+                avisoDiv.innerHTML = `<p>Você está visualizando o menu de <strong>${this.nomesDias[dayIndex]}</strong>. Só é possível adicionar produtos ao carrinho no dia da fornada.</p>`;
+                containerCardapio.appendChild(avisoDiv);
             }
 
             // Renderizar categorias e produtos
@@ -139,14 +150,14 @@ class MenuInstance {
                     btnRapido.addEventListener('click', (e) => {
                         e.stopPropagation();
                         
-                        if (isMostrandoHoje) {
+                        const hojeIndex = window.getTodayIndex ? window.getTodayIndex() : this.getTodayIndexFallback();
+                        const isAtualmenteMostrandoHoje = this.currentDayIndex === hojeIndex && hojeIndex !== -1;
+
+                        if (isAtualmenteMostrandoHoje) {
                             console.log(`🛒 Adicionando ${produto.name} ao carrinho`);
                             Cart.addToCart(produto);
                         } else {
-                            const diaDisponivel = produto.available_days && produto.available_days.length > 0 
-                                ? produto.available_days.join(' e ')
-                                : 'dias não especificados';
-                            const message = ` ${produto.name} só está disponível na(s) ${diaDisponivel}.`;
+                            const message = `Só é possível adicionar produtos ao carrinho no dia da fornada.`;
                             window.showNotification(message, 3000, 'error');
                         }
                     });
@@ -161,6 +172,10 @@ class MenuInstance {
             // Mostrar "sem fornadas"
             tituloDia.textContent = 'Sem Fornadas Hoje';
             diaAtual.textContent = 'Hoje';
+            semFornadas.innerHTML = `
+                <h3>Sem fornadas hoje</h3>
+                <p>Clique na setinha para verificar o menu dos próximos dias</p>
+            `;
             semFornadas.style.display = 'block';
             console.log('📅 Hoje não tem fornadas (índice inválido)');
         }
@@ -189,13 +204,11 @@ class MenuInstance {
                 modalProductPrice.textContent = `R$ ${product.price.toFixed(2).replace('.', ',')}`;
                 
                 addToCartModal.onclick = () => {
-                    const currentDay = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta';
-                    if (!product.available_days || !product.available_days.includes(currentDay)) {
-                        const diaDisponivel = product.available_days && product.available_days.length > 0 
-                            ? product.available_days.join(' e ')
-                            : 'dias não especificados';
-                        const message = ` ${product.name} só está disponível na(s) ${diaDisponivel}.`;
-                        window.showNotification(message, 3000, 'error');
+                    const hojeIndex = window.getTodayIndex ? window.getTodayIndex() : this.getTodayIndexFallback();
+                    const isMostrandoHoje = this.currentDayIndex === hojeIndex && hojeIndex !== -1;
+
+                    if (!isMostrandoHoje) {
+                        window.showNotification('Só é possível adicionar produtos ao carrinho no dia da fornada.', 3000, 'error');
                         return;
                     }
                     

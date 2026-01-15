@@ -74,17 +74,17 @@ const Modal = {
         
         if (!this.currentModalProduct) return;
         
-        // Verifica disponibilidade
-        const currentDay = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta'; // Fallback
+        // Verifica se o menu exibido é o do dia atual
+        const hojeIndex = window.getTodayIndex ? window.getTodayIndex() : -1;
+        const menuPage = window.MenuPage || (window.components && window.components.menu);
+        const currentMenuDayIndex = (window.MenuPage && window.MenuPage.menuInstance) 
+            ? window.MenuPage.menuInstance.currentDayIndex 
+            : -1;
+
+        const isMostrandoHoje = currentMenuDayIndex === hojeIndex && hojeIndex !== -1;
         
-        if (!this.currentModalProduct.available_days || 
-            !this.currentModalProduct.available_days.includes(currentDay)) {
-            const diaDisponivel = this.currentModalProduct.available_days && 
-                this.currentModalProduct.available_days.length > 0 
-                ? this.currentModalProduct.available_days.join(' e ')
-                : 'dias não especificados';
-            const message = `❌ ${this.currentModalProduct.name} só está disponível na(s) ${diaDisponivel}.`;
-            
+        if (!isMostrandoHoje) {
+            const message = `Só é possível adicionar produtos ao carrinho no dia da fornada.`;
             if (window.showNotification) {
                 window.showNotification(message, 3000, 'error');
             } else {

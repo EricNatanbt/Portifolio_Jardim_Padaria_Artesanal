@@ -37,7 +37,7 @@ exports.handler = async (event, context) => {
         console.log('📋 Buscando todos os pedidos...');
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Busca todos os pedidos com dados do cliente
+        // Busca todos os pedidos com dados do cliente e itens
         const { data: orders, error: ordersError } = await supabase
             .from('orders')
             .select(`
@@ -52,6 +52,14 @@ exports.handler = async (event, context) => {
                     city,
                     complement,
                     cep
+                ),
+                order_items (
+                    id,
+                    product_id,
+                    product_name,
+                    quantity,
+                    price,
+                    total
                 )
             `)
             .order('created_at', { ascending: false });
@@ -130,6 +138,7 @@ exports.handler = async (event, context) => {
                 observation: order.observation || '',
                 status: order.status || 'pendente',
                 created_at: order.created_at,
+                items: order.order_items || [],
                 client: {
                     name: clientData.name || '',
                     phone: formattedPhone, // Usa o mesmo telefone formatado

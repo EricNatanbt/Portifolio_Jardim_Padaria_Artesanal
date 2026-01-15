@@ -227,11 +227,10 @@ class OrderDisplayShort {
         const priceMap = {
             'Baguete': 13.00,
             'Ciabatta': 8.00,
-            'Focaccia': 10.00,
-            'Pão': 12.00,
-            'Bolo': 25.00,
-            'Cookie': 5.00,
-            'Doce': 8.00
+            'Focaccia': 24.00,
+            'Pão': 19.00,
+            'Doce': 10.00,
+            'Muffin': 10.00
         };
         
         for (const [key, price] of Object.entries(priceMap)) {
