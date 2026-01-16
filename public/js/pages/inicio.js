@@ -2,43 +2,43 @@
 
 const InicioPage = {
     async initialize() {
-        console.log('🏠 Inicializando página Início');
+        console.log('Inicializando página Início');
         await this.setupCarousel();
         await this.setupTodayProducts();
         this.setupEventListeners();
     },
 
     async setupCarousel() {
-        console.log('🔄 Configurando carrossel...');
+        console.log('Configurando carrossel...');
         
         // Pequeno delay para garantir que o HTML injetado pelo pages-loader já está no DOM
         setTimeout(() => {
             if (window.Carousel && window.Carousel.initialize) {
-                console.log('🚀 Inicializando carrossel de produtos');
+                console.log('Inicializando carrossel de produtos');
                 window.Carousel.initialize('.products-carousel', {
                     delay: 3000,
                     autoPlay: true,
                     force: true // Força a reinicialização ao voltar para a página
                 });
             } else {
-                console.error('❌ Componente Carousel não encontrado para inicializar.');
+                console.error('Componente Carousel não encontrado para inicializar.');
             }
         }, 200);
     },
 
     async setupTodayProducts() {
-        console.log('📦 Configurando produtos do dia na página inicial');
+        console.log('Configurando produtos do dia na página inicial');
         
         const todayProductsContainer = document.getElementById('todayProducts');
         if (!todayProductsContainer) {
-            console.log('⚠️ Container #todayProducts não encontrado');
+            console.log('Container #todayProducts não encontrado');
             return;
         }
         
         try {
             // Espera o Supabase estar disponível
             if (!window.supabase) {
-                console.log('⏳ Aguardando Supabase...');
+                console.log('Aguardando Supabase...');
                 await new Promise(resolve => {
                     const checkSupabase = () => {
                         if (window.supabase) {
@@ -52,7 +52,7 @@ const InicioPage = {
             }
             
             const today = window.getCurrentDayName ? window.getCurrentDayName() : 'quarta';
-            console.log(`📅 Buscando produtos para ${today}...`);
+            console.log(`Buscando produtos para ${today}...`);
             
             const products = await this.getProductsForDay(today);
             
@@ -87,10 +87,10 @@ const InicioPage = {
             
             todayProductsContainer.innerHTML = html;
             
-            console.log(`✅ ${displayProducts.length} produtos exibidos na página inicial`);
+            console.log(` ${displayProducts.length} produtos exibidos na página inicial`);
             
         } catch (error) {
-            console.error('❌ Erro ao buscar produtos do dia:', error);
+            console.error(' Erro ao buscar produtos do dia:', error);
             todayProductsContainer.innerHTML = `
                 <div class="error-message">
                     <p>Não foi possível carregar os produtos. Tente novamente.</p>
@@ -116,21 +116,21 @@ const InicioPage = {
             }
             
             // Fallback: busca direto do Supabase
-            console.log('🔄 Tentando busca direta do Supabase...');
+            console.log('Tentando busca direta do Supabase...');
             const { data, error } = await window.supabase
                 .from('products')
                 .select('*')
                 .contains('available_days', [day]);
             
             if (error) {
-                console.error('❌ Erro do Supabase:', error);
+                console.error('Erro do Supabase:', error);
                 throw error;
             }
             
             return data || [];
             
         } catch (error) {
-            console.error(`❌ Erro ao buscar produtos para ${day}:`, error);
+            console.error(`Erro ao buscar produtos para ${day}:`, error);
             return [];
         }
     },
@@ -157,7 +157,7 @@ const InicioPage = {
             }
         });
         
-        console.log('✅ Event listeners da página Início configurados');
+        console.log('Event listeners da página Início configurados');
     }
 };
 

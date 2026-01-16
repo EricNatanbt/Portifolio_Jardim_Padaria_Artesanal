@@ -1,6 +1,6 @@
 // clear-cache.js
 window.clearAppCache = function() {
-    console.log('🔧 Limpando cache da aplicação...');
+    console.log('Limpando cache da aplicação...');
     
     // 1. Limpar localStorage (exceto dados importantes)
     const importantKeys = ['cartItems', 'lastCustomerPhone', 'lastCustomerCep'];
@@ -23,7 +23,7 @@ window.clearAppCache = function() {
         caches.keys().then(cacheNames => {
             cacheNames.forEach(cacheName => {
                 caches.delete(cacheName);
-                console.log(`🗑️ Cache removido: ${cacheName}`);
+                console.log(`Cache removido: ${cacheName}`);
             });
         });
     }

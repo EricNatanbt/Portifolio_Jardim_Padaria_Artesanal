@@ -8,7 +8,7 @@ const FeedbackPage = {
     timer: null,
 
     initialize() {
-        console.log('📱 Inicializando página de feedbacks (Modo Dinâmico)...');
+        console.log('Inicializando página de feedbacks (Modo Dinâmico)...');
         
         setTimeout(() => {
             // 1. Captura os vídeos do HTML (atributo data-videos)
@@ -16,9 +16,9 @@ const FeedbackPage = {
             if (container && container.dataset.videos) {
                 // Transforma a string "video1.mp4, video2.mp4" em um array
                 this.stories = container.dataset.videos.split(',').map(s => s.trim());
-                console.log('✅ Vídeos carregados do HTML:', this.stories);
+                console.log('Vídeos carregados do HTML:', this.stories);
             } else {
-                console.error('❌ Atributo data-videos não encontrado no #storyContainer');
+                console.error('Atributo data-videos não encontrado no #storyContainer');
                 return;
             }
 

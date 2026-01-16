@@ -57,7 +57,7 @@ class OrderDisplayFixed {
             }
             return null;
         } catch (error) {
-            console.error('❌ Erro na API:', error);
+            console.error(' Erro na API:', error);
             return null;
         }
     }
@@ -70,11 +70,11 @@ class OrderDisplayFixed {
             
             if (savedOrder) {
                 const parsed = JSON.parse(savedOrder);
-                console.log('📦 Pedido carregado do localStorage:', parsed);
+                console.log(' Pedido carregado do localStorage:', parsed);
                 return parsed;
             }
         } catch (error) {
-            console.warn('⚠️ Erro ao carregar do localStorage:', error);
+            console.warn(' Erro ao carregar do localStorage:', error);
         }
         
         return null;
@@ -98,7 +98,7 @@ class OrderDisplayFixed {
             this.updateHeader(order);
 
         } catch (error) {
-            console.error('❌ Erro ao exibir pedido:', error);
+            console.error(' Erro ao exibir pedido:', error);
             this.showError('Erro ao exibir os dados do pedido.');
         }
     }
@@ -140,12 +140,12 @@ class OrderDisplayFixed {
                         
                         <div class="address-actions">
                             <a href="${this.createGoogleMapsUrl(customer.address)}" target="_blank" class="action-btn google-maps">
-                                <span class="action-btn-icon">🗺️</span>
+                                <span class="action-btn-icon"></span>
                                 <span>Abrir no Google Maps</span>
                             </a>
                             
                             <a href="${this.createUberUrl(customer.address)}" target="_blank" class="action-btn uber">
-                                <span class="action-btn-icon">🚗</span>
+                                <span class="action-btn-icon"></span>
                                 <span>Solicitar Uber Flash</span>
                             </a>
                         </div>

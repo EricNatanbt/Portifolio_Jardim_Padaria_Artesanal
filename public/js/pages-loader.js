@@ -388,6 +388,7 @@ class PagesLoader {
     }
 
    getFeedbacksContent() {
+    // ESSE AQUI QUE TA FAZENDO O FEEDBACK FUNCIONAR
         return `
             <section class="feedback-section">
                 <div class="container">

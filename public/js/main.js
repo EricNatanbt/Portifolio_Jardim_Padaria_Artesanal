@@ -83,7 +83,7 @@ if ('serviceWorker' in navigator) {
 // Não é mais necessário forçar a limpeza total em cada unload
 
 async function initializeApp() {
-    console.log('🚀 Inicializando aplicação Jardim Padaria...');
+    console.log('Inicializando aplicação Jardim Padaria...');
 
     // 1. Inicializa navegação primeiro (não depende de imports)
     initializeNavigation();
@@ -95,17 +95,17 @@ async function initializeApp() {
         // 3. Inicializa componentes se estiverem disponíveis
         if (Modal && typeof Modal.initialize === 'function') {
             Modal.initialize();
-            console.log('✅ Modal inicializado');
+            console.log('Modal inicializado');
         }
 
         if (Cart && typeof Cart.initialize === 'function') {
             Cart.initialize();
-            console.log('✅ Carrinho inicializado');
+            console.log('Carrinho inicializado');
         }
 
         if (window.Feedbacks && typeof window.Feedbacks.initialize === 'function') {
             window.Feedbacks.initialize();
-            console.log('✅ Feedbacks inicializado');
+            console.log('Feedbacks inicializado');
         }
 
         // 4. Configura eventos do checkout modal
@@ -114,10 +114,10 @@ async function initializeApp() {
         // 5. Inicializa a página atual
         initializePageComponents(currentPage);
 
-        console.log('🎉 Aplicação inicializada com sucesso!');
+        console.log('Aplicação inicializada com sucesso!');
 
     } catch (error) {
-        console.error('❌ Erro na inicialização:', error);
+        console.error('Erro na inicialização:', error);
         showNotification('Erro ao carregar a aplicação. Recarregue a página.', 5000, 'error');
     }
 }
@@ -158,7 +158,7 @@ async function loadComponents() {
         });
 
     } catch (error) {
-        console.error('❌ Erro ao carregar componentes:', error);
+        console.error(' Erro ao carregar componentes:', error);
         // Tenta carregar novamente após 2 segundos
         setTimeout(() => loadComponents(), 2000);
         throw error;

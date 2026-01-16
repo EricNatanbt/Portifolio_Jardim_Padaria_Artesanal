@@ -211,14 +211,14 @@ class OrderDisplay {
                 await this.fetchOrderFromLocalStorage(shortId);
             }
         } catch (error) {
-            console.error('❌ Erro ao carregar pedido:', error);
+            console.error(' Erro ao carregar pedido:', error);
             this.showError('Erro ao carregar os detalhes do pedido.');
         }
     }
 
     async fetchOrderFromDatabase(orderId) {
         try {
-            console.log(`📋 Buscando pedido ${orderId} da API...`);
+            console.log(`Buscando pedido ${orderId} da API...`);
             const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
             
             if (!response.ok) {
@@ -229,12 +229,12 @@ class OrderDisplay {
             
             if (result.success && result.orderData) {
                 this.orderData = this.normalizeOrderData(result.orderData);
-                console.log('✅ Pedido carregado da API:', this.orderData);
+                console.log(' Pedido carregado da API:', this.orderData);
             } else {
                 this.showError(result.message || 'Pedido não encontrado no banco de dados.');
             }
         } catch (error) {
-            console.error('❌ Erro na API:', error);
+            console.error(' Erro na API:', error);
             this.showError('Erro ao buscar pedido do banco de dados.');
         }
     }
@@ -247,12 +247,12 @@ class OrderDisplay {
             if (savedOrder) {
                 const parsed = JSON.parse(savedOrder);
                 this.orderData = this.normalizeOrderData(parsed);
-                console.log('✅ Pedido carregado do localStorage:', this.orderData);
+                console.log('Pedido carregado do localStorage:', this.orderData);
             } else {
                 this.showError('Pedido não encontrado no armazenamento local.');
             }
         } catch (error) {
-            console.error('❌ Erro ao carregar do localStorage:', error);
+            console.error(' Erro ao carregar do localStorage:', error);
             this.showError('Erro ao carregar pedido do armazenamento local.');
         }
     }
@@ -348,7 +348,7 @@ class OrderDisplay {
         const paymentMethod = this.formatPaymentMethod(order.payment_method);
         
         // Formata a opção de entrega
-        const deliveryOption = order.delivery_option === 'retirada' ? '🛵 Retirada na Loja' : '🚗 Entrega (Delivery)';
+        const deliveryOption = order.delivery_option === 'retirada' ? 'Retirada na Loja' : 'Entrega (Delivery)';
         
         let customerHTML = `
             <div class="info-item">
@@ -470,7 +470,7 @@ class OrderDisplay {
                         formattedDate = date.toLocaleString('pt-BR');
                     }
                 } catch (error) {
-                    console.warn('⚠️ Erro ao formatar data:', rawDate, error);
+                    console.warn('Erro ao formatar data:', rawDate, error);
                 }
             }
             

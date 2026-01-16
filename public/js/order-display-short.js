@@ -562,7 +562,7 @@ class OrderDisplayShort {
         
         const errorHTML = `
             <div class="error">
-                <h2>❌ ${message}</h2>
+                <h2>${message}</h2>
                 <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
                 <button onclick="window.location.href='index.html'" class="action-btn primary">
                     <span class="action-btn-icon">🏠</span>
@@ -588,7 +588,7 @@ class OrderDisplayShort {
         // Atualiza status no header
         const statusElement = document.getElementById('orderStatus');
         if (statusElement) {
-            statusElement.textContent = '❌ Erro';
+            statusElement.textContent = 'Erro';
             statusElement.style.background = '#E74C3C';
         }
     }
@@ -690,11 +690,11 @@ async function downloadDirect(blob, orderId) {
 
 // Feedback visual de sucesso
 function showDownloadSuccess(btn) {
-    btn.innerHTML = '✅ Baixado!';
+    btn.innerHTML = 'Baixado!';
     btn.style.background = '#4CAF50';
     
     setTimeout(() => {
-        btn.innerHTML = '📥 Baixar Comprovante';
+        btn.innerHTML = ' Baixar Comprovante';
         btn.style.background = '';
         btn.disabled = false;
     }, 2000);
@@ -702,7 +702,7 @@ function showDownloadSuccess(btn) {
 
 // Feedback visual de erro
 function showDownloadError(btn, originalText) {
-    btn.innerHTML = '❌ Erro';
+    btn.innerHTML = ' Erro';
     btn.style.background = '#E74C3C';
     
     setTimeout(() => {
