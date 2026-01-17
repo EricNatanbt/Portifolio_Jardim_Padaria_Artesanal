@@ -2728,7 +2728,6 @@ class AdminPanel {
                 <small>${product.orderCount} pedidos</small></td>
             <td>${product.quantity} unidades</td>
             <td><strong>R$ ${product.revenue.toFixed(2)}</strong></td>
-            <td>R$ ${product.avgOrderValue.toFixed(2)}</td>
             <td>
                 ${index < 3 ?
                     '<span style="color: #27ae60;"><i class="fas fa-chart-line"></i> Alta</span>' :
