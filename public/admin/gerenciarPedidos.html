@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin - Dashboard de Pedidos</title>
     <link rel="stylesheet" href="./css/admin-common.css">
     <link rel="stylesheet" href="./css/gerenciarPedidos.css">
@@ -119,16 +119,13 @@
                     </button>
                     <button class="action-card" id="viewPendingOrders">
                         <i class="fas fa-exclamation-circle"></i>
-                        <span>Ver Pendentes Urgentes</span>
+                        <span>Ver Pedidos Urgentes</span>
                     </button>
                     <button class="action-card" id="generateDailyReport">
                         <i class="fas fa-file-excel"></i>
                         <span>Relatório Diário</span>
                     </button>
-                    <button class="action-card" id="sendWhatsAppReminders">
-                        <i class="fab fa-whatsapp"></i>
-                        <span>Lembretes WhatsApp</span>
-                    </button>
+
                 </div>
             </div>
         </div>
@@ -203,7 +200,7 @@
                                 <label class="checkbox-label">
                                     <input type="checkbox" class="status-checkbox" value="preparando" checked>
                                     <span class="status-badge status-preparando">Preparando</span>
-                                 </label>
+                                </label>
                                 <label class="checkbox-label">
                                     <input type="checkbox" class="status-checkbox" value="pronto" checked>
                                     <span class="status-badge status-pronto">Pronto</span>
@@ -398,7 +395,7 @@
         </div>
 
         <!-- TAB 3: Analytics -->
-         <div id="tab-analytics" class="tab-content">
+        <div id="tab-analytics" class="tab-content">
             <div class="analytics-header">
                 <h2><i class="fas fa-chart-bar"></i> Análises Avançadas</h2>
                 <div class="analytics-period">
@@ -457,7 +454,7 @@
                     </div>
                 </div>
                 
-                <div class="analytics-card">
+                 <div class="analytics-card">
                     <h3><i class="fas fa-truck"></i> Entregas vs Retiradas</h3>
                     <div class="chart-container">
                         <canvas id="deliveryChart"></canvas>
@@ -544,216 +541,160 @@
                 </div>
             </div>
             
-<div class="products-insights">
-    <h3><i class="fas fa-chart-pie"></i> Análise de Combinações de Produtos</h3>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
-        <div>
-            <h4 style="color: var(--primary); margin-bottom: 1rem;">
-                <i class="fas fa-chart-bar"></i> Gráfico de Frequência
-            </h4>
-            <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: 300px;">
-                <canvas id="combinationsChart"></canvas>
+            <div class="products-insights">
+                <h3><i class="fas fa-chart-pie"></i> Análise de Combinações de Produtos</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">
+                            <i class="fas fa-chart-bar"></i> Gráfico de Frequência
+                        </h4>
+                        <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: 300px;">
+                            <canvas id="combinationsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">
+                            <i class="fas fa-lightbulb"></i> Insights
+                        </h4>
+                        <div id="combinationsInsights" style="
+                            background: white;
+                            padding: 1.5rem;
+                            border-radius: 8px;
+                            border: 1px solid var(--border);
+                            height: 300px;
+                            overflow-y: auto;
+                        ">
+                            <!-- Insights serão injetados aqui -->
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--primary); margin-bottom: 1rem;">
+                    <i class="fas fa-list"></i> Combinações Mais Frequentes
+                </h4>
+                <div class="combinations-container" id="combinationsContainer" style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                    gap: 1rem;
+                ">
+                    <!-- As combinações serão injetadas aqui -->
+                </div>
             </div>
         </div>
-        
-        <div>
-            <h4 style="color: var(--primary); margin-bottom: 1rem;">
-                <i class="fas fa-lightbulb"></i> Insights
-            </h4>
-            <div id="combinationsInsights" style="
-                background: white;
-                padding: 1.5rem;
-                border-radius: 8px;
-                border: 1px solid var(--border);
-                height: 300px;
-                overflow-y: auto;
-            ">
-                <!-- Insights serão injetados aqui -->
-            </div>
-        </div>
-    </div>
-    
-    <h4 style="color: var(--primary); margin-bottom: 1rem;">
-        <i class="fas fa-list"></i> Combinações Mais Frequentes
-    </h4>
-    <div class="combinations-container" id="combinationsContainer" style="
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 1rem;
-    ">
-        <!-- As combinações serão injetadas aqui -->
-    </div>
-</div>
 
-        <!-- TAB 5: Reports -->
-<div id="tab-reports" class="tab-content">
-    <div class="reports-header">
-        <h2><i class="fas fa-file-alt"></i> Relatórios e Documentos</h2>
-        <div class="reports-controls">
-            <select id="reportType" class="filter-select">
-                <option value="daily">Relatório Diário</option>
-                <option value="weekly">Relatório Semanal</option>
-                <option value="monthly">Relatório Mensal</option>
-                <option value="custom">Período Personalizado</option>
-            </select>
-            <button id="generateReport" class="btn btn-primary">
-                <i class="fas fa-cogs"></i> Gerar Relatório
-            </button>
-        </div>
-    </div>
-    
-    <!-- Templates Section -->
-    <div class="reports-templates">
-        <h3><i class="fas fa-file-contract"></i> Modelos Prontos</h3>
-        <p style="color: var(--muted-foreground); margin-bottom: 1.5rem;">Selecione um modelo para gerar rapidamente</p>
-        
-        <div class="templates-grid">
-            <div class="template-card" data-template="daily">
-                <div class="template-icon">
-                    <i class="fas fa-sun"></i>
-                </div>
-                <h4>Relatório Diário</h4>
-                <p>Resumo de vendas do dia atual</p>
-                <button class="btn-template btn-template-daily" data-template="daily">
-                    <i class="fas fa-bolt"></i> Gerar
-                </button>
-            </div>
-            
-            <div class="template-card" data-template="weekly">
-                <div class="template-icon">
-                    <i class="fas fa-calendar-week"></i>
-                </div>
-                <h4>Relatório Semanal</h4>
-                <p>Análise dos últimos 7 dias</p>
-                <button class="btn-template btn-template-weekly" data-template="weekly">
-                    <i class="fas fa-bolt"></i> Gerar
-                </button>
-            </div>
-            
-            <div class="template-card" data-template="monthly">
-                <div class="template-icon">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <h4>Relatório Mensal</h4>
-                <p>Performance do mês atual</p>
-                <button class="btn-template btn-template-monthly" data-template="monthly">
-                    <i class="fas fa-bolt"></i> Gerar
-                </button>
-            </div>
-            
-            <div class="template-card" data-template="financial">
-                <div class="template-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
-                <h4>Análise Financeira</h4>
-                <p>Receitas, custos e lucros</p>
-                <button class="btn-template btn-template-financial" data-template="financial">
-                    <i class="fas fa-bolt"></i> Gerar
-                </button>
-            </div>
-            
-            <div class="template-card" data-template="products">
-                <div class="template-icon">
-                    <i class="fas fa-box-open"></i>
-                </div>
-                <h4>Produtos e Vendas</h4>
-                <p>Desempenho por produto</p>
-                <button class="btn-template btn-template-products" data-template="products">
-                    <i class="fas fa-bolt"></i> Gerar
-                </button>
-            </div>
-            
-            <div class="template-card" data-template="custom">
-                <div class="template-icon">
-                    <i class="fas fa-sliders-h"></i>
-                </div>
-                <h4>Personalizado</h4>
-                <p>Crie seu próprio relatório</p>
-                <button class="btn-template btn-template-custom" onclick="AdminPanel.openCustomReport()">
-                    <i class="fas fa-pen"></i> Configurar
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Custom Report Form Section -->
-    <div id="customReportSection" style="display: none; margin: 2rem 0; padding: 1.5rem; background: var(--accent-light); border-radius: var(--radius-lg); border: 1px solid var(--accent);">
-        <h3><i class="fas fa-sliders-h"></i> Relatório Personalizado</h3>
-        <form id="customReportForm">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
-                <div>
-                    <label>Data inicial</label>
-                    <input type="date" id="customStartDate" class="filter-input">
-                </div>
-                <div>
-                    <label>Data final</label>
-                    <input type="date" id="customEndDate" class="filter-input">
-                </div>
-                <div>
-                    <label>Formato</label>
-                    <select id="customFormat" class="filter-select">
-                        <option value="pdf">PDF</option>
-                        <option value="xlsx">Excel</option>
-                        <option value="csv">CSV</option>
+<!-- TAB 5: Reports -->
+        <div id="tab-reports" class="tab-content">
+            <div class="reports-header">
+                <h2><i class="fas fa-file-alt"></i> Relatórios e Documentos</h2>
+                <div class="reports-controls">
+                    <select id="reportType" class="filter-select">
+                        <option value="daily">Relatório Diário</option>
+                        <option value="weekly">Relatório Semanal</option>
+                        <option value="monthly">Relatório Mensal</option>
+                        <option value="custom">Período Personalizado</option>
                     </select>
+                    <button id="generateReport" class="btn btn-primary">
+                        <i class="fas fa-cogs"></i> Gerar Relatório
+                    </button>
                 </div>
             </div>
             
-            <div style="margin: 1.5rem 0;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary);">
-                    Seções do relatório
-                </label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <label class="checkbox-label"><input type="checkbox" value="summary" checked> Resumo</label>
-                    <label class="checkbox-label"><input type="checkbox" value="sales" checked> Vendas</label>
-                    <label class="checkbox-label"><input type="checkbox" value="products" checked> Produtos</label>
-                    <label class="checkbox-label"><input type="checkbox" value="clients"> Clientes</label>
-                    <label class="checkbox-label"><input type="checkbox" value="delivery"> Entregas</label>
-                    <label class="checkbox-label"><input type="checkbox" value="finance"> Financeiro</label>
+            <div class="reports-templates">
+                <h3><i class="fas fa-file-contract"></i> Modelos Prontos</h3>
+                <div class="templates-grid">
+                    <div class="template-card" data-template="kitchen">
+                        <div class="template-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h4>Pedidos para Cozinha</h4>
+                        <p>Lista simplificada para preparação</p>
+                        <button class="btn-template">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="delivery">
+                        <div class="template-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h4>Rota de Entregas</h4>
+                        <p>Organizado por bairro/região</p>
+                        <br>
+                        <button class="btn-template">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="financial">
+                        <div class="template-icon">
+                            <i class="fas fa-money-check-alt"></i>
+                        </div>
+                        <h4>Relatório Financeiro</h4>
+                        <p>Resumo de vendas e receitas</p>
+                         <br>
+                        <button class="btn-template">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="client">
+                        <div class="template-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4>Clientes Frequentes</h4>
+                        <p>Lista com histórico de compras</p>
+                        <button class="btn-template">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                    
+                                        <div class="template-card" data-template="products">
+                        <div class="template-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h4>Estoque e Vendas</h4>
+                        <p>Produtos mais vendidos</p>
+                        <button class="btn-template">
+                            <i class="fas fa-chart-bar"></i> Gráfico
+                        </button>
+                    </div>
+                    
+                    <div class="template-card" data-template="custom">
+                        <div class="template-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4>Relatório Personalizado</h4>
+                        <p>Crie seu próprio relatório</p>
+                        <button class="btn-template">
+                            <i class="fas fa-pen"></i> Criar
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">
-                    <i class="fas fa-play"></i> Gerar Personalizado
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="AdminPanel.closeCustomReport()">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
+            <div class="reports-history">
+                <h3><i class="fas fa-history"></i> Histórico de Relatórios</h3>
+                <div class="table-responsive">
+                    <table class="reports-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Tipo</th>
+                                <th>Período</th>
+                                <th>Arquivo</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportsHistoryBody">
+                            <!-- Reports history will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </form>
-    </div>
-    
-    <!-- Reports History Section -->
-    <div class="reports-history">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="margin: 0;"><i class="fas fa-history"></i> Histórico de Relatórios</h3>
-            <button id="refreshReports" class="btn btn-primary">
-                <i class="fas fa-sync-alt"></i> Atualizar
-            </button>
-        </div>
-        
-        <div class="table-responsive">
-            <table class="reports-table">
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Tipo</th>
-                        <th>Período</th>
-                        <th>Formato</th>
-                        <th>Data</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="reportsHistoryBody">
-                    <!-- Histórico será carregado via JS -->
-                </tbody>
-            </table>
         </div>
     </div>
-</div>
-
     <div id="notificationBar" class="notification-bar"></div>
 
     <!-- Scripts -->
@@ -766,18 +707,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <!-- Modal de Visualização de Relatórios -->
-<div id="reportViewerModal" class="admin-modal report-viewer-modal" style="display: none;">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h2><i class="fas fa-file-alt"></i> Visualizar Relatório</h2>
-            <span class="modal-close" onclick="AdminPanel.closeReportViewer()">&times;</span>
-        </div>
-        <div id="reportViewerContent" class="report-viewer-content">
-            <!-- Conteúdo será injetado pelo JavaScript -->
+        <div id="reportViewerModal" class="admin-modal report-viewer-modal" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt"></i> Visualizar Relatório</h2>
+                <span class="modal-close" onclick="AdminPanel.closeReportViewer()">&times;</span>
+            </div>
+            <div id="reportViewerContent" class="report-viewer-content">
+                <!-- Conteúdo será injetado pelo JavaScript -->
+            </div>
         </div>
     </div>
-</div>
-
-
 </body>
 </html>

@@ -254,6 +254,89 @@ app.delete('/api/delete-order/:id', async (req, res) => {
     }
 });
 
+// GET /api/reports/generate - Gerar dados para relatório
+app.get('/api/reports/generate', async (req, res) => {
+    try {
+        const { type, startDate, endDate } = req.query;
+        const orders = await readOrders();
+        
+        let filteredOrders = orders;
+        const now = new Date();
+        let start = new Date(startDate);
+        let end = new Date(endDate || now);
+
+        if (type === 'daily') {
+            start = new Date();
+            start.setHours(0, 0, 0, 0);
+            end = new Date();
+            end.setHours(23, 59, 59, 999);
+        } else if (type === 'weekly') {
+            start = new Date();
+            start.setDate(now.getDate() - 7);
+        } else if (type === 'monthly') {
+            start = new Date();
+            start.setDate(now.getDate() - 30);
+        }
+
+        if (type !== 'all' && (startDate || type)) {
+            filteredOrders = orders.filter(order => {
+                const orderDate = new Date(order.date);
+                return orderDate >= start && orderDate <= end;
+            });
+        }
+
+        // Filtrar pedidos válidos para cálculos financeiros (não cancelados)
+        const validOrders = filteredOrders.filter(o => (o.status || '').toLowerCase() !== 'cancelado');
+
+        // Calcular métricas
+        const totalRevenue = validOrders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+        const avgOrderValue = validOrders.length > 0 ? totalRevenue / validOrders.length : 0;
+        
+        const statusCount = {};
+        const paymentCount = {};
+        const productSales = {};
+
+        // Contagem de status usa todos os pedidos filtrados por data
+        filteredOrders.forEach(order => {
+            const status = order.status || 'pendente';
+            statusCount[status] = (statusCount[status] || 0) + 1;
+        });
+
+        // Cálculos financeiros e de produtos usam apenas pedidos válidos
+        validOrders.forEach(order => {
+            const pm = order.client?.paymentMethod || 'não informado';
+            paymentCount[pm] = (paymentCount[pm] || 0) + 1;
+
+            (order.cart || []).forEach(item => {
+                const name = item.name || 'Produto';
+                if (!productSales[name]) {
+                    productSales[name] = { quantity: 0, revenue: 0 };
+                }
+                productSales[name].quantity += (item.quantity || 0);
+                productSales[name].revenue += (item.price || 0) * (item.quantity || 0);
+            });
+        });
+
+        res.json({
+            success: true,
+            period: { start, end },
+            metrics: {
+                totalOrders: filteredOrders.length,
+                totalRevenue,
+                avgOrderValue
+            },
+            data: {
+                orders: filteredOrders,
+                statusCount,
+                paymentCount,
+                productSales: Object.entries(productSales).map(([name, stats]) => ({ name, ...stats })).sort((a, b) => b.revenue - a.revenue)
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao gerar relatório', error: error.message });
+    }
+});
+
 // --- Fim das Rotas de API para Pedidos ---
 
 // Serve arquivos estáticos

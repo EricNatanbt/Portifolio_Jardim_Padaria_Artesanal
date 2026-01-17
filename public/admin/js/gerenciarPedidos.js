@@ -14,10 +14,56 @@ class AdminPanel {
         this.selectedOrders = new Set();
         this.apiBase = window.location.origin + '/api';
         this.productAnalysis = [];
-        this.productCombinations = [];
+        
+        // Cache para o PDF atual sendo visualizado
+        this.currentPDF = {
+            blob: null,
+            url: null,
+            filename: null
+        };
 
         // Inicializa
         this.init();
+        
+        // Configura atualização automática (3 minutos)
+        this.setupAutoRefresh(180000);
+    }
+
+    setupAutoRefresh(interval) {
+        console.log(`🔄 Configurando atualização automática a cada ${interval/1000} segundos`);
+        setInterval(async () => {
+            console.log('🔄 Atualizando dados automaticamente...');
+            await this.refreshDataSilently();
+        }, interval);
+    }
+
+    async refreshDataSilently() {
+        try {
+            // Carrega pedidos sem mostrar o loading overlay para não atrapalhar o usuário
+            await this.loadOrders();
+            
+            // Processa dados
+            await this.processOrdersData();
+            
+            // Analisa produtos
+            this.analyzeProducts();
+            
+            // Atualiza estatísticas
+            this.updateStats();
+            
+            // Atualiza gráficos
+            this.updateCharts();
+            
+            // Atualiza a visualização atual (lista de pedidos, etc)
+            this.displayCurrentView();
+            
+            // Atualiza timestamp
+            this.updateTimestamp();
+            
+            console.log('✅ Atualização automática concluída');
+        } catch (error) {
+            console.error('❌ Erro na atualização automática:', error);
+        }
     }
 
     async init() {
@@ -222,7 +268,7 @@ class AdminPanel {
     async loadOrders() {
         try {
             // Tenta buscar da API local
-            const response = await fetch(`${this.apiBase}/get-all-orders`);
+            const response = await fetch(`${window.location.origin}/.netlify/functions/get-all-orders`);
 
             if (response.ok) {
                 const result = await response.json();
@@ -551,37 +597,33 @@ class AdminPanel {
     }
 
     analyzeProducts() {
-        // Análise de produtos mais vendidos
         const productSales = {};
 
-        // Filtra apenas pedidos que não foram cancelados para a análise de vendas
-        const validOrders = this.orders.filter(order => order.status !== 'cancelado');
+        this.orders.forEach(order => {
+            if (!order.items) return;
+            // Ignora pedidos cancelados na análise de produtos
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
 
-        validOrders.forEach(order => {
-            if (order.items && Array.isArray(order.items)) {
-                order.items.forEach(item => {
-                    const productName = item.product_name || 'Produto sem nome';
-                    const key = productName;
+            order.items.forEach(item => {
+                const key = item.product_name;
+                if (!productSales[key]) {
+                    productSales[key] = {
+                        name: key,
+                        quantity: 0,
+                        revenue: 0,
+                        orders: new Set()
+                    };
+                }
 
-                    if (!productSales[key]) {
-                        productSales[key] = {
-                            name: productName,
-                            quantity: 0,
-                            revenue: 0,
-                            orders: new Set()
-                        };
-                    }
+                const quantity = parseInt(item.quantity) || 1;
+                const price = parseFloat(item.price || 0);
+                // Usa o total do item se disponível, senão calcula
+                const total = parseFloat(item.total) || (quantity * price);
 
-                    const quantity = parseInt(item.quantity) || 1;
-                    const price = parseFloat(item.price || 0);
-                    // Usa o total do item se disponível, senão calcula
-                    const total = parseFloat(item.total) || (quantity * price);
-
-                    productSales[key].quantity += quantity;
-                    productSales[key].revenue += total;
-                    productSales[key].orders.add(order.id);
-                });
-            }
+                productSales[key].quantity += quantity;
+                productSales[key].revenue += total;
+                productSales[key].orders.add(order.id);
+            });
         });
 
         // Converte para array e ordena
@@ -591,7 +633,7 @@ class AdminPanel {
                 orderCount: p.orders.size,
                 avgOrderValue: p.orderCount > 0 ? p.revenue / p.orderCount : 0
             }))
-            .sort((a, b) => b.revenue - a.revenue);
+            .sort((a, b) => b.quantity - a.quantity); // Ordena por quantidade vendida (mais populares primeiro)
 
         console.log('📊 Análise de produtos concluída:', this.productAnalysis.length, 'produtos');
 
@@ -616,14 +658,12 @@ class AdminPanel {
             avg_ticket: 0
         };
 
-        this.orders.forEach(order => {
+               this.orders.forEach(order => {
             stats.total++;
 
-            const status = order.status || 'pendente';
+            const status = (order.status || 'pendente').toLowerCase();
             if (stats[status] !== undefined) {
                 stats[status]++;
-            } else {
-                stats.pendente++;
             }
 
             const value = parseFloat(order.total || order.total_amount || 0);
@@ -1066,6 +1106,8 @@ class AdminPanel {
 
         if (filteredValue) {
             const totalValue = this.filteredOrders.reduce((sum, order) => {
+                // Ignora pedidos cancelados no total filtrado
+                if ((order.status || '').toLowerCase() === 'cancelado') return sum;
                 return sum + (order.total_numeric || 0);
             }, 0);
             filteredValue.textContent = `Total: R$ ${totalValue.toFixed(2)}`;
@@ -1275,7 +1317,7 @@ class AdminPanel {
 
             try {
                 // Tenta buscar do novo endpoint get-order
-                const response = await fetch(`${apiBase}/api/get-order/${orderId}`);
+                const response = await fetch(`${window.location.origin}/.netlify/functions/get-order?id=${orderId}`);
 
                 if (response.ok) {
                     const result = await response.json();
@@ -1871,7 +1913,7 @@ class AdminPanel {
 
         try {
             this.showLoading(true);
-            const response = await fetch(`${this.apiBase}/delete-order/${orderId}`, {
+            const response = await fetch(`${window.location.origin}/.netlify/functions/delete-order/${orderId}`, {
                 method: 'DELETE'
             });
 
@@ -1992,86 +2034,7 @@ class AdminPanel {
 
         return modal;
     }
-    loadReportsHistory() {
-        const tbody = document.getElementById('reportsHistoryBody');
-        if (!tbody) {
-            console.error('Elemento reportsHistoryBody não encontrado');
-            return;
-        }
 
-        let reports = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
-
-        // Fallback com exemplos se não houver histórico
-        if (reports.length === 0) {
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            const lastWeek = new Date(today);
-            lastWeek.setDate(lastWeek.getDate() - 7);
-
-            reports = [
-                {
-                    id: 'rpt-1',
-                    name: 'Relatório Diário',
-                    type: 'daily',
-                    period: today.toLocaleDateString('pt-BR'),
-                    format: 'pdf',
-                    date: today.toISOString()
-                },
-                {
-                    id: 'rpt-2',
-                    name: 'Relatório Semanal',
-                    type: 'weekly',
-                    period: `${lastWeek.toLocaleDateString('pt-BR')} - ${yesterday.toLocaleDateString('pt-BR')}`,
-                    format: 'pdf',
-                    date: yesterday.toISOString()
-                },
-                {
-                    id: 'rpt-3',
-                    name: 'Relatório Financeiro',
-                    type: 'financial',
-                    period: today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
-                    format: 'xlsx',
-                    date: today.toISOString()
-                }
-            ];
-            localStorage.setItem('admin_reports_history', JSON.stringify(reports));
-        }
-
-        tbody.innerHTML = reports.map((report) => `
-        <tr>
-            <td><strong>${report.name || 'Relatório'}</strong></td>
-            <td>
-                <span class="report-type-badge report-type-${report.type || 'custom'}">
-                    ${report.type || 'custom'}
-                </span>
-            </td>
-            <td>${report.period || '-'}</td>
-            <td style="text-transform: uppercase;">
-                <i class="fas fa-file-${report.format === 'pdf' ? 'pdf' : report.format === 'xlsx' ? 'excel' : 'alt'}"></i>
-                ${report.format || 'pdf'}
-            </td>
-            <td>${new Date(report.date).toLocaleDateString('pt-BR')}</td>
-            <td>
-                <div style="display:flex; gap:0.5rem;">
-                    <button class="action-btn btn-primary small btn-view-report" 
-                            data-report-id="${report.id}"
-                            title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn btn-info small btn-download-report" 
-                            data-report-type="${report.type}" 
-                            data-report-format="${report.format}"
-                            title="Baixar">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
-
-        this.setupReportsHistoryEvents(reports);
-    }
 
     closeReportViewer() {
         const modal = document.getElementById('reportViewerModal');
@@ -2117,6 +2080,24 @@ class AdminPanel {
     static closeReportViewer() {
         if (window.AdminPanel) {
             window.AdminPanel.closeReportViewer();
+        }
+    }
+
+    static generateFinancialReport() {
+        if (window.AdminPanel) {
+            window.AdminPanel.generateTemplateReport('financial');
+        }
+    }
+
+    static generateClientsReport() {
+        if (window.AdminPanel) {
+            window.AdminPanel.generateClientsPDF();
+        }
+    }
+
+    static generateProductsReport() {
+        if (window.AdminPanel) {
+            window.AdminPanel.generateProductsPDF();
         }
     }
 
@@ -2214,6 +2195,9 @@ class AdminPanel {
         const hourRevenue = Array(24).fill(0);
 
         this.orders.forEach(order => {
+            // Ignora pedidos cancelados na análise por hora
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
+
             const hour = new Date(order.created_at).getHours();
             const value = parseFloat(order.total || order.total_amount || 0);
 
@@ -2280,6 +2264,9 @@ class AdminPanel {
         const weekdayCounts = Array(7).fill(0);
 
         this.orders.forEach(order => {
+            // Ignora pedidos cancelados na análise por dia da semana
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
+
             const weekday = new Date(order.created_at).getDay();
             weekdayCounts[weekday]++;
         });
@@ -2336,18 +2323,21 @@ class AdminPanel {
         if (!ctx) return;
 
         const paymentMethods = {
-            pix: { label: 'PIX', count: 0, value: 0 },
-            cartao: { label: 'Cartão', count: 0, value: 0 },
-            dinheiro: { label: 'Dinheiro', count: 0, value: 0 }
+            'pix': { count: 0, value: 0 },
+            'cartao': { count: 0, value: 0 },
+            'dinheiro': { count: 0, value: 0 }
         };
 
         this.orders.forEach(order => {
+            // Ignora pedidos cancelados na análise de pagamento
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
+
             const method = (order.payment_method || 'pix').toLowerCase();
             const value = parseFloat(order.total || order.total_amount || 0);
 
-            if (paymentMethods[method]) {
-                paymentMethods[method].count++;
-                paymentMethods[method].value += value;
+            if (method.includes('pix')) {
+                paymentMethods.pix.count++;
+                paymentMethods.pix.value += value;
             } else if (method.includes('cart') || method.includes('card')) {
                 paymentMethods.cartao.count++;
                 paymentMethods.cartao.value += value;
@@ -2414,29 +2404,32 @@ class AdminPanel {
         }
     }
 
-    updateDeliveryChart() {
+     updateDeliveryChart() {
         const ctx = document.getElementById('deliveryChart');
         if (!ctx) return;
 
         const deliveryTypes = {
-            entrega: { label: 'Entrega', count: 0, value: 0 },
-            retirada: { label: 'Retirada', count: 0, value: 0 }
+            'entrega': { count: 0, value: 0 },
+            'retirada': { count: 0, value: 0 }
         };
 
         this.orders.forEach(order => {
-            const type = (order.delivery_option || 'entrega').toLowerCase();
-            const value = parseFloat(order.total || order.total_amount || 0);
+        // Ignora pedidos cancelados na análise de entrega
+        if ((order.status || '').toLowerCase() === 'cancelado') return;
 
-            if (deliveryTypes[type]) {
-                deliveryTypes[type].count++;
-                deliveryTypes[type].value += value;
-            } else if (type.includes('retirada') || type.includes('pickup')) {
-                deliveryTypes.retirada.count++;
-                deliveryTypes.retirada.value += value;
-            } else {
-                deliveryTypes.entrega.count++;
-                deliveryTypes.entrega.value += value;
-            }
+        const type = (order.delivery_option || 'entrega').toLowerCase();
+        const value = parseFloat(order.total || order.total_amount || 0);
+
+        if (deliveryTypes[type]) {
+            deliveryTypes[type].count++;
+            deliveryTypes[type].value += value;
+        } else if (type.includes('retirada') || type.includes('pickup')) {
+            deliveryTypes.retirada.count++;
+            deliveryTypes.retirada.value += value;
+        } else {
+            deliveryTypes.entrega.count++;
+            deliveryTypes.entrega.value += value;
+        }
         });
 
         if (this.charts.delivery) {
@@ -2495,15 +2488,19 @@ class AdminPanel {
         const ctx = document.getElementById('clientsChart');
         if (!ctx) return;
 
-        // Análise de clientes recorrentes (simplificada)
         const clientOrders = {};
 
         this.orders.forEach(order => {
+            // Ignora pedidos cancelados na análise de clientes
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
+
             const clientPhone = order.client_phone;
+            const clientName = order.client_name;
+
             if (clientPhone) {
                 if (!clientOrders[clientPhone]) {
                     clientOrders[clientPhone] = {
-                        name: order.client_name || 'Cliente',
+                        name: clientName,
                         phone: clientPhone,
                         orderCount: 0,
                         totalSpent: 0
@@ -2513,12 +2510,11 @@ class AdminPanel {
                 clientOrders[clientPhone].orderCount++;
                 clientOrders[clientPhone].totalSpent += parseFloat(order.total || order.total_amount || 0);
             }
-        });
+        }); 
 
         // Converte para array e ordena
         const clientsArray = Object.values(clientOrders)
-            .sort((a, b) => b.orderCount - a.orderCount)
-            .slice(0, 5); // Top 5 clientes
+            .sort((a, b) => b.orderCount - a.orderCount); // Ordena por número de pedidos (mais populares primeiro)
 
         if (this.charts.clients) {
             this.charts.clients.destroy();
@@ -2563,24 +2559,27 @@ class AdminPanel {
         const ctx = document.getElementById('salesTrendChart');
         if (!ctx) return;
 
-        // Agrupa vendas por mês (simplificado)
         const monthlyData = {};
 
         this.orders.forEach(order => {
+            // Ignora pedidos cancelados na análise de tendência de vendas
+            if ((order.status || '').toLowerCase() === 'cancelado') return;
+
             const date = new Date(order.created_at);
             const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
             const value = parseFloat(order.total || order.total_amount || 0);
 
             if (!monthlyData[monthKey]) {
                 monthlyData[monthKey] = {
-                    count: 0,
+                    month: monthKey,
+                    orders: 0,
                     revenue: 0
                 };
             }
 
-            monthlyData[monthKey].count++;
+            monthlyData[monthKey].orders++;
             monthlyData[monthKey].revenue += value;
-        });
+        }); 
 
         // Ordena por data
         const sortedMonths = Object.entries(monthlyData)
@@ -2656,7 +2655,7 @@ class AdminPanel {
         }
 
         // 3. Insight sobre ticket médio
-        const nonCancelledOrders = this.orders.filter(o => o.status !== 'cancelado');
+        const nonCancelledOrders = this.orders.filter(o => (o.status || '').toLowerCase() !== 'cancelado');
         const totalRevenue = nonCancelledOrders.reduce((sum, order) => {
             return sum + parseFloat(order.total || order.total_amount || 0);
         }, 0);
@@ -3143,7 +3142,7 @@ class AdminPanel {
             const newForm = form.cloneNode(true);
             form.parentNode.replaceChild(newForm, form);
 
-            newForm.addEventListener('submit', (e) => {
+            newForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 const startDate = document.getElementById('customStartDate')?.value;
@@ -3155,38 +3154,35 @@ class AdminPanel {
                     return;
                 }
 
-                const start = new Date(startDate);
-                const end = new Date(endDate);
+                try {
+                    this.showLoading(true);
+                    const response = await fetch(`${window.location.origin}/.netlify/functions/reports-generate?type=custom&startDate=${startDate}&endDate=${endDate}`);
+                    const result = await response.json();
 
-                if (start > end) {
-                    this.showError('A data inicial não pode ser maior que a final');
-                    return;
+                    if (result.success) {
+                        const { metrics, data, period } = result;
+                        const reportName = `Relatório Personalizado`;
+                        const periodText = `${new Date(period.start).toLocaleDateString('pt-BR')} - ${new Date(period.end).toLocaleDateString('pt-BR')}`;
+
+                        if (format === 'pdf') {
+                            this.exportEnhancedPDF(data.orders, metrics, reportName, periodText);
+                        } else if (format === 'xlsx') {
+                            this.exportToExcel(data.orders, reportName);
+                        } else {
+                            this.exportToCSV(data.orders, reportName);
+                        }
+
+                        this.addToReportsHistory(reportName, format, periodText, 'custom');
+                        this.closeCustomReport();
+                        this.showSuccess(`📄 ${reportName} gerado!`);
+                    } else {
+                        this.showError(result.message);
+                    }
+                } catch (error) {
+                    this.showError('Erro ao gerar relatório personalizado: ' + error.message);
+                } finally {
+                    this.showLoading(false);
                 }
-
-                // Filtra pedidos
-                const filteredOrders = this.orders.filter(o => {
-                    const orderDate = new Date(o.created_at);
-                    return orderDate >= start && orderDate <= end;
-                });
-
-                if (filteredOrders.length === 0) {
-                    this.showError('Nenhum pedido encontrado no período');
-                    return;
-                }
-
-                const reportName = `Relatório Personalizado - ${start.toLocaleDateString('pt-BR')} a ${end.toLocaleDateString('pt-BR')}`;
-
-                if (format === 'pdf') {
-                    this.exportToPDF(filteredOrders, reportName);
-                } else if (format === 'xlsx') {
-                    this.exportToExcel(filteredOrders, reportName);
-                } else {
-                    this.exportToCSV(filteredOrders, reportName);
-                }
-
-                this.addToReportsHistory(reportName, format, `${start.toLocaleDateString('pt-BR')} - ${end.toLocaleDateString('pt-BR')}`);
-                this.closeCustomReport();
-                this.showSuccess(`📄 ${reportName} gerado!`);
             });
         }
 
@@ -3229,7 +3225,8 @@ class AdminPanel {
             // Adiciona novo listener
             newBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const template = newBtn.dataset.template || newBtn.getAttribute('data-template');
+                const card = newBtn.closest('.template-card');
+                const template = card ? card.dataset.template : null;
 
                 if (template === 'custom') {
                     this.openCustomReport();
@@ -3249,92 +3246,274 @@ class AdminPanel {
         }
     }
 
-    generateReport() {
+    async generateReport() {
         const reportType = document.getElementById('reportType').value;
-        let reportName = '';
-        let days = 1;
-        let periodText = '';
-
-        const today = new Date();
-
-        switch (reportType) {
-            case 'daily':
-                reportName = 'Relatório Diário';
-                days = 1;
-                periodText = today.toLocaleDateString('pt-BR');
-                break;
-            case 'weekly':
-                reportName = 'Relatório Semanal';
-                days = 7;
-                const weekAgo = new Date(today);
-                weekAgo.setDate(today.getDate() - 6);
-                periodText = `${weekAgo.toLocaleDateString('pt-BR')} - ${today.toLocaleDateString('pt-BR')}`;
-                break;
-            case 'monthly':
-                reportName = 'Relatório Mensal';
-                days = 30;
-                const monthName = today.toLocaleDateString('pt-BR', { month: 'long' });
-                periodText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                break;
-            default:
-                // Para custom, abre o formulário
-                this.openCustomReport();
-                return;
-        }
-
-        // Filtra pedidos do período
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - (days - 1));
-
-        const filteredOrders = this.orders.filter(o => {
-            const orderDate = new Date(o.created_at);
-            return orderDate >= startDate && orderDate <= today;
-        });
-
-        if (filteredOrders.length === 0) {
-            this.showError(`Nenhum pedido encontrado para ${reportName.toLowerCase()}`);
+        if (reportType === 'custom') {
+            this.openCustomReport();
             return;
         }
 
-        // Gera o relatório
-        this.exportToPDF(filteredOrders, `${reportName} - ${periodText}`);
+        try {
+            this.showLoading(true);
+            const response = await fetch(`${window.location.origin}/.netlify/functions/reports-generate?type=${reportType}`);
+            const result = await response.json();
 
-        // Adiciona ao histórico
-        this.addToReportsHistory(reportName, 'pdf', periodText);
+            if (result.success) {
+                const { metrics, data, period } = result;
+                const reportName = document.getElementById('reportType').options[document.getElementById('reportType').selectedIndex].text;
+                const periodText = `${new Date(period.start).toLocaleDateString('pt-BR')} - ${new Date(period.end).toLocaleDateString('pt-BR')}`;
+                
+                this.exportEnhancedPDF(data.orders, metrics, reportName, periodText);
+                this.addToReportsHistory(reportName, 'pdf', periodText, reportType);
+            } else {
+                this.showError(result.message);
+            }
+        } catch (error) {
+            this.showError('Erro ao gerar relatório: ' + error.message);
+        } finally {
+            this.showLoading(false);
+        }
     }
 
-    generateTemplateReport(template) {
+    generatePDFDocument(orders, metrics, title, period, type = 'general') {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configurações de cores
+        const primaryColor = [28, 61, 45];
+        const secondaryColor = [245, 245, 240];
+        
+        // Cabeçalho Estilizado
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 45, 'F');
+        
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Jardim Padaria Artesanal', 14, 22);
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(title.toUpperCase(), 14, 32);
+        doc.text(`PERÍODO: ${period}`, 14, 38);
+        
+        // Data de Geração no topo direito
+        doc.setFontSize(9);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 196, 15, { align: 'right' });
+
+        // Seção de Métricas (Cards)
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INDICADORES DE DESEMPENHO', 14, 60);
+        
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, 63, 196, 63);
+
+        // Desenhar "Cards" de métricas
+        const cardWidth = 58;
+        const cardHeight = 25;
+        const cardY = 68;
+        
+        const drawCard = (x, label, value, color = primaryColor) => {
+            doc.setFillColor(...secondaryColor);
+            doc.roundedRect(x, cardY, cardWidth, cardHeight, 3, 3, 'F');
+            doc.setTextColor(...color);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text(label, x + 5, cardY + 8);
+            doc.setFontSize(14);
+            doc.text(value, x + 5, cardY + 18);
+        };
+
+        // Métricas dinâmicas baseadas no tipo
+        if (type === 'products') {
+            drawCard(14, 'TOTAL PRODUTOS', metrics.totalProducts?.toString() || '0');
+            drawCard(76, 'MAIS VENDIDO', metrics.topProduct || 'N/A');
+            drawCard(138, 'RECEITA TOTAL', `R$ ${metrics.totalRevenue.toFixed(2)}`);
+        } else if (type === 'client') {
+            drawCard(14, 'TOTAL CLIENTES', metrics.totalClients?.toString() || '0');
+            drawCard(76, 'CLIENTE TOP', metrics.topClient || 'N/A');
+            drawCard(138, 'TICKET MÉDIO', `R$ ${metrics.avgOrderValue.toFixed(2)}`);
+        } else {
+            drawCard(14, 'TOTAL DE PEDIDOS', metrics.totalOrders.toString());
+            drawCard(76, 'FATURAMENTO BRUTO', `R$ ${metrics.totalRevenue.toFixed(2)}`);
+            drawCard(138, 'TICKET MÉDIO', `R$ ${metrics.avgOrderValue.toFixed(2)}`);
+        }
+
+        let currentY = 105;
+
+        // Lógica específica por tipo de relatório
+        if (type === 'products' && metrics.productSales) {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('RANKING DE PRODUTOS MAIS VENDIDOS', 14, currentY);
+            
+            const productData = metrics.productSales.map((p, index) => [
+                index + 1,
+                p.name,
+                p.quantity,
+                `R$ ${p.revenue.toFixed(2)}`,
+                `${((p.revenue / metrics.totalRevenue) * 100).toFixed(1)}%`
+            ]);
+
+            doc.autoTable({
+                startY: currentY + 5,
+                head: [['#', 'Produto', 'Qtd', 'Receita', '% Part.']],
+                body: productData,
+                theme: 'grid',
+                headStyles: { fillColor: primaryColor, fontStyle: 'bold' },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    2: { cellWidth: 20, halign: 'center' },
+                    3: { cellWidth: 35, halign: 'right' },
+                    4: { cellWidth: 25, halign: 'right' }
+                }
+            });
+            currentY = doc.lastAutoTable.finalY + 15;
+        } else if (type === 'client' && metrics.clientRanking) {
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('RANKING DE CLIENTES', 14, currentY);
+            
+            const clientData = metrics.clientRanking.map((c, index) => [
+                index + 1,
+                c.name,
+                c.orders,
+                `R$ ${c.totalSpent.toFixed(2)}`,
+                `R$ ${c.avgTicket.toFixed(2)}`
+            ]);
+
+            doc.autoTable({
+                startY: currentY + 5,
+                head: [['#', 'Cliente', 'Pedidos', 'Total Gasto', 'Ticket Médio']],
+                body: clientData,
+                theme: 'grid',
+                headStyles: { fillColor: primaryColor, fontStyle: 'bold' },
+                columnStyles: {
+                    0: { cellWidth: 10 },
+                    2: { cellWidth: 20, halign: 'center' },
+                    3: { cellWidth: 35, halign: 'right' },
+                    4: { cellWidth: 35, halign: 'right' }
+                }
+            });
+            currentY = doc.lastAutoTable.finalY + 15;
+        }
+
+        // Tabela de Pedidos (Sempre presente como detalhamento, exceto se for relatório de produtos puro)
+        if (type !== 'products' || orders.length > 0) {
+            if (currentY > 240) { doc.addPage(); currentY = 20; }
+            
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('DETALHAMENTO DOS PEDIDOS', 14, currentY);
+            
+            const tableData = orders.map(o => {
+                const client = o.client || o.clients || {};
+                const clientName = o.client_name || client.name || 'N/A';
+                const paymentMethod = o.payment_method || client.payment_method || client.paymentMethod || 'N/A';
+                
+                return [
+                    o.order_id || o.id,
+                    new Date(o.created_at || o.date).toLocaleDateString('pt-BR'),
+                    clientName,
+                    paymentMethod,
+                    `R$ ${parseFloat(o.total_numeric || o.total || o.total_amount || 0).toFixed(2)}`,
+                    o.status.toUpperCase()
+                ];
+            });
+
+            doc.autoTable({
+                startY: currentY + 5,
+                head: [['ID', 'Data', 'Cliente', 'Pagamento', 'Total', 'Status']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: primaryColor, fontStyle: 'bold' },
+                columnStyles: {
+                    4: { halign: 'right' },
+                    5: { halign: 'center' }
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 5) {
+                        const status = data.cell.raw.toLowerCase();
+                        if (status === 'cancelado') data.cell.styles.textColor = [220, 53, 69];
+                        if (status === 'entregue' || status === 'concluído') data.cell.styles.textColor = [40, 167, 69];
+                    }
+                }
+            });
+        }
+
+        // Rodapé com numeração de páginas
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(9);
+            doc.setTextColor(120);
+            doc.text(`Jardim Padaria Artesanal - Relatório Administrativo`, 14, 287);
+            doc.text(`Página ${i} de ${pageCount}`, 196, 287, { align: 'right' });
+        }
+
+        return doc;
+    }
+
+    exportEnhancedPDF(orders, metrics, title, period, type = 'general') {
+        const doc = this.generatePDFDocument(orders, metrics, title, period, type);
+        doc.save(`${title.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+        this.showSuccess('Relatório profissional gerado com sucesso!');
+    }
+
+    async generateTemplateReport(template) {
         const templateNames = {
             'daily': 'Relatório Diário',
             'weekly': 'Relatório Semanal',
             'monthly': 'Relatório Mensal',
             'financial': 'Relatório Financeiro',
-            'products': 'Relatório de Produtos'
+            'products': 'Relatório de Produtos',
+            'kitchen': 'Pedidos para Cozinha',
+            'delivery': 'Rota de Entregas',
+            'client': 'Clientes Frequentes'
         };
 
         const reportName = templateNames[template] || 'Relatório';
 
-        switch (template) {
-            case 'daily':
-                this.generateDailyReport();
-                break;
-            case 'weekly':
-                this.generateWeeklyReport();
-                break;
-            case 'monthly':
-                this.generateMonthlyReport();
-                break;
-            case 'financial':
-                this.exportToExcel(this.orders, 'Relatorio_Financeiro');
-                break;
-            case 'products':
-                this.generateProductsReport();
-                break;
-            default:
-                this.showSuccess(`📄 ${reportName} gerado`);
-        }
+        try {
+            this.showLoading(true);
+            
+            // Para todos os templates, usamos a nova API para garantir dados frescos e métricas calculadas
+            const response = await fetch(`${window.location.origin}/.netlify/functions/reports-generate?type=${template}`);
+            const result = await response.json();
 
-        this.addToReportsHistory(reportName, template === 'financial' ? 'xlsx' : 'pdf');
+            if (result.success) {
+                const { metrics, data, period } = result;
+                const periodText = `${new Date(period.start).toLocaleDateString('pt-BR')} - ${new Date(period.end).toLocaleDateString('pt-BR')}`;
+                
+                if (template === 'financial') {
+                    this.exportToExcel(data.orders, `Financeiro_${periodText.replace(/\//g, '-')}`);
+                } else if (template === 'kitchen') {
+                    this.generateKitchenReport();
+                } else if (template === 'delivery') {
+                    this.generateDeliveryPDF();
+                } else if (template === 'client') {
+                    this.generateClientsPDF();
+                } else if (template === 'products') {
+                    this.generateProductsPDF();
+                } else {
+                    this.exportEnhancedPDF(data.orders, metrics, reportName, periodText, template);
+                }
+            } else {
+                this.showError(result.message);
+                return;
+            }
+            
+            this.addToReportsHistory(reportName, template === 'financial' ? 'xlsx' : 'pdf', 'Hoje', template);
+        } catch (error) {
+            this.showError('Erro ao gerar template: ' + error.message);
+        } finally {
+            this.showLoading(false);
+        }
     }
 
     generateDailyReport() {
@@ -3388,53 +3567,7 @@ class AdminPanel {
         this.showSuccess(`Relatório mensal gerado: ${monthOrders.length} pedidos`);
     }
 
-    handleCustomReportSubmit(form) {
-        const formData = new FormData(form);
-        const name = formData.get('reportName') || 'Relatório Personalizado';
-        const startDate = new Date(formData.get('reportStartDate'));
-        const endDate = new Date(formData.get('reportEndDate'));
-        const format = formData.get('format');
 
-        // Valida datas
-        if (startDate > endDate) {
-            this.showError('A data inicial não pode ser maior que a data final');
-            return;
-        }
-
-        // Filtra pedidos pelo período
-        const filteredOrders = this.orders.filter(o => {
-            const date = new Date(o.created_at);
-            return date >= startDate && date <= endDate;
-        });
-
-        if (filteredOrders.length === 0) {
-            this.showError('Nenhum pedido encontrado para o período selecionado');
-            return;
-        }
-
-        // Aplica filtros adicionais
-        let finalOrders = filteredOrders;
-        if (!formData.get('includeCancelled')) {
-            finalOrders = finalOrders.filter(o => o.status !== 'cancelado');
-        }
-
-        // Gera o relatório
-        if (format === 'pdf') {
-            this.exportToPDF(finalOrders, name);
-        } else if (format === 'excel') {
-            this.exportToExcel(finalOrders, name);
-        } else if (format === 'csv') {
-            this.exportToCSV(finalOrders, name);
-        }
-
-        // Adiciona ao histórico
-        this.addToReportsHistory(name, format, `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`);
-
-        // Fecha a seção personalizada
-        this.closeCustomReport();
-
-        this.showSuccess(`📄 ${name} gerado com sucesso!`);
-    }
 
     loadReportsHistory() {
         const tbody = document.getElementById('reportsHistoryBody');
@@ -3458,7 +3591,8 @@ class AdminPanel {
                     type: 'Relatório Diário',
                     period: today.toLocaleDateString('pt-BR'),
                     file: `relatorio_diario_${today.toISOString().split('T')[0]}.pdf`,
-                    format: 'pdf'
+                    format: 'pdf',
+                    template: 'daily'
                 },
                 {
                     id: '2',
@@ -3466,7 +3600,8 @@ class AdminPanel {
                     type: 'Relatório Semanal',
                     period: `${lastWeek.toLocaleDateString('pt-BR')} - ${yesterday.toLocaleDateString('pt-BR')}`,
                     file: 'relatorio_semanal.pdf',
-                    format: 'pdf'
+                    format: 'pdf',
+                    template: 'weekly'
                 },
                 {
                     id: '3',
@@ -3474,7 +3609,8 @@ class AdminPanel {
                     type: 'Relatório Financeiro',
                     period: today.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
                     file: 'relatorio_financeiro.xlsx',
-                    format: 'xlsx'
+                    format: 'xlsx',
+                    template: 'financial'
                 },
                 {
                     id: '4',
@@ -3482,7 +3618,8 @@ class AdminPanel {
                     type: 'Relatório de Produtos',
                     period: 'Análise Mensal',
                     file: 'relatorio_produtos.pdf',
-                    format: 'pdf'
+                    format: 'pdf',
+                    template: 'products'
                 }
             ];
 
@@ -3503,7 +3640,10 @@ class AdminPanel {
                     report.type.toLowerCase().includes('semanal') ? 'weekly' :
                         report.type.toLowerCase().includes('mensal') ? 'monthly' :
                             report.type.toLowerCase().includes('financeiro') ? 'financial' :
-                                report.type.toLowerCase().includes('produtos') ? 'products' : 'custom'}">
+                                report.type.toLowerCase().includes('produtos') ? 'products' :
+                                    report.type.toLowerCase().includes('cozinha') ? 'kitchen' :
+                                        report.type.toLowerCase().includes('entrega') ? 'delivery' :
+                                            report.type.toLowerCase().includes('cliente') ? 'client' : 'custom'}">
                     ${report.type}
                 </span>
             </td>
@@ -3525,8 +3665,7 @@ class AdminPanel {
                     </button>
                     <button class="action-btn btn-info small btn-download-report" 
                             title="Baixar relatório"
-                            data-report-type="${report.type}" 
-                            data-report-format="${report.format}">
+                            data-report-id="${report.id}">
                         <i class="fas fa-download"></i>
                     </button>
                 </div>
@@ -3545,25 +3684,20 @@ class AdminPanel {
             btn.onclick = (e) => {
                 e.preventDefault();
                 const id = e.currentTarget.dataset.reportId;
-                const report = reports.find(r => r.id === id);
-                if (report) {
-                    this.showSuccess(`📄 Visualizando: ${report.name}`);
-                    // Aqui você pode adicionar lógica para abrir um modal com preview
-                }
+                this.viewReport(id);
             };
         });
 
         document.querySelectorAll('.btn-download-report').forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
-                const type = e.currentTarget.dataset.reportType;
-                const format = e.currentTarget.dataset.reportFormat;
-                this.downloadReport(type, format);
+                const id = e.currentTarget.dataset.reportId;
+                AdminPanel.downloadReport(id);
             };
         });
     }
 
-    addToReportsHistory(reportName, format = 'pdf', period = 'Hoje') {
+    addToReportsHistory(reportName, format = 'pdf', period = 'Hoje', template = 'general') {
         const tbody = document.getElementById('reportsHistoryBody');
         if (!tbody) return;
 
@@ -3573,13 +3707,11 @@ class AdminPanel {
         const newReport = {
             id: `rpt-${Date.now()}`,
             name: reportName,
-            type: reportName.toLowerCase().includes('diário') ? 'daily' :
-                reportName.toLowerCase().includes('semanal') ? 'weekly' :
-                    reportName.toLowerCase().includes('mensal') ? 'monthly' :
-                        reportName.toLowerCase().includes('financeiro') ? 'financial' :
-                            reportName.toLowerCase().includes('produtos') ? 'products' : 'custom',
+            type: reportName,
+            template: template,
             period: period,
             format: format,
+            file: fileName,
             date: today.toISOString()
         };
 
@@ -3648,17 +3780,34 @@ class AdminPanel {
         }
 
         try {
-            const data = orders.map(o => ({
-                'ID Pedido': o.order_id || o.id,
-                'Data': new Date(o.created_at).toLocaleString('pt-BR'),
-                'Cliente': o.client_name,
-                'Telefone': o.client_phone,
-                'Total (R$)': parseFloat(o.total_numeric || 0).toFixed(2),
-                'Status': this.getStatusText(o.status),
-                'Pagamento': o.payment_method,
-                'Entrega': o.delivery_option,
-                'Endereço': o.address || 'N/A'
-            }));
+            const data = orders.map(o => {
+                const client = o.client || o.clients || {};
+                const clientName = o.client_name || client.name || 'N/A';
+                const clientPhone = o.client_phone || client.phone || 'N/A';
+                
+                // Lógica robusta para endereço
+                let address = o.address || client.address;
+                if (!address || address === 'N/A') {
+                    if (client.street) {
+                        address = `${client.street}, ${client.number || client.address_number || ''}`;
+                        if (client.neighborhood) address += ` - ${client.neighborhood}`;
+                        if (client.city) address += `, ${client.city}`;
+                    } else {
+                        address = 'N/A';
+                    }
+                }
+
+                return {
+                    'ID Pedido': o.order_id || o.id,
+                    'Data': new Date(o.created_at || o.date).toLocaleString('pt-BR'),
+                    'Cliente': clientName,
+                    'Telefone': clientPhone,
+                    'Total (R$)': parseFloat(o.total_numeric || o.total || o.total_amount || 0).toFixed(2),
+                    'Status': this.getStatusText(o.status),
+                    'Pagamento': o.payment_method || client.paymentMethod || 'N/A',
+                    'Endereço': address
+                };
+            });
 
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
@@ -3666,7 +3815,7 @@ class AdminPanel {
 
             // Ajusta largura das colunas
             const wscols = [
-                { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 40 }
+                { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 40 }
             ];
             worksheet['!cols'] = wscols;
 
@@ -3704,13 +3853,17 @@ class AdminPanel {
         doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
         doc.text(`Total de pedidos: ${orders.length}`, 14, 36);
 
-        const tableData = orders.map(o => [
-            o.order_id || o.id,
-            new Date(o.created_at).toLocaleDateString('pt-BR'),
-            o.client_name,
-            `R$ ${parseFloat(o.total_numeric || 0).toFixed(2)}`,
-            this.getStatusText(o.status)
-        ]);
+        const tableData = orders.map(o => {
+            const client = o.client || o.clients || {};
+            const clientName = o.client_name || client.name || 'N/A';
+            return [
+                o.order_id || o.id,
+                new Date(o.created_at || o.date).toLocaleDateString('pt-BR'),
+                clientName,
+                `R$ ${parseFloat(o.total_numeric || o.total || o.total_amount || 0).toFixed(2)}`,
+                this.getStatusText(o.status)
+            ];
+        });
 
         doc.autoTable({
             startY: 45,
@@ -3737,18 +3890,24 @@ class AdminPanel {
         doc.setFontSize(18);
         doc.text('Rota de Entregas', 14, 22);
 
-        const tableData = pendingOrders.map(o => [
-            o.order_id || o.id,
-            o.client_name,
-            o.client_phone,
-            o.address || 'Endereço não informado'
-        ]);
+        const tableData = pendingOrders.map(o => {
+            const client = o.client || o.clients || {};
+            const clientName = o.client_name || client.name || 'N/A';
+            const address = o.address || client.address || (client.street ? `${client.street}, ${client.number || client.address_number || ''} ${client.neighborhood || ''}` : 'N/A');
+            const clientPhone = o.client_phone || client.phone || 'N/A';
+
+            return [
+                o.order_id || o.id,
+                clientName,
+                address,
+                clientPhone
+            ];
+        });
 
         doc.autoTable({
             startY: 30,
-            head: [['ID', 'Cliente', 'Telefone', 'Endereço']],
+            head: [['ID', 'Cliente', 'Endereço', 'Telefone']],
             body: tableData,
-            theme: 'grid',
             headStyles: { fillColor: [28, 61, 45] }
         });
 
@@ -3756,73 +3915,108 @@ class AdminPanel {
         this.showSuccess('Rota de entregas gerada com sucesso!');
     }
 
-    generateClientsPDF() {
-        const clientMap = {};
-        this.orders.forEach(o => {
-            if (!clientMap[o.client_name]) {
-                clientMap[o.client_name] = { name: o.client_name, phone: o.client_phone, count: 0, total: 0 };
-            }
-            clientMap[o.client_name].count++;
-            clientMap[o.client_name].total += parseFloat(o.total_numeric || 0);
-        });
-
-        const clients = Object.values(clientMap).sort((a, b) => b.total - a.total);
+    generateKitchenReport() {
+        const activeOrders = this.orders.filter(o => ['pendente', 'preparando'].includes(o.status));
+        if (activeOrders.length === 0) {
+            this.showError('Não há pedidos para a cozinha no momento');
+            return;
+        }
 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.text('Relatório de Clientes Frequentes', 14, 22);
 
-        const tableData = clients.map(c => [
-            c.name,
-            c.phone,
-            c.count,
-            `R$ ${c.total.toFixed(2)}`
-        ]);
+        doc.setFontSize(18);
+        doc.text('Pedidos para Cozinha', 14, 22);
+        doc.setFontSize(11);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
 
-        doc.autoTable({
-            startY: 30,
-            head: [['Cliente', 'Telefone', 'Pedidos', 'Total Gasto']],
-            body: tableData,
-            headStyles: { fillColor: [28, 61, 45] }
-        });
-
-        doc.save('clientes_frequentes.pdf');
-    }
-
-    generateProductsPDF() {
-        const productMap = {};
-        this.orders.forEach(o => {
+        const tableData = [];
+        activeOrders.forEach(o => {
             if (o.items) {
                 o.items.forEach(item => {
-                    if (!productMap[item.product_name]) {
-                        productMap[item.product_name] = { name: item.product_name, qty: 0, total: 0 };
-                    }
-                    productMap[item.product_name].qty += parseInt(item.quantity || 0);
-                    productMap[item.product_name].total += parseFloat(item.total || 0);
+                    tableData.push([
+                        o.order_id || o.id,
+                        item.product_name || item.name,
+                        item.quantity,
+                        o.observation || '-'
+                    ]);
                 });
             }
         });
 
-        const products = Object.values(productMap).sort((a, b) => b.qty - a.qty);
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text('Relatório de Vendas por Produto', 14, 22);
-
-        const tableData = products.map(p => [
-            p.name,
-            p.qty,
-            `R$ ${p.total.toFixed(2)}`
-        ]);
-
         doc.autoTable({
-            startY: 30,
-            head: [['Produto', 'Qtd Vendida', 'Faturamento']],
+            startY: 35,
+            head: [['Pedido', 'Produto', 'Qtd', 'Observação']],
             body: tableData,
-            headStyles: { fillColor: [28, 61, 45] }
+            headStyles: { 
+                fillColor: [28, 61, 45],
+                fontSize: 12,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            bodyStyles: {
+                fontSize: 11,
+                textColor: [40, 40, 40]
+            },
+            columnStyles: {
+                0: { cellWidth: 25, fontStyle: 'bold', halign: 'center' },
+                1: { cellWidth: 'auto', fontStyle: 'bold', fontSize: 13 },
+                2: { cellWidth: 20, halign: 'center', fontStyle: 'bold', fontSize: 14, textColor: [180, 0, 0] },
+                3: { cellWidth: 'auto', fontStyle: 'italic', textColor: [100, 100, 100] }
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { top: 35 }
         });
 
-        doc.save('vendas_produtos.pdf');
+        doc.save('pedidos_cozinha.pdf');
+        this.showSuccess('Relatório para cozinha gerado com sucesso!');
+    }
+
+       generateClientsPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const clientMap = {};
+
+    this.orders.forEach(o => {
+        // Ignora pedidos cancelados no relatório de clientes
+        if ((o.status || '').toLowerCase() === 'cancelado') return;
+
+        const clientName = o.client_name || 'Cliente';
+        const clientPhone = o.client_phone || 'N/A';
+
+        if (!clientMap[clientName]) {
+            clientMap[clientName] = { name: clientName, phone: clientPhone, count: 0, total: 0 };
+        }
+        clientMap[clientName].count++;
+        clientMap[clientName].total += parseFloat(o.total_numeric || 0);
+        });  
+
+        const clients = Object.values(clientMap).sort((a, b) => b.total - a.total);
+    }
+       generateProductsPDF() {
+         const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const productMap = {};
+    const orders = this.orders;
+
+    orders.forEach(o => {
+        // Ignora pedidos cancelados no relatório de produtos
+        if ((o.status || '').toLowerCase() === 'cancelado') return;
+
+        if (o.items && Array.isArray(o.items)) {
+            o.items.forEach(item => {
+                if (!productMap[item.product_name]) {
+                    productMap[item.product_name] = { name: item.product_name, qty: 0, total: 0 };
+                }
+                productMap[item.product_name].qty += parseInt(item.quantity || 0);
+                productMap[item.product_name].total += parseFloat(item.total || 0);
+            });
+        }
+        });
+
+        const products = Object.values(productMap).sort((a, b) => b.qty - a.qty);
     }
 
     showInfo(message) {
@@ -3960,26 +4154,12 @@ class AdminPanel {
         const generateDailyReportBtn = document.getElementById('generateDailyReport');
         if (generateDailyReportBtn) {
             generateDailyReportBtn.addEventListener('click', () => {
-                const today = new Date().toISOString().split('T')[0];
-                const todayOrders = this.orders.filter(o => o.created_at.startsWith(today));
-                this.exportToPDF(todayOrders, `relatorio_diario_${today}`);
-                this.addToReportsHistory('Relatório Diário', 'pdf');
+                this.generateDailyReport();
+                this.addToReportsHistory('Relatório Diário', 'pdf', 'Hoje', 'daily');
             });
         }
 
-        // Botão Lembretes WhatsApp
-        const sendWhatsAppRemindersBtn = document.getElementById('sendWhatsAppReminders');
-        if (sendWhatsAppRemindersBtn) {
-            sendWhatsAppRemindersBtn.addEventListener('click', () => {
-                const pending = this.orders.filter(o => o.status === 'pendente');
-                if (pending.length === 0) {
-                    this.showInfo('Não há pedidos pendentes para enviar lembretes.');
-                    return;
-                }
-                this.showSuccess(`Enviando lembretes para ${pending.length} pedidos...`);
-                // Simulação de envio
-            });
-        }
+
 
         // Botões de filtro rápido de data
         document.querySelectorAll('.date-quick-btn').forEach(btn => {
@@ -4107,23 +4287,38 @@ class AdminPanel {
     }
 
     filterPendingOrders() {
-        // Marca apenas pendente
+        // Marca apenas 'preparando'
         document.querySelectorAll('.status-checkbox').forEach(cb => {
-            cb.checked = cb.value === 'pendente';
+            cb.checked = cb.value === 'preparando';
         });
 
-        // Filtra por hoje
-        const today = new Date().toISOString().split('T')[0];
+        // Limpa filtros de data para ver todos os que estão em preparo, independente do dia
         const startDate = document.getElementById('startDate');
         const endDate = document.getElementById('endDate');
 
         if (startDate && endDate) {
-            startDate.value = today;
-            endDate.value = today;
+            startDate.value = '';
+            endDate.value = '';
         }
 
-        this.applyFilters();
-        this.showSuccess('✅ Mostrando apenas pendentes de hoje');
+        // Aplica os filtros básicos
+        const filters = this.getCurrentFilters();
+        this.filteredOrders = this.applyAdvancedFilters(this.orders, filters);
+        
+        // Ordena por data (mais antigos primeiro) para urgência
+        this.filteredOrders.sort((a, b) => {
+            const dateA = new Date(a.created_at || a.date);
+            const dateB = new Date(b.created_at || b.date);
+            return dateA - dateB;
+        });
+
+        this.calculateTotalPages();
+        this.currentPage = 1;
+        this.displayCurrentView();
+        this.updatePaginationInfo();
+        this.updateFilterStats();
+
+        this.showSuccess('✅ Mostrando pedidos em preparação (mais antigos primeiro)');
     }
 
     applyBatchAction() {
@@ -4278,23 +4473,7 @@ class AdminPanel {
         }
     }
 
-    static generateFinancialReport() {
-        if (window.AdminPanel) {
-            window.AdminPanel.exportToExcel(window.AdminPanel.orders, 'Relatorio_Financeiro');
-        }
-    }
 
-    static generateClientsReport() {
-        if (window.AdminPanel) {
-            window.AdminPanel.generateClientsPDF();
-        }
-    }
-
-    static generateProductsReport() {
-        if (window.AdminPanel) {
-            window.AdminPanel.generateProductsPDF();
-        }
-    }
 
     openCustomReport() {
         const section = document.getElementById('customReportSection');
@@ -5246,6 +5425,238 @@ class AdminPanel {
         const modal = document.getElementById('orderModal');
         if (modal) {
             modal.style.display = 'none';
+        }
+    }
+
+    // --- NOVAS FUNÇÕES DE RELATÓRIOS ---
+
+    viewReport(reportData) {
+        const modal = document.getElementById('reportViewerModal');
+        const content = document.getElementById('reportViewerContent');
+        
+        if (!modal || !content) {
+            console.error('Elementos do visualizador de relatório não encontrados');
+            return;
+        }
+
+        // Se reportData for uma string (ID), busca no histórico
+        let report = reportData;
+        if (typeof reportData === 'string') {
+            const history = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+            report = history.find(r => r.id === reportData);
+        }
+
+        if (!report) {
+            this.showError('Relatório não encontrado');
+            return;
+        }
+
+        // Se for PDF, tentamos gerar um blob para visualização
+        if (report.format === 'pdf') {
+            this.previewPDFReport(report);
+            return;
+        }
+
+        content.innerHTML = `
+            <div class="report-preview">
+                <div class="report-preview-header">
+                    <h3>${report.type}</h3>
+                    <p><strong>Período:</strong> ${report.period}</p>
+                    <p><strong>Gerado em:</strong> ${new Date(report.date).toLocaleDateString('pt-BR')}</p>
+                </div>
+                <div class="report-preview-body">
+                    <div class="report-placeholder">
+                        <i class="fas fa-file-${report.format === 'pdf' ? 'pdf' : 'excel'} fa-4x"></i>
+                        <p>Visualização prévia do arquivo: <strong>${report.file}</strong></p>
+                        <div class="report-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                            <button class="btn btn-primary" onclick="AdminPanel.downloadReport('${report.id}')">
+                                <i class="fas fa-download"></i> Baixar Arquivo
+                            </button>
+                            <button class="btn btn-secondary" onclick="AdminPanel.closeReportViewer()">
+                                <i class="fas fa-times"></i> Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    async previewPDFReport(report) {
+        const modal = document.getElementById('reportViewerModal');
+        const content = document.getElementById('reportViewerContent');
+        
+        this.showLoading(true);
+        
+        // Limpa cache anterior
+        if (this.currentPDF.url) {
+            URL.revokeObjectURL(this.currentPDF.url);
+        }
+        
+        try {
+            let reportType = report.template || 'general';
+            
+            if (reportType === 'general' || reportType === report.type) {
+                const typeLower = report.type.toLowerCase();
+                if (typeLower.includes('diário')) reportType = 'daily';
+                else if (typeLower.includes('semanal')) reportType = 'weekly';
+                else if (typeLower.includes('mensal')) reportType = 'monthly';
+                else if (typeLower.includes('financeiro')) reportType = 'financial';
+                else if (typeLower.includes('produtos')) reportType = 'products';
+                else if (typeLower.includes('cozinha')) reportType = 'kitchen';
+                else if (typeLower.includes('entrega')) reportType = 'delivery';
+                else if (typeLower.includes('cliente')) reportType = 'client';
+            }
+
+            const response = await fetch(`${window.location.origin}/.netlify/functions/reports-generate?type=${reportType}`);
+            const result = await response.json();
+
+            if (result.success) {
+                const { metrics, data, period } = result;
+                const periodText = `${new Date(period.start).toLocaleDateString('pt-BR')} - ${new Date(period.end).toLocaleDateString('pt-BR')}`;
+                
+                // Gera o PDF uma única vez
+                const doc = this.generatePDFDocument(data.orders, metrics, report.type, periodText, reportType);
+                const pdfBlob = doc.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                const filename = `${report.type.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`;
+
+                // Salva no cache da instância
+                this.currentPDF = {
+                    blob: pdfBlob,
+                    url: pdfUrl,
+                    filename: filename
+                };
+
+                content.innerHTML = `
+                    <div class="report-toolbar">
+                        <div class="report-info">
+                            <h3>${report.type}</h3>
+                            <p>${periodText} | Gerado em: ${new Date(report.date).toLocaleString('pt-BR')}</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn btn-primary" onclick="window.open('${pdfUrl}', '_blank')">
+                                <i class="fas fa-external-link-alt"></i> Abrir em Nova Aba
+                            </button>
+                            <button class="btn btn-secondary" onclick="window.AdminPanel.printCurrentPDF()">
+                                <i class="fas fa-print"></i> Imprimir
+                            </button>
+                            <button class="btn btn-info" onclick="window.AdminPanel.downloadCurrentPDF()">
+                                <i class="fas fa-download"></i> Baixar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-viewer" style="flex: 1; height: 100%;">
+                        <iframe src="${pdfUrl}" width="100%" height="100%" style="border: none;"></iframe>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Erro ao visualizar PDF:', error);
+            this.showError('Não foi possível carregar a visualização do PDF.');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+
+    printCurrentPDF() {
+        if (this.currentPDF.url) {
+            AdminPanel.printPDF(this.currentPDF.url);
+        }
+    }
+
+    downloadCurrentPDF() {
+        if (this.currentPDF.blob && this.currentPDF.filename) {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(this.currentPDF.blob);
+            link.download = this.currentPDF.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    static printPDF(url) {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+            iframe.contentWindow.print();
+        };
+    }
+
+    closeReportViewer() {
+        const modal = document.getElementById('reportViewerModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    static async downloadReport(reportId) {
+        const history = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+        const report = history.find(r => r.id === reportId);
+        
+        if (report && window.AdminPanel) {
+            if (report.format === 'pdf') {
+                // Se o PDF já estiver em cache (sendo visualizado), usa ele
+                if (window.AdminPanel.currentPDF.blob) {
+                    window.AdminPanel.downloadCurrentPDF();
+                    return;
+                }
+
+                window.AdminPanel.showLoading(true);
+                try {
+                    let reportType = report.template || 'general';
+                    const response = await fetch(`${window.location.origin}/.netlify/functions/reports-generate?type=${reportType}`);
+                    const result = await response.json();
+
+                    if (result.success) {
+                        const { metrics, data, period } = result;
+                        const periodText = `${new Date(period.start).toLocaleDateString('pt-BR')} - ${new Date(period.end).toLocaleDateString('pt-BR')}`;
+                        window.AdminPanel.exportEnhancedPDF(data.orders, metrics, report.type, periodText, reportType);
+                    }
+                } catch (e) {
+                    window.AdminPanel.showError('Erro ao baixar relatório');
+                } finally {
+                    window.AdminPanel.showLoading(false);
+                }
+            } else {
+                window.AdminPanel.showSuccess(`Iniciando download de: ${report.file}`);
+            }
+        }
+    }
+
+    static printPDF(url) {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.onload = () => {
+            iframe.contentWindow.print();
+            setTimeout(() => document.body.removeChild(iframe), 1000);
+        };
+    }
+
+    static deleteReport(reportId) {
+        if (!confirm('Deseja realmente excluir este relatório do histórico?')) return;
+        
+        let history = JSON.parse(localStorage.getItem('admin_reports_history') || '[]');
+        history = history.filter(r => r.id !== reportId);
+        localStorage.setItem('admin_reports_history', JSON.stringify(history));
+        
+        if (window.AdminPanel) {
+            window.AdminPanel.loadReportsHistory();
+            window.AdminPanel.showSuccess('Relatório removido do histórico');
         }
     }
 }
