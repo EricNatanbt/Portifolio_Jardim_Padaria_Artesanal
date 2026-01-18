@@ -235,7 +235,7 @@ class OrderDisplayFixed {
 
         const statusElement = document.getElementById('orderStatus');
         if (statusElement) {
-            statusElement.textContent = '✅ Pedido Confirmado';
+            statusElement.textContent = 'Pedido Confirmado';
             statusElement.style.background = '#4CAF50';
         }
     }
@@ -272,7 +272,7 @@ class OrderDisplayFixed {
         if (orderContent) {
             orderContent.innerHTML = `
                 <div class="error">
-                    <h2>❌ ${message}</h2>
+                    <h2> ${message}</h2>
                     <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
                     <button onclick="window.location.href='index.html'" class="action-btn primary">
                         <span class="action-btn-icon">🏠</span>
@@ -283,7 +283,7 @@ class OrderDisplayFixed {
             
             const statusElement = document.getElementById('orderStatus');
             if (statusElement) {
-                statusElement.textContent = '❌ Erro';
+                statusElement.textContent = ' Erro';
                 statusElement.style.background = '#E74C3C';
             }
         }

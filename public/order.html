@@ -357,7 +357,7 @@
             <h1>🍞 Jardim Padaria</h1>
             <p>Detalhes do Pedido</p>
             <div class="order-id" id="orderId">Carregando...</div>
-            <div class="status-badge" id="orderStatus">📋 Processando</div>
+            <div class="status-badge" id="orderStatus">Processando</div>
         </div>
 
         <div class="order-content" id="orderContent">
@@ -462,7 +462,7 @@
                         minute: '2-digit' 
                     });
                 } catch (error) {
-                    console.warn('⚠️ Erro ao formatar data:', dateString, error);
+                    console.warn(' Erro ao formatar data:', dateString, error);
                     return 'Data inválida';
                 }
             }
@@ -471,10 +471,10 @@
                 if (!method) return 'Método Desconhecido';
                 const lowerMethod = method.toLowerCase();
                 
-                if (lowerMethod.includes('pix')) return '💰 Pix';
-                if (lowerMethod.includes('dinheiro')) return '💵 Dinheiro';
-                if (lowerMethod.includes('cartao') || lowerMethod.includes('cartão')) return '💳 Cartão';
-                if (lowerMethod.includes('card')) return '💳 Cartão';
+                if (lowerMethod.includes('pix')) return ' Pix';
+                if (lowerMethod.includes('dinheiro')) return ' Dinheiro';
+                if (lowerMethod.includes('cartao') || lowerMethod.includes('cartão')) return ' Cartão';
+                if (lowerMethod.includes('card')) return ' Cartão';
                 
                 return method;
             }
@@ -547,7 +547,7 @@
                 const orderId = urlParams.get('orderId');
                 const shortId = urlParams.get('i');
                 
-                console.log('🔍 Buscando pedido:', { orderId, shortId });
+                console.log(' Buscando pedido:', { orderId, shortId });
 
                 if (orderId) {
                     await this.fetchOrderFromDatabase(orderId);
@@ -560,33 +560,33 @@
 
             async fetchOrderFromDatabase(orderId) {
                 try {
-                    console.log(`📋 Buscando pedido ${orderId}...`);
+                    console.log(`Buscando pedido ${orderId}...`);
                     const response = await fetch(`${this.apiBase}/get-order/${orderId}`);
                     
                     if (!response.ok) {
                         const errorText = await response.text();
-                        console.error('❌ Erro HTTP:', response.status, errorText);
+                        console.error('Erro HTTP:', response.status, errorText);
                         throw new Error(`HTTP ${response.status}: ${errorText}`);
                     }
                     
                     const result = await response.json();
-                    console.log('📦 Resposta da API:', result);
+                    console.log(' Resposta da API:', result);
                     
                     if (result.success && result.orderData) {
                         this.orderData = OrderDataUtils.normalizeOrderData(result.orderData);
-                        console.log('✅ Pedido carregado do banco:', this.orderData);
+                        console.log('Pedido carregado do banco:', this.orderData);
                     } else {
                         this.showError(result.message || 'Pedido não encontrado no banco de dados.');
                     }
                 } catch (error) {
-                    console.error('❌ Erro ao buscar pedido:', error);
+                    console.error('Erro ao buscar pedido:', error);
                     this.showError('Erro ao carregar os detalhes do pedido. Tente novamente.');
                 }
             }
 
             async fetchOrderFromLocalStorage(shortId) {
                 try {
-                    console.log(`📋 Buscando pedido ${shortId} do localStorage...`);
+                    console.log(`Buscando pedido ${shortId} do localStorage...`);
                     
                     // Verifica expiração
                     const expirationKey = `exp_${shortId}`;
@@ -611,10 +611,10 @@
                     
                     const parsedOrder = JSON.parse(savedOrder);
                     this.orderData = OrderDataUtils.normalizeOrderData(parsedOrder);
-                    console.log('✅ Pedido carregado do localStorage:', this.orderData);
+                    console.log(' Pedido carregado do localStorage:', this.orderData);
                     
                 } catch (error) {
-                    console.error('❌ Erro ao carregar do localStorage:', error);
+                    console.error(' Erro ao carregar do localStorage:', error);
                     this.showError('Erro ao carregar pedido do armazenamento local.');
                 }
             }
@@ -628,8 +628,8 @@
                 try {
                     const { customer, order, items } = this.orderData;
                     
-                    console.log('📄 Dados para exibição:', { 
-                        customer, 
+                    console.log(' Dados para exibição:', { 
+                        customer,
                         order, 
                         items,
                         hasItems: items && items.length > 0,
@@ -680,14 +680,14 @@
                                     <div class="address-actions">
                                         ${googleMapsUrl !== '#' ? `
                                         <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
-                                            <span class="action-btn-icon">🗺️</span>
+                                            <span class="action-btn-icon"></span>
                                             <span>Abrir no Google Maps</span>
                                         </a>
                                         ` : ''}
                                         
                                         ${uberUrl !== '#' ? `
                                         <a href="${uberUrl}" target="_blank" class="action-btn uber">
-                                            <span class="action-btn-icon">🚗</span>
+                                            <span class="action-btn-icon"></span>
                                             <span>Solicitar Uber Flash</span>
                                         </a>
                                         ` : ''}
@@ -699,7 +699,7 @@
 
                         <!-- Itens do Pedido -->
                         <div class="section">
-                            <h2>📋 Itens do Pedido</h2>
+                            <h2> Itens do Pedido</h2>
                             <div class="info-grid">
                                 ${items && items.length > 0 ? items.map(item => {
                                     const itemName = item.product_name || item.name || 'Produto';
@@ -719,7 +719,7 @@
 
                         <!-- Resumo do Pedido -->
                         <div class="section">
-                            <h2>💵 Resumo do Pedido</h2>
+                            <h2> Resumo do Pedido</h2>
                             <div class="info-grid">
                                 <div class="summary-item">
                                     <span>Subtotal:</span>
@@ -747,7 +747,7 @@
                         <div class="actions-footer">
                             ${whatsappUrl !== '#' ? `
                             <a href="${whatsappUrl}" target="_blank" class="action-btn whatsapp">
-                                <span class="action-btn-icon">💬</span>
+                                <span class="action-btn-icon"></span>
                                 <span>Falar no WhatsApp</span>
                             </a>
                             ` : ''}
@@ -756,14 +756,14 @@
                             <div class="address-actions" style="width: 100%;">
                                 ${googleMapsUrl !== '#' ? `
                                 <a href="${googleMapsUrl}" target="_blank" class="action-btn google-maps">
-                                    <span class="action-btn-icon">🗺️</span>
+                                    <span class="action-btn-icon"></span>
                                     <span>Google Maps</span>
                                 </a>
                                 ` : ''}
                                 
                                 ${uberUrl !== '#' ? `
                                 <a href="${uberUrl}" target="_blank" class="action-btn uber">
-                                    <span class="action-btn-icon">🚗</span>
+                                    <span class="action-btn-icon"></span>
                                     <span>Uber Flash</span>
                                 </a>
                                 ` : ''}
@@ -771,12 +771,12 @@
                             ` : ''}
                             
                             <button onclick="window.print()" class="action-btn secondary">
-                                <span class="action-btn-icon">🖨️</span>
+                                <span class="action-btn-icon"></span>
                                 <span>Imprimir Comprovante</span>
                             </button>
                             
                             <button onclick="window.location.href='index.html'" class="action-btn primary">
-                                <span class="action-btn-icon">🏠</span>
+                                <span class="action-btn-icon"></span>
                                 <span>Voltar para a Loja</span>
                             </button>
                         </div>
@@ -790,12 +790,12 @@
 
                     const statusElement = document.getElementById('orderStatus');
                     if (statusElement) {
-                        statusElement.textContent = '✅ Pedido Confirmado';
+                        statusElement.textContent = 'Pedido Confirmado';
                         statusElement.style.background = '#4CAF50';
                     }
 
                 } catch (error) {
-                    console.error('❌ Erro ao exibir pedido:', error);
+                    console.error('Erro ao exibir pedido:', error);
                     this.showError('Erro ao exibir os dados do pedido.');
                 }
             }
@@ -805,7 +805,7 @@
                 if (orderContent) {
                     orderContent.innerHTML = `
                         <div class="error">
-                            <h2>❌ ${message}</h2>
+                            <h2> ${message}</h2>
                             <p>Verifique se o link do pedido está correto ou se o pedido ainda existe.</p>
                             <button onclick="window.location.href='index.html'" class="action-btn primary">
                                 <span class="action-btn-icon">🏠</span>
@@ -817,7 +817,7 @@
                     // Atualiza status no header
                     const statusElement = document.getElementById('orderStatus');
                     if (statusElement) {
-                        statusElement.textContent = '❌ Erro';
+                        statusElement.textContent = 'Erro';
                         statusElement.style.background = '#E74C3C';
                     }
                 }
