@@ -218,11 +218,12 @@ class AdminPanel {
 
     loadTabData(tabId) {
         switch (tabId) {
-            case 'orders':
-                this.setupOrdersTab();
+            case 'analytics':
+                this.setupAnalyticsTab();
                 break;
-
-
+            case 'products':
+                this.setupProductsTab();
+                break;
         }
     }
 
@@ -239,11 +240,8 @@ class AdminPanel {
             // Analisa produtos
             this.analyzeProducts();
 
-            // Atualiza estatísticas
-            this.updateStats();
-
-            // Atualiza gráficos iniciais
-            this.updateCharts();
+            // Inicializa a aba ativa (Analytics por padrão)
+            this.setupAnalyticsTab();
 
             // Atualiza timestamp
             this.updateTimestamp();
@@ -3929,84 +3927,9 @@ class AdminPanel {
     }
 
     generateKitchenReport() {
-        // Filtra todos os pedidos pendentes ou preparando, independente da data
         const activeOrders = this.orders.filter(o => ['pendente', 'preparando'].includes(o.status));
-        
         if (activeOrders.length === 0) {
-            this.showError('Não há pedidos pendentes ou em preparação para a cozinha');
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const today = new Date().toLocaleDateString('pt-BR');
-
-        // Título principal
-        doc.setFontSize(18);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Pedidos para Cozinha - ${today}`, 14, 22);
-
-        let yPos = 35;
-        activeOrders.forEach((order, index) => {
-            // Verifica se precisa de nova página
-            if (yPos > 260) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            // Cabeçalho do Pedido: Pedido: ID - Nome do Cliente
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            const clientName = order.client_name || (order.client ? order.client.name : 'Cliente');
-            const statusText = this.getStatusText(order.status || 'pendente');
-            doc.text(`Pedido: ${order.order_id || order.id} - ${clientName} (${statusText})`, 14, yPos);
-            yPos += 7;
-
-            // Itens do Pedido
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            if (order.items) {
-                order.items.forEach(item => {
-                    if (yPos > 280) {
-                        doc.addPage();
-                        yPos = 20;
-                    }
-                    doc.text(`• ${item.quantity}x ${item.product_name || item.name}`, 20, yPos);
-                    yPos += 6;
-                });
-            }
-
-            // Observação
-            if (order.observation) {
-                if (yPos > 280) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.setFont(undefined, 'italic');
-                doc.text(`Obs: ${order.observation}`, 20, yPos);
-                yPos += 6;
-            }
-
-            // Linha separadora
-            yPos += 4;
-            doc.setDrawColor(200, 200, 200);
-            doc.line(14, yPos, 196, yPos);
-            yPos += 12;
-        });
-
-        doc.save(`pedidos_cozinha_${new Date().toISOString().split('T')[0]}.pdf`);
-        this.showSuccess(`Relatório para cozinha gerado com sucesso! (${activeOrders.length} pedidos)`);
-    }
-
-    generateTodayOrdersReport() {
-        const today = new Date().toISOString().split('T')[0];
-        const todayOrders = this.orders.filter(order => {
-            const orderDate = new Date(order.created_at).toISOString().split('T')[0];
-            return orderDate === today;
-        });
-
-        if (todayOrders.length === 0) {
-            this.showError('Nenhum pedido realizado hoje');
+            this.showError('Não há pedidos para a cozinha no momento');
             return;
         }
 
@@ -4014,44 +3937,52 @@ class AdminPanel {
         const doc = new jsPDF();
 
         doc.setFontSize(18);
-        doc.text('Pedidos de Hoje - ' + new Date().toLocaleDateString('pt-BR'), 14, 22);
+        doc.text('Pedidos para Cozinha', 14, 22);
+        doc.setFontSize(11);
+        doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
 
-        let yPos = 35;
-        todayOrders.forEach((order, index) => {
-            if (yPos > 250) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            const clientName = order.client_name || (order.client ? order.client.name : 'Cliente');
-            const statusText = this.getStatusText(order.status || 'pendente');
-            doc.text(`Pedido: ${order.order_id || order.id} - ${clientName} (${statusText})`, 14, yPos);
-            yPos += 7;
-
-            doc.setFontSize(11);
-            doc.setFont(undefined, 'normal');
-            if (order.items) {
-                order.items.forEach(item => {
-                    doc.text(`• ${item.quantity}x ${item.product_name || item.name}`, 20, yPos);
-                    yPos += 6;
+        const tableData = [];
+        activeOrders.forEach(o => {
+            if (o.items) {
+                o.items.forEach(item => {
+                    tableData.push([
+                        o.order_id || o.id,
+                        item.product_name || item.name,
+                        item.quantity,
+                        o.observation || '-'
+                    ]);
                 });
             }
-
-            if (order.observation) {
-                doc.setFont(undefined, 'italic');
-                doc.text(`Obs: ${order.observation}`, 20, yPos);
-                yPos += 6;
-            }
-
-            yPos += 5;
-            doc.line(14, yPos, 196, yPos);
-            yPos += 10;
         });
 
-        doc.save(`pedidos_hoje_${today}.pdf`);
-        this.showSuccess(`📋 Relatório de hoje gerado: ${todayOrders.length} pedidos`);
+        doc.autoTable({
+            startY: 35,
+            head: [['Pedido', 'Produto', 'Qtd', 'Observação']],
+            body: tableData,
+            headStyles: { 
+                fillColor: [28, 61, 45],
+                fontSize: 12,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            bodyStyles: {
+                fontSize: 11,
+                textColor: [40, 40, 40]
+            },
+            columnStyles: {
+                0: { cellWidth: 25, fontStyle: 'bold', halign: 'center' },
+                1: { cellWidth: 'auto', fontStyle: 'bold', fontSize: 13 },
+                2: { cellWidth: 20, halign: 'center', fontStyle: 'bold', fontSize: 14, textColor: [180, 0, 0] },
+                3: { cellWidth: 'auto', fontStyle: 'italic', textColor: [100, 100, 100] }
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            margin: { top: 35 }
+        });
+
+        doc.save('pedidos_cozinha.pdf');
+        this.showSuccess('Relatório para cozinha gerado com sucesso!');
     }
 
     generateClientsPDF() {
@@ -4353,7 +4284,7 @@ class AdminPanel {
         const printTodayBtn = document.getElementById('printTodayOrders');
         if (printTodayBtn) {
             printTodayBtn.addEventListener('click', () => {
-                this.generateTodayOrdersReport();
+                this.generateKitchenReport();
             });
         }
 
@@ -4361,13 +4292,6 @@ class AdminPanel {
         if (viewPendingBtn) {
             viewPendingBtn.addEventListener('click', () => {
                 this.filterPendingOrders();
-            });
-        }
-
-        const kitchenReportBtn = document.getElementById('generateKitchenReportBtn');
-        if (kitchenReportBtn) {
-            kitchenReportBtn.addEventListener('click', () => {
-                this.generateKitchenReport();
             });
         }
     }
@@ -4525,7 +4449,59 @@ class AdminPanel {
         this.showSuccess(`✅ ${orderIds.length} pedido(s) atualizado(s) para ${this.getStatusText(newStatus)}`);
     }
 
+    generateKitchenReport() {
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = this.orders.filter(order => {
+            const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+            return orderDate === today && ['pendente', 'preparando'].includes(order.status || 'pendente');
+        });
 
+        if (todayOrders.length === 0) {
+            this.showError('Nenhum pedido para preparação hoje');
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(18);
+        doc.text('Pedidos para Cozinha - ' + new Date().toLocaleDateString('pt-BR'), 14, 22);
+
+        let yPos = 35;
+        todayOrders.forEach((order, index) => {
+            if (yPos > 250) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text(`Pedido: ${order.order_id || order.id} - ${order.client_name}`, 14, yPos);
+            yPos += 7;
+
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            if (order.items) {
+                order.items.forEach(item => {
+                    doc.text(`• ${item.quantity}x ${item.product_name}`, 20, yPos);
+                    yPos += 6;
+                });
+            }
+
+            if (order.observation) {
+                doc.setFont(undefined, 'italic');
+                doc.text(`Obs: ${order.observation}`, 20, yPos);
+                yPos += 6;
+            }
+
+            yPos += 5;
+            doc.line(14, yPos, 196, yPos);
+            yPos += 10;
+        });
+
+        doc.save(`cozinha_${today}.pdf`);
+        this.showSuccess(`📋 Relatório para cozinha gerado: ${todayOrders.length} pedidos`);
+    }
 
     // Métodos estáticos para acesso global
     static handleInsightAction(action) {

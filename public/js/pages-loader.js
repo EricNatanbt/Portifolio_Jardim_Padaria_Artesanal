@@ -105,6 +105,14 @@ class PagesLoader {
                             <img src="img/produtos/produto13.png" alt="bolinhos coloridos" class="carousel-image">
                         </div>
                     </div>
+
+                    <!-- Chamada para o Cardápio Integrada -->
+                    <div class="menu-cta-integrated">
+                        <p>Gostou das nossas delícias? Veja o cardápio completo e faça seu pedido!</p>
+                        <a href="#" class="btn-link-menu" data-page="menu">
+                            Ver cardápio e pedir agora →
+                        </a>
+                    </div>
                 </div>
             </section>
 

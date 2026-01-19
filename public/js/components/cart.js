@@ -2394,11 +2394,23 @@ const Cart = {
         }
 
         const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl =
-            `https://wa.me/5583987194754?text=${encodedMessage}`;
-
-        // Abre em nova aba
-        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        const phone = "5583987194754";
+        
+        // Detecta se é iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        // No iOS, window.open pode ser bloqueado após chamadas assíncronas (como o saveOrder)
+        // Usar window.location.href costuma ser mais confiável para redirecionamento direto
+        if (isIOS) {
+            // Tenta usar o esquema api.whatsapp.com que costuma funcionar melhor no Safari/iOS
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=${phone}&text=${encodedMessage}`;
+            window.location.href = whatsappUrl;
+        } else {
+            // Para outros dispositivos, mantém o wa.me em nova aba
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
+            window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        }
     },
 
     _generateFallbackWhatsAppMessage() {

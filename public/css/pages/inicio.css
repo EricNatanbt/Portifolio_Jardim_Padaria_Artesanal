@@ -465,3 +465,48 @@
         height: 300px;
     }
 }
+/* ============================================
+   MENU CTA INTEGRATED (Abaixo do Carrossel)
+   ============================================ */
+.menu-cta-integrated {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.menu-cta-integrated p {
+    font-size: 1.1rem;
+    color: var(--muted-foreground);
+    margin-bottom: 0.75rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-link-menu {
+    display: inline-block;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: all 0.3s ease;
+    font-family: 'Playfair Display', serif;
+}
+
+.btn-link-menu:hover {
+    color: var(--secondary);
+    transform: translateX(5px);
+}
+
+@media (max-width: 768px) {
+    .menu-cta-integrated {
+        margin-top: 1.5rem;
+        padding: 0 1rem;
+    }
+    
+    .menu-cta-integrated p {
+        font-size: 1rem;
+    }
+    
+    .btn-link-menu {
+        font-size: 1.1rem;
+    }
+}

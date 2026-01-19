@@ -654,9 +654,18 @@ function abrirGoogleMaps() {
 
 // Função para abrir o WhatsApp
 function abrirWhatsApp() {
-    const whatsappLink =
-        "https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0";
-    window.open(whatsappLink, "_blank");
+    const phone = "558399204618";
+    const whatsappLink = `https://api.whatsapp.com/send/?phone=${phone}&text&type=phone_number&app_absent=0`;
+    
+    // Detecta se é iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOS) {
+        window.location.href = whatsappLink;
+    } else {
+        window.open(whatsappLink, "_blank");
+    }
 }
 
 // Função para abrir contato (agora sempre direciona para o WhatsApp)

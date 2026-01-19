@@ -257,6 +257,14 @@ class OrderDisplayFixed {
         if (!phone) return '#';
         const cleanPhone = phone.toString().replace(/\D/g, '');
         const encodedMessage = encodeURIComponent(message || 'Olá, gostaria de falar sobre meu pedido!');
+        
+        // Detecta se é iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        if (isIOS) {
+            return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMessage}`;
+        }
         return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
     }
 

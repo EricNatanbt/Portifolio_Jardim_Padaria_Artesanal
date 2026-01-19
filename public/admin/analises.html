@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin - Pedidos e Produtos</title>
+        <link rel="stylesheet" href="./css/admin-common.css">
+        <link rel="stylesheet" href="./css/gerenciarPedidos.css">
+        <link rel="icon" type="image/png" href="../img/logos/Logo.png">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        >
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        >
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <header class="admin-header">
+            <div
+                class="logo-section"
+                style="display: flex; align-items: center; gap: 0.75rem"
+            >
+                <img
+                    src="../img/logos/Logo.png"
+                    alt="Logo"
+                    style="height: 2.5rem; width: 2.5rem"
+                >
+                <div>
+                    <h1>Análises de Pedidose Produtos</h1>
+                    <small
+                        id="lastUpdate"
+                        style="color: rgba(255, 255, 255, 0.8); font-size: 0.8rem"
+                    >Última atualização: --</small>
+                </div>
+            </div>
+            <div class="header-nav">
+                <a href="inicioAdmin.html" class="btn-back-site">
+                    <i class="fas fa-home"></i> Início Admin
+                </a>
+                <a href="gerenciarPedidos.html" class="btn btn-secondary">
+                    <i class="fas fa-shopping-cart"></i> Pedidos
+                </a>
+            </div>
+        </header>
+
+        <div class="admin-container">
+            <!-- Dashboard Tabs -->
+            <div class="dashboard-tabs" id="dashboardTabs">
+                <button class="tab-btn active" data-tab="analytics">
+                    <i class="fas fa-chart-line"></i> Pedidos
+                </button>
+                <button class="tab-btn" data-tab="products">
+                    <i class="fas fa-box-open"></i> Produtos
+                </button>
+            </div>
+
+            <!-- TAB 3: Analytics -->
+            <div id="tab-analytics" class="tab-content active">
+                <div class="analytics-header">
+                    <h2><i class="fas fa-chart-bar"></i> Análises Avançadas</h2>
+                    <div class="analytics-period">
+                        <select id="analyticsPeriod" class="filter-select">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último ano</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                        <div
+                            id="customPeriod"
+                            style="display: none; margin-left: 1rem"
+                        >
+                            <input
+                                type="date"
+                                id="analyticsStartDate"
+                                class="filter-input"
+                            >
+                            <span>até</span>
+                            <input
+                                type="date"
+                                id="analyticsEndDate"
+                                class="filter-input"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card large">
+                        <h3>
+                            <i class="fas fa-chart-line"></i> Vendas ao Longo do
+                            Tempo
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="salesTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3><i class="fas fa-clock"></i> Horários de Pico</h3>
+                        <div class="chart-container">
+                            <canvas id="peakHoursChart"></canvas>
+                        </div>
+                        <div class="chart-summary" id="peakHoursSummary">
+                            <!-- Summary will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>
+                            <i class="fas fa-calendar-day"></i> Melhores Dias da
+                            Semana
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="weekdayChart"></canvas>
+                        </div>
+                        <div class="chart-summary" id="weekdaySummary">
+                            <!-- Summary will be injected here -->
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>
+                            <i class="fas fa-money-bill-wave"></i> Métodos de
+                            Pagamento
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="paymentMethodsChart"></canvas>
+                        </div>
+                        <div class="chart-summary">
+                            <div id="paymentSummary">
+                                <!-- Summary will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>
+                            <i class="fas fa-truck"></i> Entregas vs Retiradas
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="deliveryChart"></canvas>
+                        </div>
+                        <div class="chart-summary">
+                            <div id="deliverySummary">
+                                <!-- Summary will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>
+                            <i class="fas fa-users"></i> Clientes Recorrentes
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="clientsChart"></canvas>
+                        </div>
+                        <div class="chart-summary">
+                            <div id="clientsSummary">
+                                <!-- Summary will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-insights">
+                    <h3>
+                        <i class="fas fa-lightbulb"></i> Insights Automáticos
+                    </h3>
+                    <div class="insights-container" id="insightsContainer">
+                        <!-- Insights will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: Products -->
+            <div id="tab-products" class="tab-content">
+                <div class="products-header">
+                    <h2><i class="fas fa-box-open"></i> Análise de Produtos</h2>
+                    <div class="products-controls">
+                        <select id="productsPeriod" class="filter-select">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="all">Todo o período</option>
+                        </select>
+                        <button id="refreshProducts" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="products-grid">
+                    <div class="products-card large">
+                        <h3>
+                            <i class="fas fa-chart-bar"></i> Produtos Mais
+                            Vendidos
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="products-card">
+                        <h3><i class="fas fa-tags"></i> Categorias</h3>
+                        <div class="chart-container">
+                            <canvas id="categoriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="products-table-container">
+                    <h3><i class="fas fa-list"></i> Ranking de Produtos</h3>
+                    <div class="table-responsive">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>Posição</th>
+                                    <th>Produto</th>
+                                    <th>Quantidade Vendida</th>
+                                    <th>Faturamento</th>
+                                    <th>Tendência</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsRankingBody">
+                                <!-- Products ranking will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="products-insights">
+                    <h3>
+                        <i class="fas fa-chart-pie"></i> Análise de Combinações
+                        de Produtos
+                    </h3>
+
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem"
+                    >
+                        <div>
+                            <h4
+                                style="color: var(--primary); margin-bottom: 1rem"
+                            >
+                                <i class="fas fa-chart-bar"></i> Gráfico de
+                                Frequência
+                            </h4>
+                            <div
+                                style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); height: 300px"
+                            >
+                                <canvas id="combinationsChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4
+                                style="color: var(--primary); margin-bottom: 1rem"
+                            >
+                                <i class="fas fa-lightbulb"></i> Insights
+                            </h4>
+                            <div
+                                id="combinationsInsights"
+                                style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border); height: 300px; overflow-y: auto"
+                            >
+                                <!-- Insights serão injetados aqui -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="color: var(--primary); margin-bottom: 1rem">
+                        <i class="fas fa-list"></i> Combinações Mais Frequentes
+                    </h4>
+                    <div
+                        class="combinations-container"
+                        id="combinationsContainer"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1rem"
+                    >
+                        <!-- As combinações serão injetadas aqui -->
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div id="notificationBar" class="notification-bar"></div>
+
+        <!-- Scripts -->
+        <script src="../js/main.js"></script>
+        <script src="js/analises.js"></script>
+        <!-- PDF Generation Library -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+        ></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"
+        ></script>
+        <!-- Excel Export -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+        ></script>
+
+
+    </body>
+</html>

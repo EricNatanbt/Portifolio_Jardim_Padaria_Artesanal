@@ -136,21 +136,13 @@ const InicioPage = {
     },
 
     setupEventListeners() {
-        // Adiciona event listener para o botão "Ver Cardápio Completo"
-        const menuButton = document.querySelector('[data-page="menu"]');
-        if (menuButton) {
-            menuButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (window.navigateToPage) {
-                    window.navigateToPage('menu');
-                }
-            });
-        }
-        
-        // Adiciona event listener para os produtos que levam ao menu
+        // Adiciona event listener para os botões que levam ao menu
+        // Usamos delegação de evento para capturar cliques em qualquer elemento com data-page="menu"
         document.addEventListener('click', (e) => {
-            if (e.target.closest('[data-page="menu"]')) {
+            const menuBtn = e.target.closest('[data-page="menu"]');
+            if (menuBtn) {
                 e.preventDefault();
+                console.log('Navegando para o cardápio...');
                 if (window.navigateToPage) {
                     window.navigateToPage('menu');
                 }
