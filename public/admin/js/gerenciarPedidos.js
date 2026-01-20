@@ -1218,83 +1218,83 @@ class AdminPanel {
             row.classList.add('selected');
         }
 
-        row.innerHTML = `
-            <td data-label="Selecionar">
-                <input type="checkbox" class="order-select" 
-                       data-order-id="${orderId}"
-                       ${isSelected ? 'checked' : ''}
-                       onchange="window.AdminPanel.toggleOrderSelection('${orderId}', this.checked)">
-            </td>
-            <td data-label="ID Pedido">
-                <a href="#" class="order-id-link" title="Ver detalhes do pedido" onclick="window.AdminPanel.openOrderDetails('${orderId}'); return false;">
-                    <strong>${orderId}</strong>
-                </a>
-            </td>
-            <td data-label="Cliente">
-                <div class="customer-cell">
-                    <strong>${order.client_name || 'N/A'}</strong>
-                    ${order.client_phone ? `
-                    <br><small class="phone-hint" title="${this.formatPhone(order.client_phone)}">
-                        📞 ${this.formatPhone(order.client_phone)}
-                    </small>` : ''}
-                </div>
-            </td>
-            <td data-label="Telefone">
-                <span class="phone-number" title="${order.client_phone || ''}">
-                    ${this.formatPhone(order.client_phone)}
-                </span>
-            </td>
-            <td data-label="Valor">
-                <strong class="order-value">R$ ${total.toFixed(2)}</strong>
-            </td>
-            <td data-label="Status">
-                <span class="status-badge status-${order.status || 'pendente'}">
-                    ${this.getStatusText(order.status || 'pendente')}
-                </span>
-            </td>
-            <td data-label="Entrega">
-                ${deliveryOption === 'retirada' ?
-                '<span class="delivery-type" title="Retirada na Loja"><i class="fas fa-store"></i> Retirada</span>' :
-                '<span class="delivery-type" title="Entrega em Domicílio"><i class="fas fa-motorcycle"></i> Entrega</span>'}
-            </td>
-            <td data-label="Pagamento">
-                ${paymentMethod === 'pix' ? '<span title="Pagamento via Pix"><i class="fas fa-qrcode"></i> Pix</span>' :
-                paymentMethod === 'cartao' ? '<span title="Pagamento com Cartão"><i class="far fa-credit-card"></i> Cartão</span>' :
-                    '<span title="Pagamento em Dinheiro"><i class="fas fa-money-bill-wave"></i> Dinheiro</span>'}
-            </td>
-            <td data-label="Data/Hora">
-                <span class="date-time" title="${date.toLocaleString('pt-BR')}">
-                    <i class="far fa-calendar"></i> ${formattedDate}
-                    <br><i class="far fa-clock"></i> ${formattedTime}
-                </span>
-            </td>
-            <td data-label="Ações">
-    <div class="btn-group">
-        <button class="action-btn btn-primary" 
-                title="Ver detalhes do pedido" 
-                onclick="window.AdminPanel.openOrderDetails('${orderId}')">
-            <i class="fas fa-eye"></i>
-        </button>
-        <button class="action-btn btn-ghost" 
-                title="Ver página do cliente" 
-                onclick="window.open('../order.html?orderId=${orderId}', '_blank')">
-            <i class="fas fa-external-link-alt"></i>
-        </button>
-        <button class="action-btn btn-info" 
-                title="Alterar status do pedido" 
-                onclick="window.AdminPanel.openEditStatus('${orderId}')">
-            <i class="fas fa-edit"></i>
-        </button>
-        ${order.client_phone ? `
-        <button class="action-btn btn-success" 
-                title="Enviar mensagem no WhatsApp" 
-                onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')">
-            <i class="fab fa-whatsapp"></i>
-        </button>
-        ` : ''}
-    </div>
-</td>
-        `;
+	        row.innerHTML = `
+	            <td data-label="Selecionar">
+	                <input type="checkbox" class="order-select" 
+	                       data-order-id="${orderId}"
+	                       ${isSelected ? 'checked' : ''}
+	                       onchange="window.AdminPanel.toggleOrderSelection('${orderId}', this.checked)">
+	            </td>
+	            <td data-label="ID Pedido">
+	                <a href="#" class="order-id-link" title="Ver detalhes do pedido" onclick="window.AdminPanel.openOrderDetails('${orderId}'); return false;">
+	                    <strong>${orderId}</strong>
+	                </a>
+	            </td>
+	            <td data-label="Cliente">
+	                <div class="customer-cell">
+	                    <strong>${order.client_name || 'N/A'}</strong>
+	                    ${order.client_phone ? `
+	                    <br><small class="phone-hint" title="${this.formatPhone(order.client_phone)}">
+	                        📞 ${this.formatPhone(order.client_phone)}
+	                    </small>` : ''}
+	                </div>
+	            </td>
+	            <td data-label="Telefone">
+	                <span class="phone-number" title="${order.client_phone || ''}">
+	                    ${this.formatPhone(order.client_phone)}
+	                </span>
+	            </td>
+	            <td data-label="Valor">
+	                <strong class="order-value">R$ ${total.toFixed(2)}</strong>
+	            </td>
+	            <td data-label="Status">
+	                <span class="status-badge status-${order.status || 'pendente'}">
+	                    ${this.getStatusText(order.status || 'pendente')}
+	                </span>
+	            </td>
+	            <td data-label="Entrega">
+	                ${deliveryOption === 'retirada' ?
+	                '<span class="delivery-type" title="Retirada na Loja"><i class="fas fa-store"></i> Retirada</span>' :
+	                '<span class="delivery-type" title="Entrega em Domicílio"><i class="fas fa-motorcycle"></i> Entrega</span>'}
+	            </td>
+	            <td data-label="Pagamento">
+	                ${paymentMethod === 'pix' ? '<span title="Pagamento via Pix"><i class="fas fa-qrcode"></i> Pix</span>' :
+	                paymentMethod === 'cartao' ? '<span title="Pagamento com Cartão"><i class="far fa-credit-card"></i> Cartão</span>' :
+	                    '<span title="Pagamento em Dinheiro"><i class="fas fa-money-bill-wave"></i> Dinheiro</span>'}
+	            </td>
+	            <td data-label="Data/Hora">
+	                <span class="date-time" title="${date.toLocaleString('pt-BR')}">
+	                    <i class="far fa-calendar"></i> ${formattedDate}
+	                    <br><i class="far fa-clock"></i> ${formattedTime}
+	                </span>
+	            </td>
+	            <td data-label="Ações">
+	    <div class="btn-group">
+	        <button class="action-btn btn-primary" 
+	                title="Ver detalhes do pedido" 
+	                onclick="window.AdminPanel.openOrderDetails('${orderId}')">
+	            <i class="fas fa-eye"></i>
+	        </button>
+	        <button class="action-btn btn-ghost" 
+	                title="Ver página do cliente" 
+	                onclick="window.open('../order.html?orderId=${orderId}', '_blank')">
+	            <i class="fas fa-external-link-alt"></i>
+	        </button>
+	        <button class="action-btn btn-info" 
+	                title="Alterar status do pedido" 
+	                onclick="window.AdminPanel.openEditStatus('${orderId}')">
+	            <i class="fas fa-edit"></i>
+	        </button>
+	        ${order.client_phone ? `
+	        <button class="action-btn btn-success" 
+	                title="Enviar mensagem no WhatsApp" 
+	                onclick="window.open('https://api.whatsapp.com/send?phone=${order.client_phone}', '_blank')">
+	            <i class="fab fa-whatsapp"></i>
+	        </button>
+	        ` : ''}
+	    </div>
+	</td>
+	        `;
 
         return row;
     }

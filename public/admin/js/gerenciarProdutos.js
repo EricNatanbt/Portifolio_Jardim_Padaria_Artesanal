@@ -134,25 +134,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 ).join("");
 
                 row.innerHTML = `
-    <td class="td-image">
+    <td class="td-image" data-label="Imagem">
         <div class="product-image-container">
             <img src="${
                     p.imagem || p.image_url || p.image || "/img/logos/Logo.png"
                 }" class="product-image" alt="${p.nome}">
         </div>
     </td>
-    <td>
+    <td data-label="Nome">
         <div class="product-name-cell">${p.nome || ""}</div>
         <div style="font-size:0.75rem; color:var(--text-light); margin-top:4px;">ID: ${
                     p.id?.substring(0, 8) || ""
                 }</div>
     </td>
-    <td><span class="category-badge">${p.categoria || "-"}</span></td>
-    <td><span class="price-tag">R$ ${
+    <td data-label="Categoria"><span class="category-badge">${p.categoria || "-"}</span></td>
+    <td data-label="Preço"><span class="price-tag">R$ ${
                     price.toFixed(2).replace(".", ",")
                 }</span></td>
-    <td><div class="days-list">${diasHtml}</div></td>
-    <td style="text-align:right; white-space: nowrap;">
+    <td data-label="Disponibilidade"><div class="days-list">${diasHtml}</div></td>
+    <td data-label="Ações" style="text-align:right; white-space: nowrap;">
         <button class="btn-edit" data-id="${p.id}" title="Editar produto">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -285,12 +285,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         imagem,
                     }),
                 });
+
                 const data = await res.json();
                 if (!res.ok || !data.success) {
                     throw new Error(data.message || "Erro ao criar produto");
                 }
+
                 alert("Produto criado com sucesso!");
-                if (createModal) createModal.style.display = "none";
+                createModal.style.display = "none";
                 pm.loadProducts();
             } catch (err) {
                 alert("Erro: " + err.message);
@@ -327,34 +329,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 const imageFile =
                     document.getElementById("editImagem").files[0];
 
-                const product = pm.products.find((p) => p.id === id);
-                let imagem = product ? product.imagem : "/img/logos/Logo.png";
+                let updateData = {
+                    id,
+                    nome,
+                    preco,
+                    descricao,
+                    categoria,
+                    dias_disponiveis,
+                };
 
                 if (imageFile) {
-                    imagem = await uploadImage(imageFile);
+                    updateData.imagem = await uploadImage(imageFile);
                 }
 
                 const res = await fetch("/.netlify/functions/update-product", {
-                    method: "POST",
+                    method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        id,
-                        nome,
-                        preco,
-                        descricao,
-                        categoria,
-                        dias_disponiveis,
-                        imagem,
-                    }),
+                    body: JSON.stringify(updateData),
                 });
+
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    throw new Error(
-                        data.message || "Erro ao atualizar produto",
-                    );
+                    throw new Error(data.message || "Erro ao atualizar produto");
                 }
+
                 alert("Produto atualizado com sucesso!");
-                if (editModal) editModal.style.display = "none";
+                editModal.style.display = "none";
                 pm.loadProducts();
             } catch (err) {
                 alert("Erro: " + err.message);

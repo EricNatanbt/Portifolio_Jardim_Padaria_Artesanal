@@ -5,22 +5,22 @@
 /* Dashboard Tabs */
 .dashboard-tabs {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding: 0.75rem;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
     background: var(--card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
     overflow-x: auto;
-    justify-content: center;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
 }
 
 .dashboard-tabs .tab-btn {
-    flex: 1;
-    max-width: 300px;
+    flex: 0 0 auto;
     justify-content: center;
-    font-size: 1.1rem;
-    padding: 1rem 2rem;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.25rem;
 }
 
 .tab-btn {
@@ -66,9 +66,23 @@
 /* Enhanced Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
 }
 
 .stat-card {
@@ -136,9 +150,15 @@
 /* Charts */
 .charts-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1.5rem;
     margin-bottom: 2rem;
+}
+
+@media (min-width: 992px) {
+    .charts-row {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .chart-card {
@@ -215,15 +235,22 @@
 
 /* Advanced Filters */
 .advanced-filters {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
     margin-bottom: 1rem;
     padding: 1rem;
     background: var(--accent-light);
     border-radius: var(--radius-lg);
     border: 1px solid var(--accent);
     font-size: 0.85rem;
+}
+
+@media (min-width: 992px) {
+    .advanced-filters {
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+    }
 }
 
 .filter-section h4 {

@@ -243,9 +243,45 @@
     
     .reports-controls {
         width: 100%;
+        flex-direction: column;
     }
     
-    .reports-controls select {
-        flex-grow: 1;
+    .reports-controls select, .reports-controls button {
+        width: 100%;
+    }
+
+    .templates-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .template-card {
+        flex-direction: row;
+        text-align: left;
+        padding: 1rem;
+        align-items: center;
+    }
+
+    .template-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+
+    .template-card h4 {
+        font-size: 1rem;
+    }
+
+    .template-card p {
+        display: none; /* Esconde descrição no mobile para economizar espaço */
+    }
+
+    .btn-template {
+        width: auto;
+        margin-top: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
     }
 }

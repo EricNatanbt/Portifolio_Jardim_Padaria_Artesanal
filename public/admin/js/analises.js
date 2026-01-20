@@ -2715,20 +2715,20 @@ class AdminPanel {
         this.productAnalysis.slice(0, 10).forEach((product, index) => {
             const row = document.createElement('tr');
 
-            row.innerHTML = `
-            <td><strong>#${index + 1}</strong></td>
-            <td><strong>${product.name}</strong><br>
-                <small>${product.orderCount} pedidos</small></td>
-            <td>${product.quantity} unidades</td>
-            <td><strong>R$ ${product.revenue.toFixed(2)}</strong></td>
-            <td>
-                ${index < 3 ?
-                    '<span style="color: #27ae60;"><i class="fas fa-chart-line"></i> Alta</span>' :
-                    index < 7 ?
-                        '<span style="color: #f39c12;"><i class="fas fa-minus"></i> Estável</span>' :
-                        '<span style="color: #e74c3c;"><i class="fas fa-chart-line"></i> Baixa</span>'}
-            </td>
-        `;
+	            row.innerHTML = `
+	            <td data-label="Posição"><strong>#${index + 1}</strong></td>
+	            <td data-label="Produto"><strong>${product.name}</strong><br>
+	                <small>${product.orderCount} pedidos</small></td>
+	            <td data-label="Quantidade">${product.quantity} unidades</td>
+	            <td data-label="Faturamento"><strong>R$ ${product.revenue.toFixed(2)}</strong></td>
+	            <td data-label="Tendência">
+	                ${index < 3 ?
+	                    '<span style="color: #27ae60;"><i class="fas fa-chart-line"></i> Alta</span>' :
+	                    index < 7 ?
+	                        '<span style="color: #f39c12;"><i class="fas fa-minus"></i> Estável</span>' :
+	                        '<span style="color: #e74c3c;"><i class="fas fa-chart-line"></i> Baixa</span>'}
+	            </td>
+	        `;
 
             tbody.appendChild(row);
         });

@@ -2,8 +2,8 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
 }
 
 .card {
@@ -55,8 +55,17 @@
     justify-content: center;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .card h2 {
+        font-size: 1.25rem;
     }
 }
