@@ -47,46 +47,58 @@ class PagesLoader {
     }
 
     getInicioContent() {
-        return `
-            <!-- Hero Section -->
-            <section class="hero">
-                <div class="container">
-                    <div class="hero-content">
-                        <h2 class="hero-title">Bem-vindo ao Jardim Padaria Artesanal</h2>
-                        <p class="hero-subtitle">Produtos artesanais feitos com amor e ingredientes de qualidade. Cada pão é uma obra de arte, cada doce é um carinho especial.</p>
+    return `
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h2 class="hero-title">Bem-vindo ao Jardim Padaria Artesanal</h2>
+                    <p class="hero-subtitle">Produtos artesanais feitos com amor e ingredientes de qualidade. Cada pão é uma obra de arte, cada doce é um carinho especial.</p>
+                </div>
+                
+                <div class="hero-info">
+                    <div class="info-card" onclick="abrirGoogleMaps()" style="cursor: pointer;">
+                        <div class="info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="info-content">
+                            <h4>Visite Nossa Loja</h4>
+                            <p>Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
+                        </div>
                     </div>
                     
-                    <div class="hero-info">
-                        <div class="info-card" onclick="abrirGoogleMaps()" style="cursor: pointer;">
-                            <div class="info-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                            </div>
-                            <div class="info-content">
-                                <h4>Visite Nossa Loja</h4>
-                                <p>Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
-                            </div>
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" fill="none"/>
+                                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <div class="info-card">
-                            <div class="info-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            </div>
-                            <div class="info-content">
-                                <h4>Horário de Funcionamento</h4>
-                                <p>Qua a Sex: 14h – 18h<br>Sáb: 10h – 15h</p>
-                            </div>
+                        <div class="info-content">
+                            <h4>Horário de Funcionamento</h4>
+                            <p>Qua a Sex: 14h – 18h<br>Sáb: 10h – 15h</p>
                         </div>
-                        <div class="info-card">
-                            <div class="info-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 11 3 3 3-3M9.5 14.5 12 17l2.5-2.5M16 11l3 3 3-3M12 2v10"/></svg>
-                            </div>
-                            <div class="info-content">
-                                <h4>Aviso de Feirinhas</h4>
-                                <p>Participações divulgadas<br>em breve.</p>
-                            </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="info-content">
+                            <h4>Aviso de Feirinhas</h4>
+                            <p>Participações divulgadas<br>em breve.</p>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
             <!-- Carrossel de Produtos -->
             <section class="products-carousel-section">
@@ -123,51 +135,80 @@ class PagesLoader {
             </section>
 
             <!-- Benefits Section -->
-            <section class="benefits-section">
-                <div class="container">
-                    <h3>Por que Escolher a Jardim Padaria?</h3>
-                    <div class="benefits">
-                        <div class="benefit">
-                            <div class="benefit-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8a8 8 0 0 1-8 8Z"/><path d="M13 18c-4.33 0-6-1.33-6-4 0-2.67 1.67-4 6-4"/><path d="M13 14h-2"/></svg>
-                            </div>
-                            <div>
-                                <p class="benefit-title">Fermentação Natural</p>
-                                <p class="benefit-desc">Processo artesanal que realça o sabor e melhora a digestibilidade.</p>
-                            </div>
+        <section class="benefits-section">
+            <div class="container">
+                <h3>Por que Escolher a Jardim Padaria?</h3>
+                <div class="benefits">
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8a8 8 0 0 1-8 8Z" 
+                                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M13 18c-4.33 0-6-1.33-6-4 0-2.67 1.67-4 6-4" 
+                                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M13 14h-2" 
+                                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <div class="benefit">
-                            <div class="benefit-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                            </div>
-                            <div>
-                                <p class="benefit-title">Ingredientes Premium</p>
-                                <p class="benefit-desc">Apenas insumos selecionados de produtores locais e orgânicos.</p>
-                            </div>
+                        <div>
+                            <p class="benefit-title">Fermentação Natural</p>
+                            <p class="benefit-desc">Processo artesanal que realça o sabor e melhora a digestibilidade.</p>
                         </div>
-                        <div class="benefit">
-                            <div class="benefit-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="M9 22v-4"/><path d="M15 22v-4"/><path d="M18 18c0-1.7-1.3-3-3-3h-6c-1.7 0-3 1.3-3 3"/><path d="M12 15v-3"/><path d="M12 9V5"/><path d="M12 5a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>
-                            </div>
-                            <div>
-                                <p class="benefit-title">Técnica Artesanal</p>
-                                <p class="benefit-desc">Cada produto é feito manualmente com cuidado e precisão técnica.</p>
-                            </div>
+                    </div>
+                    
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" 
+                                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="10" r="3" 
+                                      stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </div>
-                        <div class="benefit">
-                            <div class="benefit-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                            </div>
-                            <div>
-                                <p class="benefit-title">Entrega Dedicada</p>
-                                <p class="benefit-desc">Receba seus produtos frescos diretamente em sua casa com pontualidade.</p>
-                            </div>
+                        <div>
+                            <p class="benefit-title">Ingredientes Premium</p>
+                            <p class="benefit-desc">Apenas insumos selecionados de produtores locais e orgânicos.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 18h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M3 22h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M9 22v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M15 22v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M18 18c0-1.7-1.3-3-3-3h-6c-1.7 0-3 1.3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M12 15v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M12 9V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M12 5a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="benefit-title">Técnica Artesanal</p>
+                            <p class="benefit-desc">Cada produto é feito manualmente com cuidado e precisão técnica.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="benefit">
+                        <div class="benefit-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="1" y="3" width="15" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" 
+                                         stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <circle cx="5.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="18.5" cy="18.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M12 8v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="benefit-title">Entrega Dedicada</p>
+                            <p class="benefit-desc">Receba seus produtos frescos diretamente em sua casa com pontualidade.</p>
                         </div>
                     </div>
                 </div>
-            </section>
-
-
+            </div>
+        </section>
 
             <!-- CTA Section -->
             <section class="cta-section">

@@ -87,5 +87,37 @@ const FeedbackPage = {
     }
 };
 
+document.addEventListener('DOMContentLoaded', function() {
+  
+    document.querySelectorAll('.coluna').forEach((col, index) => {
+        col.style.setProperty('--col-index', index);
+    });
+    
+   
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.zIndex = '1';
+        });
+    });
+    
+    setInterval(() => {
+        const randomCard = document.querySelectorAll('.card')[Math.floor(Math.random() * document.querySelectorAll('.card').length)];
+        if (randomCard) {
+            const emoji = randomCard.querySelector('.emoji');
+            if (emoji) {
+                emoji.style.transform = 'rotate(15deg) scale(1.15)';
+                setTimeout(() => {
+                    emoji.style.transform = '';
+                }, 300);
+            }
+        }
+    }, 3000);
+});
+
 export default FeedbackPage;
 export { FeedbackPage as FeedbacksPage };
+

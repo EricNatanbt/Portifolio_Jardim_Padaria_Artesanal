@@ -139,32 +139,29 @@ input {
    SCROLLBAR STYLING (Desktop - Pequena e Verde)
    ============================================ */
 
-/* Para WebKit (Chrome, Safari) */
 ::-webkit-scrollbar {
-    width: 6px; /* Pequena */
+    width: 6px; 
     height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: none; /* Fundo da cor do site */
+    background: none; 
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--primary); /* Cor verde do tema */
+    background: var(--primary); 
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark); /* Cor verde mais escura no hover */
+    background: var(--primary-dark); 
 }
 
-/* Para Firefox */
 * {
-    scrollbar-width: thin; /* Pequena */
-    scrollbar-color: var(--primary) var(--primary-dark); /* Cor da barra e do fundo */
+    scrollbar-width: thin; 
+    scrollbar-color: var(--primary) var(--primary-dark);
 }
-/* O sistema de notificações padrão utiliza o ID #notificationBar definido no final deste arquivo. 
-   As classes .notification-bar foram removidas para evitar conflitos. */
+
 
 /* ============================================
    PAGES SYSTEM WITH SMOOTH TRANSITIONS
@@ -182,12 +179,11 @@ input {
     transform: translateY(0);
 }
 
-/* Smooth transitions for all interactive elements */
 .nav-link, .mobile-nav-link, .cta-button, .product-card, .cart-btn, .menu-toggle {
     transition: all 0.3s ease;
 }
 
-/* Smooth hover effects */
+
 .cta-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(28, 61, 45, 0.2);
@@ -197,29 +193,29 @@ input {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
+
 /* ============================================
    SCROLLBAR HIDE (Mobile)
    ============================================ */
+
 @media (max-width: 767px) {
-    /* Para WebKit (Chrome, Safari) */
+
     ::-webkit-scrollbar {
         display: none;
         width: 0;
         height: 0;
     }
 
-    /* Para IE e Edge */
     body {
-        -ms-overflow-style: none;  /* IE and Edge */
+        -ms-overflow-style: none;  
     }
 
-    /* Para Firefox */
     * {
-        scrollbar-width: none;  /* Firefox */
+        scrollbar-width: none;  /
     }
 }
 
-/* Estilo para o campo de observação */
+
 .form-group textarea {
     width: 100%;
     padding: 12px;
@@ -308,7 +304,6 @@ input {
     line-height: 1.3;
 }
 
-/* Versão alternativa em estilo pastel */
 .address-found-notification.pastel {
     background: linear-gradient(135deg, #E8E2D4 0%, #F5ECCF 100%);
     color: #303922;
@@ -332,7 +327,6 @@ input {
     fill: #303922;
 }
 
-/* Animação de entrada suave */
 @keyframes slideInRight {
     from {
         transform: translateX(400px);
@@ -355,7 +349,7 @@ input {
     }
 }
 
-/* Responsivo */
+
 @media (max-width: 768px) {
     .address-found-notification {
         top: 10px;
@@ -392,7 +386,6 @@ input {
     }
 }
 
-/* Efeito de brilho sutil */
 .address-found-notification::before {
     content: '';
     position: absolute;
@@ -404,7 +397,6 @@ input {
 }
 
 
-/* NOTIFICATION STYLES - TEMA VERDE PASTEL */
 /* ============================================
    NOTIFICATION STYLES - TEMA VERDE PASTEL
    ============================================ */
@@ -413,30 +405,30 @@ input {
     top: 70px; /* Reduzido de 80px */
     left: 50%;
     transform: translateX(-50%) translateY(-100px);
-    padding: 10px 15px; /* Mais compacto: 10px 15px */
-    border-radius: 8px; /* Mais compacto: 8px */
+    padding: 10px 15px; 
+    border-radius: 8px; 
     font-family: 'Inter', sans-serif;
     font-weight: 500;
-    font-size: 13px; /* Reduzido: 13px */
-    line-height: 1.3; /* Adicionado para texto mais compacto */
+    font-size: 13px; 
+    line-height: 1.3; 
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.15); /* Mais suave */
+    box-shadow: 0 4px 12px rgba(28, 61, 45, 0.15); 
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Mais rápido: 0.3s */
-    max-width: 575px; /* Largura máxima fixa menor */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    max-width: 575px; 
     width: auto;
-    min-width: 300px; /* Mínimo menor */
+    min-width: 300px; 
     border: 1px solid rgba(255, 255, 255, 0.2);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    white-space: nowrap; /* Impede quebra de linha */
-    text-overflow: ellipsis; /* Adiciona "..." se texto muito longo */
-    overflow: hidden; /* Esconde conteúdo excedente */
+    white-space: nowrap; 
+    text-overflow: ellipsis; 
+    overflow: hidden; 
 }
 
 #notificationBar.show {
@@ -446,28 +438,28 @@ input {
     pointer-events: all;
 }
 
-/* TIPO INFO - Verde claro */
+
 #notificationBar.info {
     background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
     color: #1C3D2D;
     border-left: 4px solid #4CAF50;
 }
 
-/* TIPO SUCCESS - Verde tema */
+
 #notificationBar.success {
     background: linear-gradient(135deg, #F1F8E9 0%, #DCEDC8 100%);
     color: #1C3D2D;
     border-left: 4px solid #8BC34A;
 }
 
-/* TIPO ERROR - Vermelho suave */
+
 #notificationBar.error {
     background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
     color: #B71C1C;
     border-left: 4px solid #F44336;
 }
 
-/* TIPO WARNING - Amarelo/Laranja */
+
 #notificationBar.warning {
     background: linear-gradient(135deg, #FFFDE7 0%, #FFF9C4 100%);
     color: #F57F17;
@@ -514,7 +506,7 @@ input {
     margin-top: var(--spacing-md);
     max-height: 300px;
     overflow-y: auto;
-    padding-right: 5px; /* Espaço para a scrollbar */
+    padding-right: 5px; 
 }
 
 .previous-order-item {
@@ -588,9 +580,9 @@ input {
 
 .previous-orders-list {
     margin-top: var(--spacing-sm);
-    max-height: 300px; /* Limita a altura para scroll */
+    max-height: 300px; 
     overflow-y: auto;
-    padding-right: 5px; /* Espaço para a scrollbar */
+    padding-right: 5px; 
 }
 
 .previous-order-item {
@@ -648,3 +640,18 @@ input {
     font-style: italic;
     padding: var(--spacing-md);
 }
+
+
+
+/* ============================================
+   ANIMAÇÕES GLOBAIS
+   ============================================ */
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+}
+
