@@ -76,7 +76,6 @@ class ReportsPanel {
             this.showLoading(true);
             await this.loadOrders();
             this.loadReportsHistory();
-            this.showSuccess('✅ Dados carregados com sucesso');
         } catch (error) {
             console.error('❌ Erro ao carregar dados:', error);
             this.showError('Erro ao carregar dados: ' + error.message);

@@ -26,20 +26,21 @@
 /* ======= COLUNAS ======= */
 
 .coluna {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  padding: 18px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 20px;
   border: 1px solid var(--accent);
-  box-shadow: 0 4px 10px rgba(48, 57, 34, 0.06);
+  backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: 0.3s ease;
+  transition: all 0.4s ease;
 }
 
 .coluna:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 18px rgba(48, 57, 34, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(28, 61, 45, 0.08);
 }
 
 .col-title {
@@ -77,19 +78,19 @@
 /* ======= CARDS ======= */
 
 .card {
-  background: var(--muted);
-  border-radius: var(--radius);
-  padding: 14px;
-  border: 1px solid rgba(216, 166, 94, 0.2);
-  box-shadow: 0 3px 8px rgba(48, 57, 34, 0.04);
-  transition: 0.2s;
-  margin-bottom: 5px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(28, 61, 45, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  margin-bottom: 12px;
 }
 
 .card:hover {
-  transform: scale(1.02);
-  background: var(--accent-light);
-  border-color: var(--secondary);
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(28, 61, 45, 0.06);
 }
 
 .card-top {
@@ -100,7 +101,14 @@
 }
 
 .emoji {
-  font-size: 24px;
+  font-size: 20px;
+  background: var(--accent-light);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
 }
 
 .nome {

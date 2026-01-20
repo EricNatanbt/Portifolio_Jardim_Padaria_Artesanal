@@ -246,8 +246,6 @@ class AdminPanel {
             // Atualiza timestamp
             this.updateTimestamp();
 
-            this.showSuccess('✅ Dados carregados com sucesso');
-
         } catch (error) {
             console.error('❌ Erro ao carregar dados:', error);
             this.showError('Erro ao carregar dados: ' + error.message);
