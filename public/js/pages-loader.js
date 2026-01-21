@@ -551,54 +551,7 @@ class PagesLoader {
                     <!-- Contato -->
                     <section class="footer-section">
                         <h3>Contato</h3>
-                        <p>📍 Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
-                        <p>📞 (83) 99920-4618</p>
-                    </section>
-
-                    </section>
-
-                    <!-- Formas de Pagamento -->
-                    <section class="footer-section">
-                        <h3>Formas de Pagamento</h3>
-                        <div class="footer-payment-icons">
-                            <img src="img/payment/cardVisa.png" alt="Visa">
-                            <img src="img/payment/cardMastercard.png" alt="MasterCard">
-                            <img src="img/payment/cardElo.png" alt="Elo">
-                            <img src="img/payment/pix.png" alt="Pix">
-                            <img src="img/payment/cash.png" alt="Dinheiro">
-                        </div>
-                    </section>
-
-                    <!-- Siga-nos -->
-                    <section class="footer-section">
-                        <h3>Siga-nos</h3>
-                        <div class="footer-social-icons">
-                            <a href="https://www.instagram.com/jardimpadariacg/">
-                                <img src="img/logos/instagram.png" alt="Instagram">
-                            </a>
-                            <a href="https://api.whatsapp.com/send/?phone=558399204618&text&type=phone_number&app_absent=0">
-                                <img src="img/logos/whatsapp.png" alt="WhatsApp">
-                            </a>
-                        </div>
-                    </section>
-                </div>
-        `;
-    }
-
-    getFooterContent() {
-        return `
-            <footer>
-                <div class="footer-content">
-                    <!-- Sobre -->
-                    <section class="footer-section">
-                        <h3>Padaria Jardim</h3>
-                        <p>Sabor artesanal que nasce do cuidado e da tradição.</p>
-                    </section>
-
-                    <!-- Contato -->
-                    <section class="footer-section">
-                        <h3>Contato</h3>
-                        <p>📍 Av. Joaquim Caroca, 266 - Universitário<br>Campina Grande - PB</p>
+                        <p>📍 Av. Joaquim Caroca, 266 - Universitário, Campina Grande - PB</p>
                         <p>📞 (83) 99920-4618</p>
                     </section>
 
@@ -622,9 +575,9 @@ class PagesLoader {
                             <img src="img/payment/pix.png" alt="Pix">
                             <img src="img/payment/cash.png" alt="Dinheiro">
                         </div>
-                    </section>
 
                     <!-- Siga-nos -->
+                    <br>
                     <section class="footer-section">
                         <h3>Siga-nos</h3>
                         <div class="footer-social-icons">
