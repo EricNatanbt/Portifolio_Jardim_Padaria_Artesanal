@@ -41,6 +41,7 @@
     margin-bottom: 1rem;
 }
 
+/* Purpose Section */
 .purpose-section {
     margin-bottom: 4rem;
 }
@@ -455,7 +456,12 @@
 
     .about-image {
         width: 100%;
-        order: -1; 
+        order: 1; /* Garante que a imagem apareça depois do texto no mobile */
+    }
+    
+    .about-text {
+        width: 100%;
+        order: 0;
     }
 }
 
