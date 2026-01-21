@@ -12,16 +12,18 @@
 }
 
 .about-content {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
     margin-bottom: 4rem;
     align-items: center;
 }
 
 @media (min-width: 768px) {
     .about-content {
+        display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: 3rem;
     }
 }
 
@@ -39,7 +41,6 @@
     margin-bottom: 1rem;
 }
 
-/* Purpose Section */
 .purpose-section {
     margin-bottom: 4rem;
 }
@@ -352,6 +353,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 2rem;
+    width: 100%;
 }
 
 .text-slide-wrapper {
@@ -362,14 +364,16 @@
 .text-slide {
     display: none;
     background: linear-gradient(145deg, #ffffff 0%, #f8f5ee 100%);
-    padding: 2.5rem 2.2rem;
+    padding: 1.5rem;
     border-radius: 16px;
     border: 1px solid rgba(216, 166, 94, 0.2);
     box-shadow: 0 6px 20px rgba(28, 61, 45, 0.05);
-    font-size: 1.1rem;
-    line-height: 1.75;
+    font-size: 1rem;
+    line-height: 1.6;
     animation: fadeIn 0.8s ease;
     color: var(--muted-foreground);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .text-slide.active {
@@ -418,9 +422,23 @@
 }
 
 @media (max-width: 768px) {
+    .about-text h2 {
+        font-size: 2rem;
+    }
+
+    .text-slide {
+        padding: 1.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .text-arrow {
+        width: 32px;
+        height: 32px;
+    }
+
     .purpose-card, .differential {
-        padding: 1.75rem;
-        min-height: 200px;
+        padding: 1.5rem;
+        min-height: auto;
     }
     
     .purpose-card h3, .differential h3 {
@@ -433,6 +451,11 @@
     
     .benefits-list li {
         font-size: 0.85rem;
+    }
+
+    .about-image {
+        width: 100%;
+        order: -1; 
     }
 }
 

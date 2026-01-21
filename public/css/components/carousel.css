@@ -1,16 +1,16 @@
 /* ============================================
-   CARROSSEL SOBRE NÓS - MAIS LARGO
+   CARROSSEL SOBRE NÓS 
    ============================================ */
 
 .carousel-container {
-    width: 450px;
+    width: 100%;
     max-width: 600px; 
-    height: 1200px;
+    height: 600px; 
     overflow: hidden;
     border-radius: var(--radius-lg);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     position: relative;
-    margin: 0 auto; /* Centraliza */
+    margin: 0 auto; 
 }
 
 .carousel-slide {
@@ -34,61 +34,30 @@
     opacity: 1;
 }
 
-.carousel-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
 
-.carousel-dot.active {
-    background-color: white;
-    transform: scale(1.2);
-}
-
-.carousel-dot:hover {
-    background-color: rgba(255, 255, 255, 0.8);
-}
-
-
-.carousel-nav:hover {
-    background-color: white;
-    transform: translateY(-50%) scale(1.1);
-}
-
-.carousel-prev {
-    left: 20px;
-}
-
-.carousel-next {
-    right: 20px;
-}
-
-/* Ajuste para telas maiores - MUITO MAIS LARGO */
+/* Ajuste para telas maiores - Desktop */
 @media (min-width: 1200px) {
     .carousel-container {
-        max-width: 1400px; /* EXTRA LARGO para telas grandes */
+        max-width: 1400px; 
         height: 700px;
     }
 }
 
-/* Ajuste para telas médias */
+/* Ajuste para telas médias - Tablets */
 @media (min-width: 768px) and (max-width: 1199px) {
     .carousel-container {
-        max-width: 1000px; /* Largo para tablets */
+        max-width: 1000px; 
         height: 550px;
     }
 }
 
-/* Ajuste para telas pequenas */
+/* Ajuste para telas pequenas - Mobile */
 @media (max-width: 767px) {
     .carousel-container {
         max-width: 100%;
-        height: 400px;
-        margin: 0 1rem;
+        height: 450px; 
+        margin: 0;
+        border-radius: 12px;
     }
     
     .carousel-nav {
@@ -102,5 +71,22 @@
     
     .carousel-next {
         right: 10px;
+    }
+
+    .carousel-controls {
+        bottom: 15px;
+        gap: 8px;
+    }
+
+    .carousel-dot {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+/* Ajuste para celulares muito pequenos */
+@media (max-width: 480px) {
+    .carousel-container {
+        height: 350px;
     }
 }

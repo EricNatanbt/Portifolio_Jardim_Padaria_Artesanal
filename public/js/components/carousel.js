@@ -6,22 +6,20 @@ const Carousel = {
 
     initialize(selector, options = {}) {
         const defaultOptions = {
-            delay: 3000, // 3 segundos
+            delay: 3000,
             autoPlay: true,
-            force: false // Nova opção para forçar reinicialização
+            force: false
         };
 
         const settings = { ...defaultOptions, ...options };
 
         const carousels = document.querySelectorAll(selector);
         carousels.forEach((carousel, index) => {
-            // Se force for true, removemos o atributo de inicialização e paramos o intervalo anterior
             if (settings.force) {
                 carousel.removeAttribute('data-carousel-initialized');
                 this.stop(index);
             }
 
-            // Verifica se já foi inicializado
             if (carousel.getAttribute('data-carousel-initialized') === 'true') {
                 return;
             }
@@ -32,54 +30,107 @@ const Carousel = {
 
     setupCarousel(carousel, settings, index) {
         const carouselImages = carousel.querySelectorAll('.carousel-image');
+        const prevBtn = carousel.querySelector('.carousel-prev');
+        const nextBtn = carousel.querySelector('.carousel-next');
+        const dots = carousel.querySelectorAll('.carousel-dot');
         
         if (carouselImages.length === 0) return;
 
         let currentIndex = 0;
 
+        const updateCarousel = (newIndex) => {
+            currentIndex = newIndex;
+            this.showImage(carouselImages, currentIndex);
+            this.updateDots(dots, currentIndex);
+        };
+
         // Mostra a primeira imagem
-        this.showImage(carouselImages, currentIndex);
+        updateCarousel(currentIndex);
 
         const nextSlide = () => {
-            currentIndex = (currentIndex + 1) % carouselImages.length;
-            this.showImage(carouselImages, currentIndex);
+            let nextIndex = (currentIndex + 1) % carouselImages.length;
+            updateCarousel(nextIndex);
         };
+
+        const prevSlide = () => {
+            let prevIndex = (currentIndex - 1 + carouselImages.length) % carouselImages.length;
+            updateCarousel(prevIndex);
+        };
+
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                prevSlide();
+                if (settings.autoPlay) restartAutoPlay();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                nextSlide();
+                if (settings.autoPlay) restartAutoPlay();
+            });
+        }
+
+        
+        dots.forEach((dot, dotIndex) => {
+            dot.addEventListener('click', (e) => {
+                e.preventDefault();
+                updateCarousel(dotIndex);
+                if (settings.autoPlay) restartAutoPlay();
+            });
+        });
 
         // Inicia o carrossel automático
         const startAutoPlay = () => {
             if (settings.autoPlay) {
-                // Para qualquer intervalo existente
                 this.stop(index);
-                
                 const intervalId = setInterval(nextSlide, settings.delay);
                 this.intervals.set(index, intervalId);
             }
         };
 
-        // Inicia automaticamente
+        const restartAutoPlay = () => {
+            this.stop(index);
+            startAutoPlay();
+        };
+
         startAutoPlay();
 
-        // Previne múltiplas inicializações
+        
+        carousel.addEventListener('mouseenter', () => this.stop(index));
+        carousel.addEventListener('mouseleave', () => startAutoPlay());
+
         carousel.setAttribute('data-carousel-initialized', 'true');
     },
 
     showImage(images, index) {
-        // Remove a classe active de todas as imagens
         images.forEach(img => {
             img.classList.remove('active');
-            // Se não houver transição CSS, garantimos via JS
             img.style.opacity = '0';
             img.style.zIndex = '0';
         });
 
-        // Adiciona a classe active na imagem atual
-        const activeImage = images[index];
-        activeImage.classList.add('active');
-        activeImage.style.opacity = '1';
-        activeImage.style.zIndex = '1';
+        if (images[index]) {
+            const activeImage = images[index];
+            activeImage.classList.add('active');
+            activeImage.style.opacity = '1';
+            activeImage.style.zIndex = '1';
+        }
     },
 
-    // Método para destruir um carrossel
+    updateDots(dots, index) {
+        dots.forEach((dot, i) => {
+            if (i === index) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    },
+
     destroy(selector) {
         const carousels = document.querySelectorAll(selector);
         carousels.forEach((carousel, index) => {
@@ -96,4 +147,5 @@ const Carousel = {
         }
     }
 };
+
 export default Carousel;
