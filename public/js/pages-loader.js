@@ -555,11 +555,6 @@ class PagesLoader {
                         <p>📞 (83) 99920-4618</p>
                     </section>
 
-                    <!-- Horário -->
-                    <section class="footer-section">
-                        <h3>Horário</h3>
-                        <p>Terça a domingo</p>
-                        <p>07h - 19h</p>
                     </section>
 
                     <!-- Formas de Pagamento -->
@@ -607,11 +602,14 @@ class PagesLoader {
                         <p>📞 (83) 99920-4618</p>
                     </section>
 
-                    <!-- Horário -->
                     <section class="footer-section">
                         <h3>Horário</h3>
-                        <p>Terça a domingo</p>
-                        <p>07h - 19h</p>
+                        <p>Quarta a Sexta</p>
+                        <p>14h - 18h</p>
+                        <br>
+                        <p>Sábado</p>
+                        <p>10h - 15h</p>
+
                     </section>
 
                     <!-- Formas de Pagamento -->

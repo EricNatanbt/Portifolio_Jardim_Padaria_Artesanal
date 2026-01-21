@@ -673,16 +673,7 @@ function abrirContato() {
     abrirWhatsApp();
 }
 
-// ============================================
-// FUNÇÕES AUXILIARES PARA SIMULAÇÃO
 
-// Função para alternar o modo de simulação (apenas para debug)
-function toggleSimulationMode() {
-    const currentMode = getSimulationMode();
-    const nextMode = currentMode === "real" ? "quarta" : "real";
-    localStorage.setItem("simulationMode", nextMode);
-    alert(`Modo de simulação alterado para: ${nextMode}. Recarregue a página.`);
-}
 
 // Função para verificar o modo atual
 function getSimulationMode() {
