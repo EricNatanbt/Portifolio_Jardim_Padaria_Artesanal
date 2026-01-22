@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'PUT, POST, OPTIONS', // Adicionado PUT
         'Content-Type': 'application/json'
     };
 
@@ -18,11 +18,12 @@ exports.handler = async (event) => {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
+    // Aceitar tanto PUT quanto POST
+    if (event.httpMethod !== 'PUT' && event.httpMethod !== 'POST') {
         return { 
             statusCode: 405, 
             headers,
-            body: JSON.stringify({ success: false, message: 'Método não permitido' }) 
+            body: JSON.stringify({ success: false, message: 'Método não permitido. Use PUT ou POST.' }) 
         };
     }
 
@@ -39,24 +40,59 @@ exports.handler = async (event) => {
             };
         }
 
+        // Verificar se o produto existe
+        const { data: existingProduct, error: checkError } = await supabase
+            .from('products')
+            .select('id')
+            .eq('id', id)
+            .single();
+
+        if (checkError || !existingProduct) {
+            return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ 
+                    success: false, 
+                    message: 'Produto não encontrado' 
+                })
+            };
+        }
+
+        // Preparar dados para atualização
+        const updateData = {
+            name: nome,
+            description: descricao,
+            price: parseFloat(preco),
+            category: categoria,
+            available_days: dias_disponiveis || [],
+            updated_at: new Date().toISOString()
+        };
+
+        // Se uma nova imagem foi fornecida, atualizar o campo
+        if (imagem) {
+            updateData.image_url = imagem;
+        }
+
+        // Atualizar produto
         const { data, error } = await supabase
             .from('products')
-            .update({ 
-                name: nome, 
-                description: descricao, 
-                price: preco, 
-                category: categoria, 
-                available_days: dias_disponiveis,
-                image_url: imagem // Atualizando a URL da imagem
-            })
-            .eq('id', id);
+            .update(updateData)
+            .eq('id', id)
+            .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Erro do Supabase ao atualizar produto:', error);
+            throw error;
+        }
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ success: true, message: 'Produto atualizado com sucesso!', data })
+            body: JSON.stringify({ 
+                success: true, 
+                message: 'Produto atualizado com sucesso!', 
+                product: data ? data[0] : null 
+            })
         };
 
     } catch (err) {
@@ -64,7 +100,11 @@ exports.handler = async (event) => {
         return { 
             statusCode: 500, 
             headers,
-            body: JSON.stringify({ success: false, message: err.message }) 
+            body: JSON.stringify({ 
+                success: false, 
+                message: 'Erro interno ao atualizar produto',
+                error: err.message 
+            }) 
         };
     }
 };

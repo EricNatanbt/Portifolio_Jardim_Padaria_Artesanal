@@ -1,7 +1,6 @@
 /* ============================================
    CART SIDEBAR
    ============================================ */
-/* Efeito de transição suave */
 .cart-sidebar {
     position: fixed;
     inset: 0;
@@ -36,17 +35,33 @@
 
 .cart-content {
     width: 100%;
+    max-width: 100%;
+    height: 100%;
     background-color: white;
     box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid var(--border);
+    overflow: hidden; /* Impede que o conteúdo transborde */
 }
 
 @media (min-width: 768px) {
     .cart-content {
         width: 24rem;
+        max-width: 24rem;
     }
+}
+
+.cart-main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; 
+}
+
+.cart-items-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0; 
 }
 
 .cart-header {
@@ -498,3 +513,4 @@ input.cep-loading {
     color: var(--card);
     border: 2px solid var(--primary);
 }
+
