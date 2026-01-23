@@ -1,9 +1,8 @@
 export default async (request, context) => {
   const authHeader = request.headers.get("authorization");
-
-  // Usuário e senha desejados (Você pode alterar aqui)
-  const USER = "admin";
-  const PASS = "admin123"; // Altere para sua senha preferida
+  
+  const USER = process.env.ADMIN_USER;
+  const PASS = process.env.ADMIN_PASS;
 
   if (!authHeader) {
     return new Response("Acesso restrito", {
