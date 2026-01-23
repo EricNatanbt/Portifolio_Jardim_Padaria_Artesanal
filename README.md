@@ -52,11 +52,11 @@ A aplicação busca resolver os problemas citados por meio de:
 
 ---
 
-## 🧩 Tecnologias Utilizadas (sugestão)
+## 🧩 Tecnologias Utilizadas
 
-- **Front-end:** HTML, CSS, SCSS, Javascript e react 
-- **Back-end (opcional):** Python
-- **Banco de Dados (opcional):** MySQL / IndexedBD  
+- **Front-end:** HTML, CSS, Javascript  
+- **Back-end:** JavaScript
+- **Banco de Dados:** Supabase 
 - **Design:** Figma   
 - **Hospedagem:** Netlify
 
@@ -80,6 +80,6 @@ O site e portfólio da **Jardim Padaria Artesanal** será uma ferramenta fundame
 
 ### 📎 Licença
 
-Este projeto foi desenvolvido por Eric Natan, Kayllane Santos, Gabriella Barros e M. Eduarda Brito, para fins educacionais no âmbito do **Projeto Integrador Softex-PE**.
+Este projeto foi desenvolvido por Eric Natan, Kayllane Santos e Gabriella Barros, para fins educacionais no âmbito do **Projeto Integrador Softex-PE**.
 
 ---
