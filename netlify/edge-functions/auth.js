@@ -1,14 +1,18 @@
 export default async (request, context) => {
+  const USER = Netlify.env.get("ADMIN_USER");
+  const PASS = Netlify.env.get("ADMIN_PASS");
+
+  if (!USER || !PASS) {
+    return new Response("Erro de configuração do servidor", { status: 500 });
+  }
+
   const authHeader = request.headers.get("authorization");
-  
-  const USER = process.env.ADMIN_USER;
-  const PASS = process.env.ADMIN_PASS;
 
   if (!authHeader) {
     return new Response("Acesso restrito", {
       status: 401,
       headers: {
-        "WWW-Authenticate": 'Basic realm="Acesso Admin"',
+        "WWW-Authenticate": 'Basic realm="Admin"',
       },
     });
   }
@@ -23,7 +27,7 @@ export default async (request, context) => {
   return new Response("Credenciais inválidas", {
     status: 401,
     headers: {
-      "WWW-Authenticate": 'Basic realm="Acesso Admin"',
+      "WWW-Authenticate": 'Basic realm="Admin"',
     },
   });
 };
