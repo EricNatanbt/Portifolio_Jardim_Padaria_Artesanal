@@ -456,7 +456,7 @@
 
     .about-image {
         width: 100%;
-        order: 1; /* Garante que a imagem apareça depois do texto no mobile */
+        order: 1;
     }
     
     .about-text {
@@ -471,3 +471,4 @@
         min-height: 180px;
     }
 }
+

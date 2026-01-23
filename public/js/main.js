@@ -398,15 +398,19 @@ async function initializePageComponents(pageName) {
                 }
                 break;
 
-            case "sobre":
+             case "sobre":
+                
+                if (window.SobreNosPage && typeof window.SobreNosPage.destroy === 'function') {
+                    window.SobreNosPage.destroy();
+                }
+                
                 if (typeof SobreNosPage !== "undefined") {
                     SobreNosPage.initialize();
                     console.log("✅ Página Sobre Nós inicializada");
                 } else {
-                    // Tenta carregar dinamicamente
+            
                     const sobreModule = await import("./pages/sobrenos.js");
-                    window.SobreNosPage = sobreModule.default ||
-                        sobreModule.SobreNosPage;
+                    window.SobreNosPage = sobreModule.default || sobreModule.SobreNosPage;
                     if (window.SobreNosPage.initialize) {
                         window.SobreNosPage.initialize();
                     }

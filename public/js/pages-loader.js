@@ -12,6 +12,7 @@ class PagesLoader {
             'feedbacks': this.getFeedbacksContent(),
         };
         this.footerContent = this.getFooterContent();
+        this.loadedPages = new Set();
         this.init();
     }
 
@@ -22,22 +23,23 @@ class PagesLoader {
     }
 
     loadAllPages() {
-        // Carrega conteúdo em todas as páginas
-        for (const [pageId, content] of Object.entries(this.pagesContent)) {
-            const pageElement = document.getElementById(`page-${pageId}`);
-            if (pageElement) {
-                pageElement.innerHTML = content;
-            }
+    // Carrega conteúdo em todas as páginas apenas se não estiverem carregadas
+    for (const [pageId, content] of Object.entries(this.pagesContent)) {
+        const pageElement = document.getElementById(`page-${pageId}`);
+        if (pageElement && !this.loadedPages.has(pageId)) {
+            pageElement.innerHTML = content;
+            this.loadedPages.add(pageId);
         }
-
-        // Inicializa a aplicação após carregar todo o conteúdo
-        setTimeout(() => {
-            if (typeof initializeApp === 'function') {
-                initializeApp();
-            }
-            this.loadFooter();
-        }, 100);
     }
+
+    // Inicializa a aplicação após carregar todo o conteúdo
+    setTimeout(() => {
+        if (typeof initializeApp === 'function') {
+            initializeApp();
+        }
+        this.loadFooter();
+    }, 100);
+}
 
     loadFooter() {
         const footerPlaceholder = document.getElementById('footer-placeholder');
