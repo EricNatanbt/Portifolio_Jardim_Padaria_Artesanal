@@ -235,6 +235,9 @@ async function handleGetProducts(event, headers) {
             .from('products')
             .select('*');
         
+        // Sempre filtrar produtos que não estão disponíveis hoje para o frontend
+        query = query.neq('is_available', false);
+        
         // Aplica filtro se especificado
         if (filterColumn === 'available_days' && filterValue) {
             console.log(`🔍 Filtrando por dia: ${filterValue}`);
